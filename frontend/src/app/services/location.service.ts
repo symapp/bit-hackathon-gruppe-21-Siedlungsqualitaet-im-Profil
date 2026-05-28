@@ -126,9 +126,8 @@ export class LocationService {
     const remaining = currentRegions.filter((region) => region.id !== regionId);
 
     if (remaining.length === 0) {
-      const fallback = createDefaultRegion();
-      this._regions.set([fallback]);
-      this._activeRegionId.set(fallback.id);
+      this._regions.set([]);
+      this._activeRegionId.set('');
       this._address.set('');
       return;
     }

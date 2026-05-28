@@ -27,9 +27,16 @@ export class MapComponent implements OnInit, OnDestroy {
       const regions = this.locationService.regions();
       const activeRegion = this.locationService.activeRegion();
 
-      if (this.map && this.marker && this.deckOverlay && activeRegion) {
+      if (this.map && this.marker && this.deckOverlay) {
+        this.updateDeckLayers(regions, activeRegion?.id ?? '');
+
+        if (!activeRegion) {
+          this.marker.getElement().style.display = 'none';
+          return;
+        }
+
+        this.marker.getElement().style.display = '';
         this.marker.setLngLat([activeRegion.lng, activeRegion.lat]);
-        this.updateDeckLayers(regions, activeRegion.id);
         this.map.flyTo({ center: [activeRegion.lng, activeRegion.lat], essential: true });
       }
     });
