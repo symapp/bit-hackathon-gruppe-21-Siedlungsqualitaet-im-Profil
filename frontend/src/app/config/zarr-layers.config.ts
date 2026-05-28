@@ -29,6 +29,8 @@ export interface ZarrLayerDefinition {
   metricLabel: string;
   metricUnit: string;
   formatValue: (value: number) => string;
+  /** Used for the aggregated overview score (0–100). */
+  higherIsBetter: boolean;
 }
 
 export const DEFAULT_ACTIVE_ZARR_LAYER_ID = 'tranquillity';
@@ -59,6 +61,7 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     metricLabel: 'Ruhegüte',
     metricUnit: 'Stufe',
     formatValue: (v) => v.toFixed(1),
+    higherIsBetter: true,
   },
   {
     id: 'population-density',
@@ -74,6 +77,7 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     metricLabel: 'Bevölkerungsdichte',
     metricUnit: 'Einw./km²',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
+    higherIsBetter: false,
   },
   {
     id: 'pt-accessibility',
@@ -87,5 +91,18 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     metricLabel: 'ÖV-Erreichbarkeit',
     metricUnit: 'EW',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
+    higherIsBetter: true,
   },
 ];
+
+export const DEFAULT_LAYER_WEIGHT = 100;
+
+export function createDefaultLayerWeights(): Record<string, number> {
+  return Object.fromEntries(
+    ZARR_LAYER_DEFINITIONS.map((d) => [d.id, DEFAULT_LAYER_WEIGHT]),
+  );
+}
+
+export function createDefaultLayerEnabled(): Record<string, boolean> {
+  return Object.fromEntries(ZARR_LAYER_DEFINITIONS.map((d) => [d.id, true]));
+}

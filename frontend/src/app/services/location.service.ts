@@ -20,6 +20,7 @@ export class LocationService {
   readonly metrics = this.zarrMap.metrics;
   readonly metricsLoading = this.zarrMap.metricsLoading;
   readonly metricsError = this.zarrMap.metricsError;
+  readonly overviewScore = this.zarrMap.overviewScore;
   readonly zarrLayers = this.zarrMap.layerStates;
 
   constructor() {
@@ -42,7 +43,11 @@ export class LocationService {
     this._radius.set(radius);
   }
 
-  setActiveZarrLayer(layerId: string): void {
-    this.zarrMap.setActiveLayer(layerId);
+  setZarrLayerWeight(layerId: string, weight: number): void {
+    this.zarrMap.setLayerWeight(layerId, weight);
+  }
+
+  setZarrLayerEnabled(layerId: string, enabled: boolean): void {
+    this.zarrMap.setLayerEnabled(layerId, enabled);
   }
 }

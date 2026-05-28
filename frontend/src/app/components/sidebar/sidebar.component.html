@@ -41,61 +41,92 @@
         </div>
       </div>
 
-      <div class="layers-section">
-        <h3 class="metrics-title">Karte</h3>
-        <p class="layers-hint">Ruhe, Bevölkerungsdichte und ÖV-Erreichbarkeit aus GeoZarr (B2)</p>
+      <div class="overview-section">
+        <h3 class="metrics-title">Gesamtübersicht</h3>
+        <p class="layers-hint">
+          Gewichteter Durchschnitt aller aktiven GeoZarr-Indikatoren (0–100, höher = besser).
+        </p>
 
-        <div class="map-layer-list" role="radiogroup" aria-label="Datenkarte auswählen">
+        @if (locationService.metricsLoading()) {
+          <p class="metrics-hint">Werte werden berechnet…</p>
+        } @else if (locationService.metricsError()) {
+          <p class="metrics-error">{{ locationService.metricsError() }}</p>
+        } @else {
+          @let score = locationService.overviewScore();
+          <div class="overview-score-card">
+            <span class="overview-score-value">
+              {{ score === null ? '—' : score.toFixed(0) }}
+            </span>
+            <span class="overview-score-unit">/ 100</span>
+            @if (score !== null) {
+              <div class="overview-score-bar" role="meter" [attr.aria-valuenow]="score" aria-valuemin="0" aria-valuemax="100">
+                <div class="overview-score-fill" [style.width.%]="score"></div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="layers-section">
+        <h3 class="metrics-title">Gewichtung &amp; Karte</h3>
+        <p class="layers-hint">Alle Ebenen sind aktiv; Deckkraft folgt der Gewichtung.</p>
+
+        <div class="map-layer-list">
           @for (layer of locationService.zarrLayers(); track layer.id) {
-            <button
-              type="button"
+            @let def = layerDefinition(layer.id);
+            <div
               class="map-layer-card"
-              [class.active]="layer.active"
+              [class.disabled]="!layer.enabled"
               [class.loading]="layer.loading"
-              [disabled]="layer.loading && !layer.ready"
-              (click)="locationService.setActiveZarrLayer(layer.id)"
             >
-              <span class="map-layer-radio" [class.checked]="layer.active"></span>
-              <span class="map-layer-body">
+              <label class="map-layer-toggle">
+                <input
+                  type="checkbox"
+                  [checked]="layer.enabled"
+                  (change)="onLayerEnabledChange(layer.id, $event)"
+                />
                 <span class="map-layer-title">{{ layer.label }}</span>
-                <span class="map-layer-desc">{{ layer.description }}</span>
-                <span
-                  class="map-layer-legend"
-                  [style.background]="legendGradient(layer.colormap)"
-                ></span>
-                <span class="map-layer-scale">{{ formatClim(layer.clim, layer.id) }}</span>
-              </span>
+              </label>
+
+              <span class="map-layer-desc">{{ layer.description }}</span>
+
+              <div class="layer-weight-row">
+                <span class="layer-weight-label">Gewicht</span>
+                <span class="layer-weight-value">{{ layer.weight }}</span>
+              </div>
+              <input
+                type="range"
+                class="layer-weight-slider"
+                [min]="0"
+                [max]="200"
+                [step]="5"
+                [disabled]="!layer.enabled"
+                [ngModel]="layer.weight"
+                (ngModelChange)="onLayerWeightChange(layer.id, $event)"
+              />
+
+              @if (def) {
+                <span class="map-layer-metric">
+                  {{ def.metricLabel }}:
+                  <strong>{{ formatMetricValue(def.metricKey) }}</strong>
+                  @if (locationService.metrics()[def.metricKey] !== null) {
+                    <span class="metric-unit">{{ def.metricUnit }}</span>
+                  }
+                </span>
+              }
+
+              <span
+                class="map-layer-legend"
+                [style.background]="legendGradient(layer.colormap)"
+              ></span>
+              <span class="map-layer-scale">{{ formatClim(layer.clim, layer.id) }}</span>
+
               @if (layer.loading) {
                 <span class="layer-status">lädt…</span>
               }
-            </button>
+            </div>
           }
         </div>
-      </div>
-
-      <div class="metrics-section">
-        <h3 class="metrics-title">Indikatoren am Standort</h3>
-
-        @if (locationService.metricsLoading()) {
-          <p class="metrics-hint">Werte werden aus GeoZarr geladen…</p>
-        }
-        @if (locationService.metricsError()) {
-          <p class="metrics-error">{{ locationService.metricsError() }}</p>
-        }
-
-        @for (def of metricDefinitions; track def.id) {
-          <div class="metric-card">
-            <div class="metric-info">
-              <span class="metric-label">{{ def.metricLabel }}</span>
-              <span class="metric-value">
-                {{ formatMetricValue(def.metricKey) }}
-                @if (locationService.metrics()[def.metricKey] !== null) {
-                  <span class="metric-unit">{{ def.metricUnit }}</span>
-                }
-              </span>
-            </div>
-          </div>
-        }
       </div>
 
       <div class="coordinates-section">

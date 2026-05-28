@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ZARR_LAYER_DEFINITIONS } from '../../config/zarr-layers.config';
+import { ZARR_LAYER_DEFINITIONS, type ZarrLayerDefinition } from '../../config/zarr-layers.config';
 import type { LocationMetrics } from '../../models/metrics.model';
 import { LocationService } from '../../services/location.service';
 
@@ -54,5 +54,18 @@ export class SidebarComponent {
 
   legendGradient(colors: string[]): string {
     return `linear-gradient(to right, ${colors.join(', ')})`;
+  }
+
+  layerDefinition(layerId: string): ZarrLayerDefinition | undefined {
+    return this.metricDefinitions.find((d) => d.id === layerId);
+  }
+
+  onLayerWeightChange(layerId: string, weight: number): void {
+    this.locationService.setZarrLayerWeight(layerId, weight);
+  }
+
+  onLayerEnabledChange(layerId: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.locationService.setZarrLayerEnabled(layerId, input.checked);
   }
 }

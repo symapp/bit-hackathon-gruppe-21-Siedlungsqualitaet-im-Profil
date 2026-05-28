@@ -1,8 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import { ZarrLayer, type QueryResult } from '@carbonplan/zarr-layer';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import {
-  DEFAULT_ACTIVE_ZARR_LAYER_ID,
+  createDefaultLayerEnabled,
+  createDefaultLayerWeights,
   SWISS_LV95_PROJ4,
   ZARR_LAYER_DEFINITIONS,
   type ZarrLayerDefinition,
@@ -11,6 +12,7 @@ import {
   EMPTY_LOCATION_METRICS,
   type LocationMetrics,
 } from '../models/metrics.model';
+import { computeWeightedOverview } from '../utils/metrics-aggregate.util';
 
 interface ManagedZarrLayer {
   definition: ZarrLayerDefinition;
@@ -25,7 +27,8 @@ export interface ZarrLayerState {
   description: string;
   colormap: string[];
   clim: [number, number];
-  active: boolean;
+  enabled: boolean;
+  weight: number;
   ready: boolean;
   loading: boolean;
 }
@@ -40,11 +43,20 @@ export class ZarrMapService {
   private sampleAbort: AbortController | null = null;
   private lastSample: { lng: number; lat: number } | null = null;
 
-  readonly activeLayerId = signal<string>(DEFAULT_ACTIVE_ZARR_LAYER_ID);
+  readonly layerWeights = signal<Record<string, number>>(createDefaultLayerWeights());
+  readonly layerEnabled = signal<Record<string, boolean>>(createDefaultLayerEnabled());
   readonly metrics = signal<LocationMetrics>({ ...EMPTY_LOCATION_METRICS });
   readonly metricsLoading = signal(false);
   readonly metricsError = signal<string | null>(null);
   readonly layerStates = signal<ZarrLayerState[]>([]);
+  readonly overviewScore = computed(() =>
+    computeWeightedOverview(
+      this.metrics(),
+      ZARR_LAYER_DEFINITIONS,
+      this.layerWeights(),
+      this.layerEnabled(),
+    ),
+  );
 
   attachToMap(map: MaplibreMap): void {
     if (this.map === map && this.managedLayers.size > 0) {
@@ -111,12 +123,21 @@ export class ZarrMapService {
     this.syncLayerStateSignal();
   }
 
-  setActiveLayer(layerId: string): void {
+  setLayerWeight(layerId: string, weight: number): void {
     if (!this.managedLayers.has(layerId)) {
       return;
     }
-    this.activeLayerId.set(layerId);
-    this.applyLayerVisibility();
+    this.layerWeights.update((prev) => ({ ...prev, [layerId]: Math.max(0, weight) }));
+    this.applyLayerDisplay();
+    this.syncLayerStateSignal();
+  }
+
+  setLayerEnabled(layerId: string, enabled: boolean): void {
+    if (!this.managedLayers.has(layerId)) {
+      return;
+    }
+    this.layerEnabled.update((prev) => ({ ...prev, [layerId]: enabled }));
+    this.applyLayerDisplay();
     this.syncLayerStateSignal();
   }
 
@@ -174,7 +195,7 @@ export class ZarrMapService {
           map.addLayer(layer);
         }
       }
-      this.applyLayerVisibility();
+      this.applyLayerDisplay();
     };
 
     if (map.loaded()) {
@@ -184,21 +205,30 @@ export class ZarrMapService {
     }
   }
 
-  private applyLayerVisibility(): void {
+  private applyLayerDisplay(): void {
     if (!this.map) {
       return;
     }
 
-    const activeId = this.activeLayerId();
+    const weights = this.layerWeights();
+    const enabled = this.layerEnabled();
+    const activeWeights = [...this.managedLayers.keys()]
+      .filter((id) => enabled[id] !== false)
+      .map((id) => weights[id] ?? 0);
+    const maxWeight = Math.max(...activeWeights, 1);
 
-    for (const { layer } of this.managedLayers.values()) {
+    for (const { definition, layer } of this.managedLayers.values()) {
       if (!this.map.getLayer(layer.id)) {
         continue;
       }
 
-      const isActive = layer.id === activeId;
-      this.map.setLayoutProperty(layer.id, 'visibility', isActive ? 'visible' : 'none');
-      if (isActive) {
+      const isOn = enabled[definition.id] !== false;
+      const w = weights[definition.id] ?? 0;
+      const opacity = isOn && w > 0 ? 0.22 + 0.58 * (w / maxWeight) : 0;
+
+      layer.setOpacity(opacity);
+      this.map.setLayoutProperty(layer.id, 'visibility', isOn && w > 0 ? 'visible' : 'none');
+      if (isOn && w > 0) {
         this.map.moveLayer(layer.id);
       }
     }
@@ -229,7 +259,8 @@ export class ZarrMapService {
   }
 
   private syncLayerStateSignal(): void {
-    const activeId = this.activeLayerId();
+    const weights = this.layerWeights();
+    const enabled = this.layerEnabled();
     this.layerStates.set(
       [...this.managedLayers.values()].map(({ definition, ready, loading }) => ({
         id: definition.id,
@@ -237,7 +268,8 @@ export class ZarrMapService {
         description: definition.description,
         colormap: definition.colormap,
         clim: definition.clim,
-        active: definition.id === activeId,
+        enabled: enabled[definition.id] !== false,
+        weight: weights[definition.id] ?? 0,
         ready,
         loading,
       })),
