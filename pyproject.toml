@@ -17,5 +17,6 @@ dependencies = [
     "rioxarray>=0.22.0",
     "streamlit>=1.57.0",
     "xarray>=2026.4.0",
+    "xr>=1.0.5",
     "zarr>=3.2.1",
 ]
