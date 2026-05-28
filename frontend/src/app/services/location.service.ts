@@ -62,7 +62,7 @@ export class LocationService {
     }
   }
 
-  setZarrLayerVisible(layerId: string, visible: boolean): void {
-    this.zarrMap.setLayerVisible(layerId, visible);
+  setActiveZarrLayer(layerId: string): void {
+    this.zarrMap.setActiveLayer(layerId);
   }
 }

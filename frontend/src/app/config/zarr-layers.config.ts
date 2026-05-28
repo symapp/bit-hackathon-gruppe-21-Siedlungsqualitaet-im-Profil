@@ -11,17 +11,29 @@ export type ZarrMetricKey = keyof LocationMetrics;
 export interface ZarrLayerDefinition {
   id: string;
   label: string;
+  description: string;
   storePath: string;
   variable: string;
   selector?: Selector;
   colormap: string[];
   clim: [number, number];
-  defaultVisible: boolean;
   metricKey: ZarrMetricKey;
   metricLabel: string;
   metricUnit: string;
   formatValue: (value: number) => string;
 }
+
+export const DEFAULT_ACTIVE_ZARR_LAYER_ID = 'tranquillity';
+
+/**
+ * Color scale limits (`clim`) derived from pipeline Zarr stats (p5–p95 on finite cells).
+ * ÖV uses ARE Erreichbarkeitswert (EW), not travel time — values roughly 1–76k.
+ */
+const CLIM = {
+  tranquillity: [-12, 20] as [number, number],
+  populationDensity: [0, 20_000] as [number, number],
+  ptAccessibility: [50, 3_500] as [number, number],
+} as const;
 
 const base = environment.zarrBaseUrl;
 
@@ -29,12 +41,12 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
   {
     id: 'tranquillity',
     label: 'Ruhe',
+    description: 'BAFU Lärmempfindlichkeitskarte (Ruhegüte)',
     storePath: `${base}/ch_bafu_tranquillity_karte.zarr`,
     variable: 'tranquillity_index',
     selector: { band: 0 },
     colormap: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
-    clim: [1, 5],
-    defaultVisible: true,
+    clim: CLIM.tranquillity,
     metricKey: 'tranquillityIndex',
     metricLabel: 'Ruhegüte',
     metricUnit: 'Stufe',
@@ -43,11 +55,11 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
   {
     id: 'population-density',
     label: 'Bevölkerungsdichte',
+    description: 'BFS STATPOP, Einwohner pro km² (100 m Raster)',
     storePath: `${base}/statpop_population_density_100m.zarr`,
     variable: 'population_density_per_km2',
     colormap: ['#ffffcc', '#fed976', '#fd8d3c', '#e31a1c', '#800026'],
-    clim: [0, 12000],
-    defaultVisible: false,
+    clim: CLIM.populationDensity,
     metricKey: 'populationDensityPerKm2',
     metricLabel: 'Bevölkerungsdichte',
     metricUnit: 'Einw./km²',
@@ -56,14 +68,14 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
   {
     id: 'pt-accessibility',
     label: 'ÖV-Erreichbarkeit',
+    description: 'ARE Erreichbarkeitswert ÖV (EW, höher = besser erschlossen)',
     storePath: `${base}/erreichbarkeit_swiss_grid_100m.zarr`,
     variable: 'OeV_Erreichb_EW',
     colormap: ['#f7fbff', '#c6dbef', '#6baed6', '#2171b5', '#08306b'],
-    clim: [0, 60],
-    defaultVisible: false,
+    clim: CLIM.ptAccessibility,
     metricKey: 'publicTransportAccessibility',
     metricLabel: 'ÖV-Erreichbarkeit',
-    metricUnit: 'Min.',
-    formatValue: (v) => Math.round(v).toString(),
+    metricUnit: 'EW',
+    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
   },
 ];

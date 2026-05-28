@@ -44,8 +44,19 @@ export class SidebarComponent {
     return definition?.formatValue(value) ?? String(value);
   }
 
-  onLayerToggle(layerId: string, event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    this.locationService.setZarrLayerVisible(layerId, checked);
+  selectMapLayer(layerId: string): void {
+    this.locationService.setActiveZarrLayer(layerId);
+  }
+
+  formatClim(clim: [number, number], layerId: string): string {
+    const def = this.metricDefinitions.find((d) => d.id === layerId);
+    if (!def) {
+      return `${clim[0]} – ${clim[1]}`;
+    }
+    return `${def.formatValue(clim[0])} – ${def.formatValue(clim[1])}`;
+  }
+
+  legendGradient(colors: string[]): string {
+    return `linear-gradient(to right, ${colors.join(', ')})`;
   }
 }

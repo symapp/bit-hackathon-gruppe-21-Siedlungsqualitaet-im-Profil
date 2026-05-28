@@ -42,21 +42,35 @@
       </div>
 
       <div class="layers-section">
-        <h3 class="metrics-title">Datenebenen (GeoZarr)</h3>
-        @for (layer of locationService.zarrLayers(); track layer.id) {
-          <label class="layer-toggle">
-            <input
-              type="checkbox"
-              [checked]="layer.visible"
-              [disabled]="!layer.ready && layer.loading"
-              (change)="onLayerToggle(layer.id, $event)"
-            />
-            <span class="layer-label">{{ layer.label }}</span>
-            @if (layer.loading) {
-              <span class="layer-status">lädt…</span>
-            }
-          </label>
-        }
+        <h3 class="metrics-title">Karte</h3>
+        <p class="layers-hint">Ruhe, Bevölkerungsdichte und ÖV-Erreichbarkeit aus GeoZarr (B2)</p>
+
+        <div class="map-layer-list" role="radiogroup" aria-label="Datenkarte auswählen">
+          @for (layer of locationService.zarrLayers(); track layer.id) {
+            <button
+              type="button"
+              class="map-layer-card"
+              [class.active]="layer.active"
+              [class.loading]="layer.loading"
+              [disabled]="layer.loading && !layer.ready"
+              (click)="selectMapLayer(layer.id)"
+            >
+              <span class="map-layer-radio" [class.checked]="layer.active"></span>
+              <span class="map-layer-body">
+                <span class="map-layer-title">{{ layer.label }}</span>
+                <span class="map-layer-desc">{{ layer.description }}</span>
+                <span
+                  class="map-layer-legend"
+                  [style.background]="legendGradient(layer.colormap)"
+                ></span>
+                <span class="map-layer-scale">{{ formatClim(layer.clim, layer.id) }}</span>
+              </span>
+              @if (layer.loading) {
+                <span class="layer-status">lädt…</span>
+              }
+            </button>
+          }
+        </div>
       </div>
 
       <div class="metrics-section">

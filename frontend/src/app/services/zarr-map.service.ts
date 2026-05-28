@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { ZarrLayer, type QueryResult } from '@carbonplan/zarr-layer';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import {
+  DEFAULT_ACTIVE_ZARR_LAYER_ID,
   SWISS_LV95_PROJ4,
   ZARR_LAYER_DEFINITIONS,
   type ZarrLayerDefinition,
@@ -16,7 +17,17 @@ interface ManagedZarrLayer {
   layer: ZarrLayer;
   ready: boolean;
   loading: boolean;
-  visible: boolean;
+}
+
+export interface ZarrLayerState {
+  id: string;
+  label: string;
+  description: string;
+  colormap: string[];
+  clim: [number, number];
+  active: boolean;
+  ready: boolean;
+  loading: boolean;
 }
 
 @Injectable({
@@ -29,12 +40,11 @@ export class ZarrMapService {
   private sampleAbort: AbortController | null = null;
   private lastSample: { lng: number; lat: number } | null = null;
 
+  readonly activeLayerId = signal<string>(DEFAULT_ACTIVE_ZARR_LAYER_ID);
   readonly metrics = signal<LocationMetrics>({ ...EMPTY_LOCATION_METRICS });
   readonly metricsLoading = signal(false);
   readonly metricsError = signal<string | null>(null);
-  readonly layerStates = signal<
-    { id: string; label: string; visible: boolean; ready: boolean; loading: boolean }[]
-  >([]);
+  readonly layerStates = signal<ZarrLayerState[]>([]);
 
   attachToMap(map: MaplibreMap): void {
     if (this.map === map && this.managedLayers.size > 0) {
@@ -45,14 +55,14 @@ export class ZarrMapService {
     this.map = map;
 
     for (const definition of ZARR_LAYER_DEFINITIONS) {
-      const layer = new ZarrLayer({
+      const layerOptions: ConstructorParameters<typeof ZarrLayer>[0] = {
         id: definition.id,
         source: definition.storePath,
         variable: definition.variable,
         selector: definition.selector,
         colormap: definition.colormap,
         clim: definition.clim,
-        opacity: 0.72,
+        opacity: 0.82,
         zarrVersion: 3,
         proj4: SWISS_LV95_PROJ4,
         spatialDimensions: { lat: 'y', lon: 'x' },
@@ -65,36 +75,25 @@ export class ZarrMapService {
             console.error(`[zarr] ${definition.id}`, state.error);
           }
         },
-      });
+      };
+
+      // Zarr metadata marks _FillValue=0, but rasterized cells outside polygons are NaN.
+      if (definition.id === 'pt-accessibility') {
+        layerOptions.fillValue = Number.NaN;
+      }
+
+      const layer = new ZarrLayer(layerOptions);
 
       this.managedLayers.set(definition.id, {
         definition,
         layer,
         ready: false,
         loading: true,
-        visible: definition.defaultVisible,
       });
     }
 
     this.syncLayerStateSignal();
-
-    map.on('load', () => {
-      for (const { layer, visible } of this.managedLayers.values()) {
-        if (!map.getLayer(layer.id)) {
-          map.addLayer(layer);
-        }
-        map.setLayoutProperty(layer.id, 'visibility', visible ? 'visible' : 'none');
-      }
-    });
-
-    if (map.loaded()) {
-      for (const { layer, visible } of this.managedLayers.values()) {
-        if (!map.getLayer(layer.id)) {
-          map.addLayer(layer);
-        }
-        map.setLayoutProperty(layer.id, 'visibility', visible ? 'visible' : 'none');
-      }
-    }
+    this.installLayersOnMap(map);
   }
 
   detachFromMap(): void {
@@ -110,16 +109,12 @@ export class ZarrMapService {
     this.syncLayerStateSignal();
   }
 
-  setLayerVisible(layerId: string, visible: boolean): void {
-    const managed = this.managedLayers.get(layerId);
-    if (!managed) {
+  setActiveLayer(layerId: string): void {
+    if (!this.managedLayers.has(layerId)) {
       return;
     }
-
-    managed.visible = visible;
-    if (this.map?.getLayer(layerId)) {
-      this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-    }
+    this.activeLayerId.set(layerId);
+    this.applyLayerVisibility();
     this.syncLayerStateSignal();
   }
 
@@ -170,6 +165,43 @@ export class ZarrMapService {
     }
   }
 
+  private installLayersOnMap(map: MaplibreMap): void {
+    const addAll = () => {
+      for (const { layer } of this.managedLayers.values()) {
+        if (!map.getLayer(layer.id)) {
+          map.addLayer(layer);
+        }
+      }
+      this.applyLayerVisibility();
+    };
+
+    if (map.loaded()) {
+      addAll();
+    } else {
+      map.once('load', addAll);
+    }
+  }
+
+  private applyLayerVisibility(): void {
+    if (!this.map) {
+      return;
+    }
+
+    const activeId = this.activeLayerId();
+
+    for (const { layer } of this.managedLayers.values()) {
+      if (!this.map.getLayer(layer.id)) {
+        continue;
+      }
+
+      const isActive = layer.id === activeId;
+      this.map.setLayoutProperty(layer.id, 'visibility', isActive ? 'visible' : 'none');
+      if (isActive) {
+        this.map.moveLayer(layer.id);
+      }
+    }
+  }
+
   private updateLayerState(
     id: string,
     patch: Partial<Pick<ManagedZarrLayer, 'ready' | 'loading'>>,
@@ -195,11 +227,15 @@ export class ZarrMapService {
   }
 
   private syncLayerStateSignal(): void {
+    const activeId = this.activeLayerId();
     this.layerStates.set(
-      [...this.managedLayers.values()].map(({ definition, ready, loading, visible }) => ({
+      [...this.managedLayers.values()].map(({ definition, ready, loading }) => ({
         id: definition.id,
         label: definition.label,
-        visible,
+        description: definition.description,
+        colormap: definition.colormap,
+        clim: definition.clim,
+        active: definition.id === activeId,
         ready,
         loading,
       })),
