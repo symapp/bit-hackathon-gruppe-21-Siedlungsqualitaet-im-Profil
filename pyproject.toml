@@ -3,10 +3,17 @@ name = "bit-hackathon-gruppe-21-siedlungsqualitaet-im-profil"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
+    "certifi>=2026.5.20",
+    "dask>=2026.3.0",
     "geocube>=0.7.1",
     "geopandas>=1.1.3",
+    "ipykernel>=7.2.0",
     "leafmap>=0.62.0",
+    "matplotlib>=3.10.9",
+    "numpy>=2.4.6",
+    "pandas>=3.0.3",
     "pystac-client>=0.9.0",
+    "requests>=2.34.2",
     "rioxarray>=0.22.0",
     "streamlit>=1.57.0",
     "xarray>=2026.4.0",
