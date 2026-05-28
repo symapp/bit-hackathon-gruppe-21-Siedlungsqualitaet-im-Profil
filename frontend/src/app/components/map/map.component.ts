@@ -1,5 +1,14 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  effect,
+  inject,
+} from '@angular/core';
 import { LocationService } from '../../services/location.service';
+import { ZarrMapService } from '../../services/zarr-map.service';
 import { Map, NavigationControl, Marker } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
@@ -8,7 +17,7 @@ import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
   selector: 'app-map',
   standalone: true,
   templateUrl: './map.component.html',
-  styleUrl: './map.component.scss'
+  styleUrl: './map.component.scss',
 })
 export class MapComponent implements OnInit, OnDestroy {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLDivElement>;
@@ -17,9 +26,9 @@ export class MapComponent implements OnInit, OnDestroy {
   private marker!: Marker;
   private deckOverlay!: MapboxOverlay;
   private locationService = inject(LocationService);
+  private zarrMapService = inject(ZarrMapService);
 
   constructor() {
-    // React to location/radius changes and update deck.gl layers
     effect(() => {
       const lat = this.locationService.lat();
       const lng = this.locationService.lng();
@@ -38,6 +47,7 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.zarrMapService.detachFromMap();
     if (this.deckOverlay) {
       this.deckOverlay.finalize();
     }
@@ -57,33 +67,29 @@ export class MapComponent implements OnInit, OnDestroy {
       zoom: 14,
     });
 
-    // Add navigation controls
     this.map.addControl(new NavigationControl(), 'top-left');
 
-    // Create draggable marker
     this.marker = new Marker({
       draggable: true,
-      color: '#6366f1'
+      color: '#6366f1',
     })
       .setLngLat([lng, lat])
       .addTo(this.map);
 
-    // Handle marker drag end
     this.marker.on('dragend', () => {
       const lngLat = this.marker.getLngLat();
       this.locationService.setLocation(lngLat.lat, lngLat.lng);
       this.locationService.setAddress('');
     });
 
-    // Initialize Deck.gl overlay
     this.deckOverlay = new MapboxOverlay({
       interleaved: true,
-      layers: []
+      layers: [],
     });
 
     this.map.addControl(this.deckOverlay as any);
+    this.zarrMapService.attachToMap(this.map);
 
-    // Add deck.gl layers once map is loaded
     this.map.on('load', () => {
       this.updateDeckLayers(lat, lng, this.locationService.radius());
     });
@@ -93,24 +99,22 @@ export class MapComponent implements OnInit, OnDestroy {
     const circlePolygon = this.createCirclePolygon(lng, lat, radius);
 
     const layers = [
-      // Filled circle layer
       new PolygonLayer({
         id: 'radius-circle-fill',
         data: [{ polygon: circlePolygon }],
-        getPolygon: (d: any) => d.polygon,
-        getFillColor: [99, 102, 241, 25], // Indigo with low opacity
-        getLineColor: [99, 102, 241, 160], // Indigo border
+        getPolygon: (d: { polygon: [number, number][] }) => d.polygon,
+        getFillColor: [99, 102, 241, 25],
+        getLineColor: [99, 102, 241, 160],
         getLineWidth: 2,
         lineWidthUnits: 'pixels',
         filled: true,
         stroked: true,
         pickable: false,
       }),
-      // Center point highlight
       new ScatterplotLayer({
         id: 'center-point',
         data: [{ position: [lng, lat] }],
-        getPosition: (d: any) => d.position,
+        getPosition: (d: { position: [number, number] }) => d.position,
         getFillColor: [99, 102, 241, 200],
         getRadius: 8,
         radiusUnits: 'pixels',
@@ -131,7 +135,6 @@ export class MapComponent implements OnInit, OnDestroy {
       const dx = radiusMeters * Math.cos(angle);
       const dy = radiusMeters * Math.sin(angle);
 
-      // Convert meters to degrees
       const dLat = dy / 111320;
       const dLng = dx / (111320 * Math.cos((lat * Math.PI) / 180));
 

@@ -1,11 +1,15 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, effect, inject, signal, computed } from '@angular/core';
 import { MetricsService } from './metrics.service';
-import { LocationData, LocationMetrics } from '../models/metrics.model';
+import { ZarrMapService } from './zarr-map.service';
+import { LocationData } from '../models/metrics.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LocationService {
+  private readonly metricsService = inject(MetricsService);
+  private readonly zarrMap = inject(ZarrMapService);
+
   private readonly _lat = signal<number>(47.3769); // Default: Zürich
   private readonly _lng = signal<number>(8.5417);
   private readonly _radius = signal<number>(500); // Default: 500m
@@ -16,23 +20,26 @@ export class LocationService {
   readonly radius = this._radius.asReadonly();
   readonly address = this._address.asReadonly();
 
-  readonly metrics = computed<LocationMetrics>(() => {
-    return this.metricsService.getMetrics(
-      this._lat(),
-      this._lng(),
-      this._radius()
-    );
-  });
+  readonly metrics = this.zarrMap.metrics;
+  readonly metricsLoading = this.zarrMap.metricsLoading;
+  readonly metricsError = this.zarrMap.metricsError;
+  readonly zarrLayers = this.zarrMap.layerStates;
 
   readonly locationData = computed<LocationData>(() => ({
     lat: this._lat(),
     lng: this._lng(),
     radius: this._radius(),
     address: this._address(),
-    metrics: this.metrics()
+    metrics: this.metrics(),
   }));
 
-  constructor(private metricsService: MetricsService) {}
+  constructor() {
+    effect(() => {
+      const lat = this._lat();
+      const lng = this._lng();
+      this.metricsService.refreshMetrics(lat, lng);
+    });
+  }
 
   setLocation(lat: number, lng: number): void {
     this._lat.set(lat);
@@ -53,5 +60,9 @@ export class LocationService {
     if (address) {
       this._address.set(address);
     }
+  }
+
+  setZarrLayerVisible(layerId: string, visible: boolean): void {
+    this.zarrMap.setLayerVisible(layerId, visible);
   }
 }

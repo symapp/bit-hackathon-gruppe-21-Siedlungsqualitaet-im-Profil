@@ -1,10 +1,7 @@
 export interface LocationMetrics {
-  restaurants: number;
-  supermarkets: number;
-  publicTransport: number;
-  parks: number;
-  schools: number;
-  pharmacies: number;
+  tranquillityIndex: number | null;
+  populationDensityPerKm2: number | null;
+  publicTransportAccessibility: number | null;
 }
 
 export interface LocationData {
@@ -14,3 +11,9 @@ export interface LocationData {
   address?: string;
   metrics: LocationMetrics;
 }
+
+export const EMPTY_LOCATION_METRICS: LocationMetrics = {
+  tranquillityIndex: null,
+  populationDensityPerKm2: null,
+  publicTransportAccessibility: null,
+};

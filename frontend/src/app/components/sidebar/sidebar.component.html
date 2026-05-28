@@ -41,56 +41,47 @@
         </div>
       </div>
 
+      <div class="layers-section">
+        <h3 class="metrics-title">Datenebenen (GeoZarr)</h3>
+        @for (layer of locationService.zarrLayers(); track layer.id) {
+          <label class="layer-toggle">
+            <input
+              type="checkbox"
+              [checked]="layer.visible"
+              [disabled]="!layer.ready && layer.loading"
+              (change)="onLayerToggle(layer.id, $event)"
+            />
+            <span class="layer-label">{{ layer.label }}</span>
+            @if (layer.loading) {
+              <span class="layer-status">lädt…</span>
+            }
+          </label>
+        }
+      </div>
+
       <div class="metrics-section">
-        <h3 class="metrics-title">Infrastruktur im Umkreis</h3>
+        <h3 class="metrics-title">Indikatoren am Standort</h3>
 
-        <div class="metric-card">
-          <div class="metric-icon">🍽️</div>
-          <div class="metric-info">
-            <span class="metric-label">Restaurants</span>
-            <span class="metric-value">{{ locationService.metrics().restaurants }}</span>
-          </div>
-        </div>
+        @if (locationService.metricsLoading()) {
+          <p class="metrics-hint">Werte werden aus GeoZarr geladen…</p>
+        }
+        @if (locationService.metricsError()) {
+          <p class="metrics-error">{{ locationService.metricsError() }}</p>
+        }
 
-        <div class="metric-card">
-          <div class="metric-icon">🛒</div>
-          <div class="metric-info">
-            <span class="metric-label">Supermärkte</span>
-            <span class="metric-value">{{ locationService.metrics().supermarkets }}</span>
+        @for (def of metricDefinitions; track def.id) {
+          <div class="metric-card">
+            <div class="metric-info">
+              <span class="metric-label">{{ def.metricLabel }}</span>
+              <span class="metric-value">
+                {{ formatMetricValue(def.metricKey) }}
+                @if (locationService.metrics()[def.metricKey] !== null) {
+                  <span class="metric-unit">{{ def.metricUnit }}</span>
+                }
+              </span>
+            </div>
           </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">🚌</div>
-          <div class="metric-info">
-            <span class="metric-label">ÖV-Haltestellen</span>
-            <span class="metric-value">{{ locationService.metrics().publicTransport }}</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">🌳</div>
-          <div class="metric-info">
-            <span class="metric-label">Parks & Grünflächen</span>
-            <span class="metric-value">{{ locationService.metrics().parks }}</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">🏫</div>
-          <div class="metric-info">
-            <span class="metric-label">Schulen</span>
-            <span class="metric-value">{{ locationService.metrics().schools }}</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">💊</div>
-          <div class="metric-info">
-            <span class="metric-label">Apotheken</span>
-            <span class="metric-value">{{ locationService.metrics().pharmacies }}</span>
-          </div>
-        </div>
+        }
       </div>
 
       <div class="coordinates-section">
