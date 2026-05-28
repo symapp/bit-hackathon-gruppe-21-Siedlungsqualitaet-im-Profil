@@ -19,14 +19,18 @@
 
   @if (!isCollapsed) {
     <div class="sidebar-content">
+      <h2 class="sidebar-title">Siedlungsqualität</h2>
+
       @if (locationService.address()) {
         <div class="address-display">
+          <span class="address-label">Standort</span>
           <span class="address-value">{{ locationService.address() }}</span>
         </div>
       }
 
       <div class="radius-section">
         <div class="radius-header">
+          <span class="radius-label">Suchradius</span>
           <span class="radius-value">{{ formatRadius(locationService.radius()) }}</span>
         </div>
         <input
@@ -44,10 +48,7 @@
       </div>
 
       <div class="overview-section">
-        <p class="layers-hint">
-          Gewichteter Durchschnitt von {{ metricDefinitions.length }} GeoZarr-Indikatoren aus
-          map.geo.admin.ch (0–100, höher = besser).
-        </p>
+        <h3 class="metrics-title">Gesamtübersicht</h3>
 
         @if (locationService.metricsLoading()) {
           <p class="metrics-hint">Werte werden berechnet…</p>
@@ -70,6 +71,8 @@
       </div>
 
       <div class="layers-section">
+        <h3 class="metrics-title">Gewichtung &amp; Karte</h3>
+
         <div class="map-layer-list">
           @for (layer of locationService.zarrLayers(); track layer.id) {
             @let def = layerDefinition(layer.id);
@@ -90,6 +93,7 @@
               <span class="map-layer-desc">{{ layer.description }}</span>
 
               <div class="layer-weight-row">
+                <span class="layer-weight-label">Gewicht</span>
                 <span class="layer-weight-value">{{ layer.weight }}</span>
               </div>
               <input
@@ -128,6 +132,7 @@
       </div>
 
       <div class="coordinates-section">
+        <span class="coord-label">Koordinaten</span>
         <span class="coord-value">{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span>
       </div>
     </div>
