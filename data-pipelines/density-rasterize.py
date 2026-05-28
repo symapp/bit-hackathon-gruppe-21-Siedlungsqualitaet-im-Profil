@@ -226,7 +226,7 @@ def density_to_dataset(df: pd.DataFrame, year: int) -> xr.Dataset:
             "population_density_per_km2": (("y", "x"), density),
             "population": (("y", "x"), population),
         },
-        coords={"x": x, "y": y},
+        coords={"x": x.astype("float64"), "y": y.astype("float64")},
         attrs={
             "title": f"BFS STATPOP population density {year}",
             "source": "Swiss Federal Statistical Office STATPOP geodata",
