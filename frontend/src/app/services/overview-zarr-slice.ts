@@ -1,3 +1,4 @@
+import type { Selector } from '@carbonplan/zarr-layer';
 import * as zarr from 'zarrita';
 import type { ViewportCellExtent } from '../utils/swiss-grid.util';
 import { tierSliceIndices } from '../utils/swiss-grid.util';
@@ -16,6 +17,14 @@ function toNumber(value: unknown): number | null {
   return null;
 }
 
+function bandIndex(selector: Selector | undefined): number {
+  if (!selector || typeof selector !== 'object') {
+    return 0;
+  }
+  const band = (selector as { band?: number }).band;
+  return typeof band === 'number' && band >= 0 ? band : 0;
+}
+
 async function openVariableArray(storePath: string, variable: string): Promise<ZarrArrayHandle> {
   const cacheKey = `${storePath}::${variable}`;
   let pending = arrayCache.get(cacheKey);
@@ -31,8 +40,39 @@ async function openVariableArray(storePath: string, variable: string): Promise<Z
       return opened;
     })();
     arrayCache.set(cacheKey, pending);
+    pending.catch(() => {
+      arrayCache.delete(cacheKey);
+    });
   }
   return pending;
+}
+
+function buildSelection(
+  arr: ZarrArrayHandle,
+  tierIy0: number,
+  tierIy1: number,
+  tierIx0: number,
+  tierIx1: number,
+  stride: number,
+  selector: Selector | undefined,
+): (number | ReturnType<typeof zarr.slice>)[] {
+  const ySlice =
+    stride > 1
+      ? zarr.slice(tierIy0, tierIy1 + 1, stride)
+      : zarr.slice(tierIy0, tierIy1 + 1);
+  const xSlice =
+    stride > 1
+      ? zarr.slice(tierIx0, tierIx1 + 1, stride)
+      : zarr.slice(tierIx0, tierIx1 + 1);
+
+  const shape = arr.shape;
+  if (shape.length === 3) {
+    return [bandIndex(selector), ySlice, xSlice];
+  }
+  if (shape.length === 2) {
+    return [ySlice, xSlice];
+  }
+  throw new Error(`Unsupported Zarr rank ${shape.length} for overview slice`);
 }
 
 /**
@@ -45,6 +85,7 @@ export async function queryCellWindowByIndex(
   extent: ViewportCellExtent,
   blockFactor: number,
   stride: number,
+  selector: Selector | undefined,
   signal?: AbortSignal,
 ): Promise<Map<string, number>> {
   const map = new Map<string, number>();
@@ -60,10 +101,8 @@ export async function queryCellWindowByIndex(
     return map;
   }
 
-  const result = await zarr.get(arr, [
-    zarr.slice(tierIy0, tierIy1 + 1),
-    zarr.slice(tierIx0, tierIx1 + 1),
-  ]);
+  const selection = buildSelection(arr, tierIy0, tierIy1, tierIx0, tierIx1, stride, selector);
+  const result = await zarr.get(arr, selection);
   if (signal?.aborted) {
     return map;
   }
@@ -74,23 +113,14 @@ export async function queryCellWindowByIndex(
     return map;
   }
 
-  const tierNy = shape[0];
-  const tierNx = shape[1];
+  const ny = shape[shape.length - 2];
+  const nx = shape[shape.length - 1];
 
-  for (let py = 0; py < extent.ny; py++) {
+  for (let py = 0; py < ny; py++) {
     const iy = extent.iy0 + py * stride;
-    const iyTier = Math.floor(iy / blockFactor) - tierIy0;
-    if (iyTier < 0 || iyTier >= tierNy) {
-      continue;
-    }
-    for (let px = 0; px < extent.nx; px++) {
+    for (let px = 0; px < nx; px++) {
       const ix = extent.ix0 + px * stride;
-      const ixTier = Math.floor(ix / blockFactor) - tierIx0;
-      if (ixTier < 0 || ixTier >= tierNx) {
-        continue;
-      }
-      const flat = data as ArrayLike<unknown>;
-      const raw = toNumber(flat[iyTier * tierNx + ixTier]);
+      const raw = toNumber((data as ArrayLike<unknown>)[py * nx + px]);
       if (raw !== null) {
         map.set(`${ix},${iy}`, raw);
       }
