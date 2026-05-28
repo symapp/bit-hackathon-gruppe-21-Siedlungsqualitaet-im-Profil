@@ -24,14 +24,18 @@
 
   @if (!isCollapsed) {
     <div class="sidebar-content">
+      <h2 class="sidebar-title">Siedlungsqualität</h2>
+
       @if (locationService.address()) {
         <div class="address-display">
+          <span class="address-label">Standort</span>
           <span class="address-value">{{ locationService.address() }}</span>
         </div>
       }
 
       <div class="radius-section">
         <div class="radius-header">
+          <span class="radius-label">Suchradius</span>
           <span class="radius-value">{{ formatRadius(locationService.radius()) }}</span>
         </div>
         <input
@@ -49,6 +53,11 @@
       </div>
 
       <div class="overview-section">
+        <h3 class="metrics-title">Gesamtübersicht</h3>
+        <p class="layers-hint">
+          Gewichteter Durchschnitt von {{ metricDefinitions.length }} GeoZarr-Indikatoren (0–100, höher = besser).
+        </p>
+
         @if (locationService.metricsLoading()) {
           <p class="metrics-hint">{{ 'sidebar.calculating' | translate }}</p>
         } @else if (locationService.metricsError()) {
@@ -67,9 +76,19 @@
             }
           </div>
         }
+
+        <div class="overview-map-legend">
+          <span class="map-layer-legend" [style.background]="overviewLegendGradient()"></span>
+          <span class="map-layer-scale">Karte: 0 – 100 (schlechter – besser)</span>
+        </div>
       </div>
 
       <div class="layers-section">
+        <h3 class="metrics-title">Faktoren &amp; Gewichtung</h3>
+        <p class="layers-hint">
+          Aktive Faktoren mit Gewicht &gt; 0 bilden die gewichtete Karte und den Gesamtscore.
+        </p>
+
         <div class="map-layer-list">
           @for (layer of locationService.zarrLayers(); track layer.id) {
             @let def = layerDefinition(layer.id);
@@ -90,6 +109,7 @@
               <span class="map-layer-desc">{{ layer.descriptionKey | translate }}</span>
 
               <div class="layer-weight-row">
+                <span class="layer-weight-label">Gewicht</span>
                 <span class="layer-weight-value">{{ layer.weight }}</span>
               </div>
               <input
@@ -113,12 +133,6 @@
                 </span>
               }
 
-              <span
-                class="map-layer-legend"
-                [style.background]="legendGradient(layer.colormap)"
-              ></span>
-              <span class="map-layer-scale">{{ formatClim(layer.clim, layer.id) }}</span>
-
               @if (layer.loading) {
                 <span class="layer-status">{{ 'sidebar.layerLoading' | translate }}</span>
               }
@@ -128,6 +142,7 @@
       </div>
 
       <div class="coordinates-section">
+        <span class="coord-label">Koordinaten</span>
         <span class="coord-value">{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span>
       </div>
     </div>

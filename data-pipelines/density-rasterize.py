@@ -9,10 +9,17 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urlencode
 
+import numpy as np
 import pandas as pd
 import requests
-import xr
+import xarray as xr
 
+from are_rasterize_lib import (
+    SWISS_GRID_100M_EDGE_BOUNDS,
+    ensure_swiss_grid_dataset,
+    swiss_100m_grid_coords,
+    write_swiss_grid_zarr,
+)
 from zarr_b2_upload import upload_zarr
 
 BFS_ASSETS_URL = "https://dam-api.bfs.admin.ch/hub/api/dam/assets"
@@ -202,28 +209,43 @@ def read_density_table(zip_path: Path, member: str, columns: list[str], year: in
     return df
 
 
-def density_to_dataset(df: pd.DataFrame, year: int) -> xr.Dataset:
-    try:
-        import numpy as np
-        import xarray as xr
-    except ImportError as exc:
-        raise RuntimeError("Conversion requires numpy and xarray. Install with: python -m pip install numpy xarray zarr") from exc
+def density_to_dataset(df: pd.DataFrame, year: int, percentile_cutoff: float = 5.0) -> xr.Dataset:
+    """Rasterize STATPOP onto the same 100 m LV95 grid as ARE settlement-quality layers."""
+    x, y = swiss_100m_grid_coords()
+    xmin, ymin, xmax, ymax = SWISS_GRID_100M_EDGE_BOUNDS
+    log(
+        f"Building grid on shared Swiss 100 m LV95 extent "
+        f"[{xmin}, {ymin}, {xmax}, {ymax}]: {len(x)} columns x {len(y)} rows"
+    )
 
-    x = np.arange(df["x"].min(), df["x"].max() + CELL_SIZE_M, CELL_SIZE_M, dtype="int64")
-    y = np.arange(df["y"].min(), df["y"].max() + CELL_SIZE_M, CELL_SIZE_M, dtype="int64")
-    log(f"Building grid: {len(x)} columns x {len(y)} rows from {len(df)} occupied cells")
+    xi = np.round((df["x"].to_numpy() - x[0]) / CELL_SIZE_M).astype("int64")
+    yi = np.round((y[0] - df["y"].to_numpy()) / CELL_SIZE_M).astype("int64")
+    in_bounds = (xi >= 0) & (xi < len(x)) & (yi >= 0) & (yi < len(y))
+    if not in_bounds.all():
+        dropped = int((~in_bounds).sum())
+        log(f"Dropping {dropped} cells outside the shared Swiss 100 m grid")
+        df = df.loc[in_bounds].reset_index(drop=True)
+        xi = xi[in_bounds]
+        yi = yi[in_bounds]
 
-    xi = ((df["x"].to_numpy() - x[0]) // CELL_SIZE_M).astype("int64")
-    yi = ((df["y"].to_numpy() - y[0]) // CELL_SIZE_M).astype("int64")
+    log(f"Normalizing density values (percentile-based, cutoff={percentile_cutoff}%)...")
+    p_low = np.percentile(df["population_density_per_km2"], percentile_cutoff)
+    p_high = np.percentile(df["population_density_per_km2"], 100 - percentile_cutoff)
+    
+    if p_high == p_low:
+        df["population_density_score"] = (df["population_density_per_km2"] > p_low).astype("float32")
+    else:
+        df["population_density_score"] = (df["population_density_per_km2"] - p_low) / (p_high - p_low)
+        df["population_density_score"] = df["population_density_score"].clip(0.0, 1.0).astype("float32")
 
-    density = np.full((len(y), len(x)), np.nan, dtype="float32")
+    population_density_score = np.full((len(y), len(x)), np.nan, dtype="float32")
     population = np.full((len(y), len(x)), np.nan, dtype="float32")
-    density[yi, xi] = df["population_density_per_km2"].to_numpy(dtype="float32")
+    population_density_score[yi, xi] = df["population_density_score"].to_numpy(dtype="float32")
     population[yi, xi] = df["population"].to_numpy(dtype="float32")
 
     ds = xr.Dataset(
         data_vars={
-            "population_density_per_km2": (("y", "x"), density),
+            "population_density_score": (("y", "x"), population_density_score),
             "population": (("y", "x"), population),
         },
         coords={"x": x.astype("float64"), "y": y.astype("float64")},
@@ -233,6 +255,7 @@ def density_to_dataset(df: pd.DataFrame, year: int) -> xr.Dataset:
             "crs": "EPSG:2056",
             "cell_size_m": CELL_SIZE_M,
             "cell_area_km2": CELL_AREA_KM2,
+            "grid_bounds_lv95": list(SWISS_GRID_100M_EDGE_BOUNDS),
         },
     )
     ds["spatial_ref"] = xr.DataArray(
@@ -243,7 +266,7 @@ def density_to_dataset(df: pd.DataFrame, year: int) -> xr.Dataset:
             "crs_wkt": "EPSG:2056",
         },
     )
-    for var in ("population_density_per_km2", "population"):
+    for var in ("population_density_score", "population"):
         ds[var].attrs["grid_mapping"] = "spatial_ref"
     return ds
 
@@ -255,6 +278,12 @@ def main() -> None:
     parser.add_argument("--year", type=int, default=None, help="STATPOP year. Defaults to the newest available year.")
     parser.add_argument("--zip", type=Path, default=None, help="Use an existing STATPOP ZIP instead of downloading.")
     parser.add_argument("--out", type=Path, default=Path(DEFAULT_OUT), help="Output .zarr directory.")
+    parser.add_argument(
+        "--percentile-cutoff",
+        type=float,
+        default=5.0,
+        help="Percentage of data to cut off from top and bottom for normalization (default: 5.0).",
+    )
     parser.add_argument("--cache-dir", "--download-dir", dest="cache_dir", type=Path, default=Path("data"), help="Download/cache directory.")
     parser.add_argument("--chunk-size", type=int, default=1024, help="Zarr chunk size for x and y.")
     parser.add_argument("--force", action="store_true", help="Redownload source ZIP and overwrite output if present.")
@@ -300,7 +329,7 @@ def main() -> None:
     member, columns = choose_csv(zip_path, year)
     log(f"Reading {member}")
     df = read_density_table(zip_path, member, columns, year)
-    ds = density_to_dataset(df, year)
+    ds = density_to_dataset(df, year, percentile_cutoff=args.percentile_cutoff)
 
     if args.out.exists():
         if not args.force:
@@ -318,7 +347,7 @@ def main() -> None:
             }
 
     log(f"Writing GeoZarr/Zarr store: {args.out}")
-    ds.to_zarr(args.out, mode="w", consolidated=True, encoding=encoding)
+    write_swiss_grid_zarr(ensure_swiss_grid_dataset(ds), args.out, encoding=encoding)
     log(f"Wrote {args.out}")
 
     if args.upload:

@@ -8,9 +8,12 @@ export const SWISS_LV95_PROJ4 =
 
 export type ZarrMetricKey = keyof LocationMetrics;
 
-/** LV95 extent [xMin, yMin, xMax, yMax] for STATPOP 100 m grid (half-cell padding). */
-export const STATPOP_LV95_BOUNDS: [number, number, number, number] = [
-  2_486_150, 1_075_450, 2_832_050, 1_294_850,
+/**
+ * LV95 edge bounds [xMin, yMin, xMax, yMax] for the shared 100 m settlement-quality grid.
+ * All GeoZarr layers (ARE, BAFU, BFS STATPOP) use this extent — see `are_rasterize_lib.SWISS_GRID_100M_EDGE_BOUNDS`.
+ */
+export const SWISS_GRID_LV95_BOUNDS: [number, number, number, number] = [
+  2_485_400, 1_075_200, 2_833_000, 1_296_000,
 ];
 
 export interface ZarrLayerDefinition {
@@ -22,8 +25,10 @@ export interface ZarrLayerDefinition {
   storePath: string;
   variable: string;
   selector?: Selector;
-  /** Source CRS bounds; required when x/y are int64 (zarr-layer cannot read them). */
-  bounds?: [number, number, number, number];
+  /** LV95 edge bounds [xMin, yMin, xMax, yMax] in source CRS (meters). */
+  bounds: [number, number, number, number];
+  /** False when y decreases northward (shared settlement-quality grid). */
+  latIsAscending: boolean;
   fillValue?: number;
   colormap: string[];
   clim: [number, number];
@@ -39,14 +44,28 @@ export interface ZarrLayerDefinition {
 
 export const DEFAULT_ACTIVE_ZARR_LAYER_ID = 'tranquillity';
 
+export const OVERVIEW_MAP_LAYER_ID = 'settlement-quality-overview';
+
+/** Colormap for the weighted composite overview layer (0 = low, 1 = high score). */
+export const OVERVIEW_COLORMAP = ['#f7fcf5', '#c2e699', '#74c476', '#238b45', '#00441b'] as const;
+
 /**
- * Color scale limits (`clim`) derived from pipeline Zarr stats (p5–p95 on finite cells).
- * ÖV uses ARE Erreichbarkeitswert (EW), not travel time — values roughly 1–76k.
+ * Color scale limits (`clim`) — tune with `visualize-zarr.py` after uploading new layers.
  */
 const CLIM = {
-  tranquillity: [-12, 20] as [number, number],
-  populationDensity: [0, 20_000] as [number, number],
-  ptAccessibility: [50, 3_500] as [number, number],
+  tranquillity: [0, 1] as [number, number],
+  populationDensity: [0, 1] as [number, number],
+  ptAccessibility: [0, 1] as [number, number],
+  roadAccessibility: [50, 3_500] as [number, number],
+  ptQuality: [0, 1] as [number, number],
+  ptTravelTime: [15, 90] as [number, number],
+  roadTravelTime: [10, 75] as [number, number],
+  railTraffic: [500, 25_000] as [number, number],
+  roadTraffic: [500, 20_000] as [number, number],
+  secondaryHomes: [0, 40] as [number, number],
+  landscapeType: [1, 40] as [number, number],
+  solarSuitability: [1, 5] as [number, number],
+  agglomeration: [0, 1] as [number, number],
 } as const;
 
 const base = environment.zarrBaseUrl;
@@ -59,12 +78,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     storePath: `${base}/ch_bafu_tranquillity_karte.zarr`,
     variable: 'tranquillity_index',
     selector: { band: 0 },
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
     colormap: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
     clim: CLIM.tranquillity,
     metricKey: 'tranquillityIndex',
     metricLabelKey: 'layers.tranquillity.metricLabel',
     metricUnitKey: 'layers.tranquillity.metricUnit',
-    formatValue: (v) => v.toFixed(1),
+    formatValue: (v) => v.toFixed(2),
     higherIsBetter: true,
   },
   {
@@ -72,15 +94,16 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     labelKey: 'layers.populationDensity.label',
     descriptionKey: 'layers.populationDensity.description',
     storePath: `${base}/statpop_population_density_100m.zarr`,
-    variable: 'population_density_per_km2',
-    bounds: STATPOP_LV95_BOUNDS,
+    variable: 'population_density_score',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#ffffcc', '#fed976', '#fd8d3c', '#e31a1c', '#800026'],
     clim: CLIM.populationDensity,
     metricKey: 'populationDensityPerKm2',
     metricLabelKey: 'layers.populationDensity.metricLabel',
     metricUnitKey: 'layers.populationDensity.metricUnit',
-    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
+    formatValue: (v) => v.toFixed(2),
     higherIsBetter: false,
   },
   {
@@ -89,6 +112,9 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     descriptionKey: 'layers.ptAccessibility.description',
     storePath: `${base}/erreichbarkeit_swiss_grid_100m.zarr`,
     variable: 'OeV_Erreichb_EW',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
     colormap: ['#f7fbff', '#c6dbef', '#6baed6', '#2171b5', '#08306b'],
     clim: CLIM.ptAccessibility,
     metricKey: 'publicTransportAccessibility',
@@ -97,7 +123,183 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: true,
   },
+  {
+    id: 'miv-accessibility',
+    labelKey: 'layers.mivAccessibility.label',
+    descriptionKey: 'layers.mivAccessibility.description',
+    storePath: `${base}/erreichbarkeit_miv_swiss_grid_100m.zarr`,
+    variable: 'Strasse_Erreichb_EW',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#fff5f0', '#fcbba1', '#fc9272', '#de2d26', '#67000d'],
+    clim: CLIM.roadAccessibility,
+    metricKey: 'roadAccessibility',
+    metricLabelKey: 'layers.mivAccessibility.metricLabel',
+    metricUnitKey: 'layers.mivAccessibility.metricUnit',
+    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
+    higherIsBetter: true,
+  },
+  {
+    id: 'pt-quality',
+    labelKey: 'layers.ptQuality.label',
+    descriptionKey: 'layers.ptQuality.description',
+    storePath: `${base}/pt_quality_swiss_grid_100m.zarr`,
+    variable: 'KLASSE_NUM',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#d73027', '#fc8d59', '#91cf60', '#1a9850'],
+    clim: CLIM.ptQuality,
+    metricKey: 'publicTransportQuality',
+    metricLabelKey: 'layers.ptQuality.metricLabel',
+    metricUnitKey: 'layers.ptQuality.metricUnit',
+    formatValue: (v) => v.toFixed(0),
+    higherIsBetter: true,
+  },
+  {
+    id: 'pt-travel-time',
+    labelKey: 'layers.ptTravelTime.label',
+    descriptionKey: 'layers.ptTravelTime.description',
+    storePath: `${base}/reisezeit_oev_swiss_grid_100m.zarr`,
+    variable: 'OeV_Reisezeit_Z',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#004529', '#41ab5d', '#fee08b', '#f46d43', '#a50026'],
+    clim: CLIM.ptTravelTime,
+    metricKey: 'publicTransportTravelTimeMin',
+    metricLabelKey: 'layers.ptTravelTime.metricLabel',
+    metricUnitKey: 'layers.ptTravelTime.metricUnit',
+    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
+    higherIsBetter: false,
+  },
+  {
+    id: 'miv-travel-time',
+    labelKey: 'layers.mivTravelTime.label',
+    descriptionKey: 'layers.mivTravelTime.description',
+    storePath: `${base}/reisezeit_miv_swiss_grid_100m.zarr`,
+    variable: 'Strasse_Reisezeit_Z',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#004529', '#41ab5d', '#fee08b', '#f46d43', '#a50026'],
+    clim: CLIM.roadTravelTime,
+    metricKey: 'roadTravelTimeMin',
+    metricLabelKey: 'layers.mivTravelTime.metricLabel',
+    metricUnitKey: 'layers.mivTravelTime.metricUnit',
+    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
+    higherIsBetter: false,
+  },
+  {
+    id: 'rail-traffic',
+    labelKey: 'layers.railTraffic.label',
+    descriptionKey: 'layers.railTraffic.description',
+    storePath: `${base}/belastung_bahn_swiss_grid_100m.zarr`,
+    variable: 'DTV_OEV',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'],
+    clim: CLIM.railTraffic,
+    metricKey: 'railTrafficLoad',
+    metricLabelKey: 'layers.railTraffic.metricLabel',
+    metricUnitKey: 'layers.railTraffic.metricUnit',
+    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
+    higherIsBetter: false,
+  },
+  {
+    id: 'road-traffic',
+    labelKey: 'layers.roadTraffic.label',
+    descriptionKey: 'layers.roadTraffic.description',
+    storePath: `${base}/belastung_strasse_swiss_grid_100m.zarr`,
+    variable: 'DTV_FZG',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'],
+    clim: CLIM.roadTraffic,
+    metricKey: 'roadTrafficLoad',
+    metricLabelKey: 'layers.roadTraffic.metricLabel',
+    metricUnitKey: 'layers.roadTraffic.metricUnit',
+    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
+    higherIsBetter: false,
+  },
+  {
+    id: 'secondary-homes',
+    labelKey: 'layers.secondaryHomes.label',
+    descriptionKey: 'layers.secondaryHomes.description',
+    storePath: `${base}/zweitwohnungsanteil_swiss_grid_100m.zarr`,
+    variable: 'ZWG_3110',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#f7fcf5', '#c2e699', '#74c476', '#238b45', '#00441b'],
+    clim: CLIM.secondaryHomes,
+    metricKey: 'secondaryHomesRatePct',
+    metricLabelKey: 'layers.secondaryHomes.metricLabel',
+    metricUnitKey: 'layers.secondaryHomes.metricUnit',
+    formatValue: (v) => v.toFixed(1),
+    higherIsBetter: false,
+  },
+  {
+    id: 'landscape-type',
+    labelKey: 'layers.landscapeType.label',
+    descriptionKey: 'layers.landscapeType.description',
+    storePath: `${base}/landschaftstypen_swiss_grid_100m.zarr`,
+    variable: 'TYP_NR',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#8c510a', '#d8b365', '#5ab4ac', '#01665e', '#003c30'],
+    clim: CLIM.landscapeType,
+    metricKey: 'landscapeTypeId',
+    metricLabelKey: 'layers.landscapeType.metricLabel',
+    metricUnitKey: 'layers.landscapeType.metricUnit',
+    formatValue: (v) => v.toFixed(0),
+    higherIsBetter: true,
+  },
+  {
+    id: 'solar-potential',
+    labelKey: 'layers.solarPotential.label',
+    descriptionKey: 'layers.solarPotential.description',
+    storePath: `${base}/solar_nutzungsaspekte.zarr`,
+    variable: 'solar_suitability',
+    selector: { band: 0 },
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#fff7bc', '#fec44f', '#d95f0e', '#993404'],
+    clim: CLIM.solarSuitability,
+    metricKey: 'solarSuitability',
+    metricLabelKey: 'layers.solarPotential.metricLabel',
+    metricUnitKey: 'layers.solarPotential.metricUnit',
+    formatValue: (v) => v.toFixed(0),
+    higherIsBetter: true,
+  },
+  {
+    id: 'agglomeration',
+    labelKey: 'layers.agglomeration.label',
+    descriptionKey: 'layers.agglomeration.description',
+    storePath: `${base}/agglomeration_swiss_grid_100m.zarr`,
+    variable: 'in_agglomeration',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#f0f0f0', '#6366f1'],
+    clim: CLIM.agglomeration,
+    metricKey: 'inAgglomeration',
+    metricLabelKey: 'layers.agglomeration.metricLabel',
+    metricUnitKey: 'layers.agglomeration.metricUnit',
+    formatValue: (v) => (v >= 1 ? '✓' : '✗'),
+    higherIsBetter: true,
+  },
 ];
+
+/** Layers that use 0 as nodata in GeoZarr but should be treated as empty in the UI. */
+export const ZARR_LAYERS_WITH_NAN_FILL = new Set(
+  ZARR_LAYER_DEFINITIONS.filter((d) => d.fillValue === Number.NaN).map((d) => d.id),
+);
 
 export const DEFAULT_LAYER_WEIGHT = 100;
 

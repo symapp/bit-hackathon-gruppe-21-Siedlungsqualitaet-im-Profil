@@ -2,7 +2,11 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
-import { ZARR_LAYER_DEFINITIONS, type ZarrLayerDefinition } from '../../config/zarr-layers.config';
+import {
+  OVERVIEW_COLORMAP,
+  ZARR_LAYER_DEFINITIONS,
+  type ZarrLayerDefinition,
+} from '../../config/zarr-layers.config';
 import type { LocationMetrics } from '../../models/metrics.model';
 import { LocationService } from '../../services/location.service';
 
@@ -55,8 +59,12 @@ export class SidebarComponent {
     return `${def.formatValue(clim[0])} – ${def.formatValue(clim[1])}`;
   }
 
-  legendGradient(colors: string[]): string {
+  legendGradient(colors: readonly string[] | string[]): string {
     return `linear-gradient(to right, ${colors.join(', ')})`;
+  }
+
+  overviewLegendGradient(): string {
+    return this.legendGradient([...OVERVIEW_COLORMAP]);
   }
 
   layerDefinition(layerId: string): ZarrLayerDefinition | undefined {

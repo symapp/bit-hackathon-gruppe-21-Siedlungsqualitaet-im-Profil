@@ -22,19 +22,79 @@
       "label": "Ruhe",
       "description": "BAFU Lärmempfindlichkeitskarte (Ruhegüte)",
       "metricLabel": "Ruhegüte",
-      "metricUnit": "Stufe"
+      "metricUnit": "Score"
     },
     "populationDensity": {
       "label": "Bevölkerungsdichte",
       "description": "BFS STATPOP, Einwohner pro km² (100 m Raster)",
       "metricLabel": "Bevölkerungsdichte",
-      "metricUnit": "Einw./km²"
+      "metricUnit": "Score"
     },
     "ptAccessibility": {
       "label": "ÖV-Erreichbarkeit",
       "description": "ARE Erreichbarkeitswert ÖV (EW, höher = besser erschlossen)",
       "metricLabel": "ÖV-Erreichbarkeit",
       "metricUnit": "EW"
+    },
+    "mivAccessibility": {
+      "label": "Strassen-Erreichbarkeit",
+      "description": "ARE Erreichbarkeitswert MIV (EW, höher = besser erschlossen)",
+      "metricLabel": "Strassen-Erreichbarkeit",
+      "metricUnit": "EW"
+    },
+    "ptQuality": {
+      "label": "ÖV-Güteklassen",
+      "description": "ARE ÖV-Güteklassen (A=4 … D=1, höher = besser)",
+      "metricLabel": "ÖV-Güteklasse",
+      "metricUnit": "Nr."
+    },
+    "ptTravelTime": {
+      "label": "Reisezeit ÖV",
+      "description": "ARE Reisezeit zu den 6 grossen Zentren mit ÖV (Minuten)",
+      "metricLabel": "Reisezeit ÖV",
+      "metricUnit": "min"
+    },
+    "mivTravelTime": {
+      "label": "Reisezeit Auto",
+      "description": "ARE Reisezeit zu den 6 grossen Zentren mit Strasse (Minuten)",
+      "metricLabel": "Reisezeit Auto",
+      "metricUnit": "min"
+    },
+    "railTraffic": {
+      "label": "Bahn-Belastung",
+      "description": "ARE Personenverkehr Bahn (DTV, niedriger = ruhiger)",
+      "metricLabel": "Bahn-Belastung",
+      "metricUnit": "DTV"
+    },
+    "roadTraffic": {
+      "label": "Strassenverkehr",
+      "description": "ARE Verkehrsbelastung Strasse (DTV Fahrzeuge, niedriger = besser)",
+      "metricLabel": "Strassenverkehr",
+      "metricUnit": "DTV"
+    },
+    "secondaryHomes": {
+      "label": "Zweitwohnungsanteil",
+      "description": "ARE Wohnungsinventar, Anteil Zweitwohnungen (%, niedriger = besser)",
+      "metricLabel": "Zweitwohnungsanteil",
+      "metricUnit": "%"
+    },
+    "landscapeType": {
+      "label": "Landschaftstyp",
+      "description": "ARE Landschaftstypologie (Typ-Nr., höher = vielfältigere Kategorie)",
+      "metricLabel": "Landschaftstyp",
+      "metricUnit": "Nr."
+    },
+    "solarPotential": {
+      "label": "Solar-Potenzial",
+      "description": "ARE Solaranlagen Nutzungsaspekte (1–5, höher = günstiger)",
+      "metricLabel": "Solar-Eignung",
+      "metricUnit": "Stufe"
+    },
+    "agglomeration": {
+      "label": "Agglomeration",
+      "description": "ARE Agglomerationsprogramm (im förderberechtigten Gebiet)",
+      "metricLabel": "Agglomeration",
+      "metricUnit": ""
     }
   }
 }

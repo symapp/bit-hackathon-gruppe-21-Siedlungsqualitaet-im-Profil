@@ -1,6 +1,8 @@
 import argparse
 import geopandas as gpd
 from geocube.api.core import make_geocube
+
+from are_rasterize_lib import align_geocube_to_swiss_100m_grid, write_swiss_grid_zarr
 from pathlib import Path
 import shutil
 import tempfile
@@ -47,6 +49,15 @@ def main():
         "--upload", action="store_true", help="Upload to Backblaze B2 after writing."
     )
     parser.add_argument(
+        "--force", action="store_true", help="Overwrite existing output (handled by to_zarr mode='w')."
+    )
+    parser.add_argument(
+        "--percentile-cutoff",
+        type=float,
+        default=5.0,
+        help="Percentage of data to cut off from top and bottom for normalization (not applied to categorical quality classes).",
+    )
+    parser.add_argument(
         "--remote-name",
         type=str,
         default=None,
@@ -61,25 +72,26 @@ def main():
         # Specifically use the layer 'OeV_Gueteklassen_ARE'
         geodata = gpd.read_file(gpkg_file_path, layer='OeV_Gueteklassen_ARE')
 
-        print("Mapping classes to numeric values...")
-        # Map classes A-D to numeric values 4-1
-        class_mapping = {"A": 4, "B": 3, "C": 2, "D": 1}
-        geodata["KLASSE_NUM"] = geodata["KLASSE"].map(class_mapping).fillna(0)
+        print("Mapping classes to numeric values (0.0-1.0 range)...")
+        # Map classes A-D to numeric values 1.0-0.25
+        class_mapping = {"A": 1.0, "B": 0.75, "C": 0.5, "D": 0.25}
+        geodata["pt_quality_score"] = geodata["KLASSE"].map(class_mapping).fillna(0.0).astype(float)
 
         resolution = 100
 
         print(f"Rasterizing to {resolution}m grid...")
-        aligned_grid = make_geocube(
+        geocube_grid = make_geocube(
             vector_data=geodata,
-            measurements=["KLASSE_NUM"],
+            measurements=["pt_quality_score"],
             resolution=(-resolution, resolution),
             output_crs="EPSG:2056",
             fill=0,
         )
+        aligned_grid = align_geocube_to_swiss_100m_grid(geocube_grid, fill_value=0)
 
         zarr_path = args.out
         print(f"Writing to {zarr_path}...")
-        aligned_grid.to_zarr(zarr_path, mode="w")
+        write_swiss_grid_zarr(aligned_grid, zarr_path)
 
         print(f"Success! GeoZarr created at: {zarr_path}")
 

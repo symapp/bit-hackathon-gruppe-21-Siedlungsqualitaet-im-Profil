@@ -1,17 +1,11 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ElementRef,
-  ViewChild,
-  effect,
-  inject,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
 import { LocationService } from '../../services/location.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
+import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
+import { clampToSwitzerland, SWITZERLAND_MAX_BOUNDS } from '../../config/map-bounds.config';
 
 @Component({
   selector: 'app-map',
@@ -65,6 +59,8 @@ export class MapComponent implements OnInit, OnDestroy {
       style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       center: [lng, lat],
       zoom: 14,
+      maxBounds: SWITZERLAND_MAX_BOUNDS,
+      canvasContextAttributes: { preserveDrawingBuffer: true },
     });
 
     this.map.addControl(new NavigationControl(), 'top-left');
@@ -76,9 +72,19 @@ export class MapComponent implements OnInit, OnDestroy {
       .setLngLat([lng, lat])
       .addTo(this.map);
 
+    this.marker.on('drag', () => {
+      const lngLat = this.marker.getLngLat();
+      const clamped = clampToSwitzerland(lngLat.lng, lngLat.lat);
+      if (clamped.lng !== lngLat.lng || clamped.lat !== lngLat.lat) {
+        this.marker.setLngLat([clamped.lng, clamped.lat]);
+      }
+    });
+
     this.marker.on('dragend', () => {
       const lngLat = this.marker.getLngLat();
-      this.locationService.setLocation(lngLat.lat, lngLat.lng, '');
+      const clamped = clampToSwitzerland(lngLat.lng, lngLat.lat);
+      this.marker.setLngLat([clamped.lng, clamped.lat]);
+      this.locationService.setLocation(clamped.lat, clamped.lng, '');
     });
 
     this.deckOverlay = new MapboxOverlay({
@@ -87,6 +93,7 @@ export class MapComponent implements OnInit, OnDestroy {
     });
 
     this.map.addControl(this.deckOverlay as any);
+    exposeMapForE2e(this.map);
     this.zarrMapService.attachToMap(this.map);
 
     this.map.on('load', () => {

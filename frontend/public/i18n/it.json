@@ -22,19 +22,79 @@
       "label": "Tranquillità",
       "description": "Carta della sensibilità al rumore UFAM (qualità della tranquillità)",
       "metricLabel": "Tranquillità",
-      "metricUnit": "livello"
+      "metricUnit": "score"
     },
     "populationDensity": {
       "label": "Densità di popolazione",
       "description": "UST STATPOP, abitanti per km² (griglia 100 m)",
       "metricLabel": "Densità di popolazione",
-      "metricUnit": "ab./km²"
+      "metricUnit": "score"
     },
     "ptAccessibility": {
       "label": "Accessibilità TP",
       "description": "Valore di accessibilità TP ARE (EW, più alto = meglio servito)",
       "metricLabel": "Accessibilità TP",
       "metricUnit": "EW"
+    },
+    "mivAccessibility": {
+      "label": "Accessibilità stradale",
+      "description": "Valore di accessibilità stradale ARE (EW, più alto = meglio servito)",
+      "metricLabel": "Accessibilità stradale",
+      "metricUnit": "EW"
+    },
+    "ptQuality": {
+      "label": "Qualità TP",
+      "description": "Classi di qualità TP ARE (A=4 … D=1, più alto = migliore)",
+      "metricLabel": "Classe di qualità TP",
+      "metricUnit": "n°"
+    },
+    "ptTravelTime": {
+      "label": "Tempo di viaggio TP",
+      "description": "Tempo di viaggio ARE verso i 6 grandi centri in TP (minuti)",
+      "metricLabel": "Tempo di viaggio TP",
+      "metricUnit": "min"
+    },
+    "mivTravelTime": {
+      "label": "Tempo di viaggio auto",
+      "description": "Tempo di viaggio ARE verso i 6 grandi centri in auto (minuti)",
+      "metricLabel": "Tempo di viaggio auto",
+      "metricUnit": "min"
+    },
+    "railTraffic": {
+      "label": "Traffico ferroviario",
+      "description": "Traffico passeggeri ferroviario ARE (TGM, più basso = più tranquillo)",
+      "metricLabel": "Traffico ferroviario",
+      "metricUnit": "TGM"
+    },
+    "roadTraffic": {
+      "label": "Traffico stradale",
+      "description": "Carico del traffico stradale ARE (TGM veicoli, più basso = migliore)",
+      "metricLabel": "Traffico stradale",
+      "metricUnit": "TGM"
+    },
+    "secondaryHomes": {
+      "label": "Abitazioni secondarie",
+      "description": "Inventario delle abitazioni ARE, quota di abitazioni secondarie (%, più basso = migliore)",
+      "metricLabel": "Abitazioni secondarie",
+      "metricUnit": "%"
+    },
+    "landscapeType": {
+      "label": "Tipo di paesaggio",
+      "description": "Tipologia paesaggistica ARE (n° tipo, più alto = categoria più diversificata)",
+      "metricLabel": "Tipo di paesaggio",
+      "metricUnit": "n°"
+    },
+    "solarPotential": {
+      "label": "Potenziale solare",
+      "description": "Aspetti di utilizzo ARE degli impianti solari (1–5, più alto = più favorevole)",
+      "metricLabel": "Idoneità solare",
+      "metricUnit": "livello"
+    },
+    "agglomeration": {
+      "label": "Agglomerato",
+      "description": "Programma d'agglomerato ARE (zona ammissibile ai sussidi)",
+      "metricLabel": "Agglomerato",
+      "metricUnit": ""
     }
   }
 }
