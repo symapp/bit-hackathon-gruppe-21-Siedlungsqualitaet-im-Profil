@@ -60,7 +60,7 @@ export class SearchBarComponent {
     const lat = parseFloat(suggestion.lat);
     const lng = parseFloat(suggestion.lon);
 
-    this.locationService.updateLocation(lat, lng, suggestion.display_name);
+    this.locationService.setLocation(lat, lng, suggestion.display_name);
     this.searchQuery = suggestion.display_name;
     this.showSuggestions = false;
     this.suggestions = [];

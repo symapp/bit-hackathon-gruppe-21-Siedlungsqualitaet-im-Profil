@@ -1,19 +1,16 @@
-import { Injectable, effect, inject, signal, computed } from '@angular/core';
-import { MetricsService } from './metrics.service';
+import { Injectable, effect, inject, signal } from '@angular/core';
 import { ZarrMapService } from './zarr-map.service';
-import { LocationData } from '../models/metrics.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LocationService {
-  private readonly metricsService = inject(MetricsService);
   private readonly zarrMap = inject(ZarrMapService);
 
-  private readonly _lat = signal<number>(47.3769); // Default: Zürich
-  private readonly _lng = signal<number>(8.5417);
-  private readonly _radius = signal<number>(500); // Default: 500m
-  private readonly _address = signal<string>('');
+  private readonly _lat = signal(47.3769); // Default: Zürich
+  private readonly _lng = signal(8.5417);
+  private readonly _radius = signal(500);
+  private readonly _address = signal('');
 
   readonly lat = this._lat.asReadonly();
   readonly lng = this._lng.asReadonly();
@@ -25,41 +22,24 @@ export class LocationService {
   readonly metricsError = this.zarrMap.metricsError;
   readonly zarrLayers = this.zarrMap.layerStates;
 
-  readonly locationData = computed<LocationData>(() => ({
-    lat: this._lat(),
-    lng: this._lng(),
-    radius: this._radius(),
-    address: this._address(),
-    metrics: this.metrics(),
-  }));
-
   constructor() {
     effect(() => {
       const lat = this._lat();
       const lng = this._lng();
-      this.metricsService.refreshMetrics(lat, lng);
+      void this.zarrMap.sampleLocation(lng, lat);
     });
   }
 
-  setLocation(lat: number, lng: number): void {
+  setLocation(lat: number, lng: number, address?: string): void {
     this._lat.set(lat);
     this._lng.set(lng);
+    if (address !== undefined) {
+      this._address.set(address);
+    }
   }
 
   setRadius(radius: number): void {
     this._radius.set(radius);
-  }
-
-  setAddress(address: string): void {
-    this._address.set(address);
-  }
-
-  updateLocation(lat: number, lng: number, address?: string): void {
-    this._lat.set(lat);
-    this._lng.set(lng);
-    if (address) {
-      this._address.set(address);
-    }
   }
 
   setActiveZarrLayer(layerId: string): void {

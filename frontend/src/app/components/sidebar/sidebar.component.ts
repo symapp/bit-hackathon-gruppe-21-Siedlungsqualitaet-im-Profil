@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
-import { LocationService } from '../../services/location.service';
 import { FormsModule } from '@angular/forms';
 import { ZARR_LAYER_DEFINITIONS } from '../../config/zarr-layers.config';
 import type { LocationMetrics } from '../../models/metrics.model';
+import { LocationService } from '../../services/location.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -12,7 +12,7 @@ import type { LocationMetrics } from '../../models/metrics.model';
   styleUrl: './sidebar.component.scss',
 })
 export class SidebarComponent {
-  protected locationService = inject(LocationService);
+  protected readonly locationService = inject(LocationService);
   protected isCollapsed = false;
   protected readonly metricDefinitions = ZARR_LAYER_DEFINITIONS;
 
@@ -42,10 +42,6 @@ export class SidebarComponent {
       return '—';
     }
     return definition?.formatValue(value) ?? String(value);
-  }
-
-  selectMapLayer(layerId: string): void {
-    this.locationService.setActiveZarrLayer(layerId);
   }
 
   formatClim(clim: [number, number], layerId: string): string {

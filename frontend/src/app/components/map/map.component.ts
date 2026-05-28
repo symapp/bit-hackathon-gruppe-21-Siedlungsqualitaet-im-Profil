@@ -78,8 +78,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
     this.marker.on('dragend', () => {
       const lngLat = this.marker.getLngLat();
-      this.locationService.setLocation(lngLat.lat, lngLat.lng);
-      this.locationService.setAddress('');
+      this.locationService.setLocation(lngLat.lat, lngLat.lng, '');
     });
 
     this.deckOverlay = new MapboxOverlay({

@@ -53,7 +53,7 @@
               [class.active]="layer.active"
               [class.loading]="layer.loading"
               [disabled]="layer.loading && !layer.ready"
-              (click)="selectMapLayer(layer.id)"
+              (click)="locationService.setActiveZarrLayer(layer.id)"
             >
               <span class="map-layer-radio" [class.checked]="layer.active"></span>
               <span class="map-layer-body">

@@ -4,14 +4,6 @@ export interface LocationMetrics {
   publicTransportAccessibility: number | null;
 }
 
-export interface LocationData {
-  lat: number;
-  lng: number;
-  radius: number;
-  address?: string;
-  metrics: LocationMetrics;
-}
-
 export const EMPTY_LOCATION_METRICS: LocationMetrics = {
   tranquillityIndex: null,
   populationDensityPerKm2: null,
