@@ -1,4 +1,5 @@
 import { Injectable, effect, inject, signal } from '@angular/core';
+import { clampToSwitzerland } from '../config/map-bounds.config';
 import { ZarrMapService } from './zarr-map.service';
 
 @Injectable({
@@ -32,8 +33,9 @@ export class LocationService {
   }
 
   setLocation(lat: number, lng: number, address?: string): void {
-    this._lat.set(lat);
-    this._lng.set(lng);
+    const clamped = clampToSwitzerland(lng, lat);
+    this._lat.set(clamped.lat);
+    this._lng.set(clamped.lng);
     if (address !== undefined) {
       this._address.set(address);
     }

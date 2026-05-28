@@ -12,12 +12,7 @@ import { ZarrMapService } from '../../services/zarr-map.service';
 import { Map, NavigationControl, Marker } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
-
-/** Switzerland WGS84 bbox (swisstopo) with ~0.75° padding on each side. */
-const SWITZERLAND_MAX_BOUNDS: [[number, number], [number, number]] = [
-  [5.206, 45.068],
-  [11.242, 48.558],
-];
+import { clampToSwitzerland, SWITZERLAND_MAX_BOUNDS } from '../../config/map-bounds.config';
 
 @Component({
   selector: 'app-map',
@@ -83,9 +78,19 @@ export class MapComponent implements OnInit, OnDestroy {
       .setLngLat([lng, lat])
       .addTo(this.map);
 
+    this.marker.on('drag', () => {
+      const lngLat = this.marker.getLngLat();
+      const clamped = clampToSwitzerland(lngLat.lng, lngLat.lat);
+      if (clamped.lng !== lngLat.lng || clamped.lat !== lngLat.lat) {
+        this.marker.setLngLat([clamped.lng, clamped.lat]);
+      }
+    });
+
     this.marker.on('dragend', () => {
       const lngLat = this.marker.getLngLat();
-      this.locationService.setLocation(lngLat.lat, lngLat.lng, '');
+      const clamped = clampToSwitzerland(lngLat.lng, lngLat.lat);
+      this.marker.setLngLat([clamped.lng, clamped.lat]);
+      this.locationService.setLocation(clamped.lat, clamped.lng, '');
     });
 
     this.deckOverlay = new MapboxOverlay({
