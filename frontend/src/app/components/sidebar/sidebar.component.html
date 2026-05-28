@@ -7,11 +7,31 @@
     (click)="toggleSidebar()"
   >
     @if (isCollapsed) {
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
     } @else {
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <polyline points="9 18 15 12 9 6"></polyline>
       </svg>
     }
@@ -19,8 +39,6 @@
 
   @if (!isCollapsed) {
     <div class="sidebar-content">
-      <h2 class="sidebar-title">Siedlungsqualität</h2>
-
       @if (locationService.address()) {
         <div class="address-display">
           <span class="address-label">Standort</span>
@@ -50,7 +68,8 @@
       <div class="overview-section">
         <h3 class="metrics-title">Gesamtübersicht</h3>
         <p class="layers-hint">
-          Gewichteter Durchschnitt von {{ metricDefinitions.length }} GeoZarr-Indikatoren (0–100, höher = besser).
+          Gewichteter Durchschnitt von {{ metricDefinitions.length }} GeoZarr-Indikatoren (0–100,
+          höher = besser).
         </p>
 
         @if (locationService.metricsLoading()) {
@@ -65,7 +84,13 @@
             </span>
             <span class="overview-score-unit">/ 100</span>
             @if (score !== null) {
-              <div class="overview-score-bar" role="meter" [attr.aria-valuenow]="score" aria-valuemin="0" aria-valuemax="100">
+              <div
+                class="overview-score-bar"
+                role="meter"
+                [attr.aria-valuenow]="score"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
                 <div class="overview-score-fill" [style.width.%]="score"></div>
               </div>
             }
@@ -79,7 +104,17 @@
       </div>
 
       <div class="layers-section">
-        <h3 class="metrics-title">Faktoren &amp; Gewichtung</h3>
+        <div class="layers-header">
+          <h3 class="metrics-title">Faktoren &amp; Gewichtung</h3>
+          <button
+            type="button"
+            class="layers-reset-btn"
+            [disabled]="!isAnyLayerEnabled()"
+            (click)="deselectAllLayers()"
+          >
+            Alle abwählen
+          </button>
+        </div>
         <p class="layers-hint">
           Aktive Faktoren mit Gewicht &gt; 0 bilden die gewichtete Karte und den Gesamtscore.
         </p>
@@ -138,7 +173,9 @@
 
       <div class="coordinates-section">
         <span class="coord-label">Koordinaten</span>
-        <span class="coord-value">{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span>
+        <span class="coord-value"
+          >{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span
+        >
       </div>
     </div>
   }

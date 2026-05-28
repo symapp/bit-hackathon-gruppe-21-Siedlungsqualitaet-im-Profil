@@ -76,4 +76,12 @@ export class SidebarComponent {
     const input = event.target as HTMLInputElement;
     this.locationService.setZarrLayerEnabled(layerId, input.checked);
   }
+
+  deselectAllLayers(): void {
+    this.locationService.setAllZarrLayersEnabled(false);
+  }
+
+  isAnyLayerEnabled(): boolean {
+    return this.locationService.zarrLayers().some((layer) => layer.enabled);
+  }
 }

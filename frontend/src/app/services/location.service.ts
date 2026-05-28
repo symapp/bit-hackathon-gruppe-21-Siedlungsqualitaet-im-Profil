@@ -52,4 +52,10 @@ export class LocationService {
   setZarrLayerEnabled(layerId: string, enabled: boolean): void {
     this.zarrMap.setLayerEnabled(layerId, enabled);
   }
+
+  setAllZarrLayersEnabled(enabled: boolean): void {
+    for (const layer of this.zarrLayers()) {
+      this.zarrMap.setLayerEnabled(layer.id, enabled);
+    }
+  }
 }

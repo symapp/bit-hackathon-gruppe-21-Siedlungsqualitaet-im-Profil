@@ -3,7 +3,7 @@
   top: 16px;
   right: 16px;
   bottom: 16px;
-  width: 340px;
+  width: min(420px, calc(100vw - 32px));
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   border-radius: 16px;
@@ -55,14 +55,8 @@
 .sidebar-content {
   padding: 48px 20px 20px;
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
-}
-
-.sidebar-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 16px 0;
 }
 
 .address-display {
@@ -87,6 +81,7 @@
   font-size: 0.85rem;
   color: #1e293b;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .radius-section {
@@ -213,6 +208,46 @@
   margin-bottom: 20px;
 }
 
+.layers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+
+  .metrics-title {
+    margin-bottom: 0;
+    min-width: 0;
+  }
+}
+
+.layers-reset-btn {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #334155;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
 .layers-hint {
   font-size: 0.75rem;
   color: #94a3b8;
@@ -260,6 +295,7 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  min-width: 0;
 
   input {
     width: 16px;
@@ -272,12 +308,15 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: #1e293b;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .map-layer-desc {
   font-size: 0.72rem;
   color: #64748b;
   line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .map-layer-legend {
@@ -442,4 +481,5 @@
   font-size: 0.75rem;
   color: #64748b;
   font-family: 'JetBrains Mono', monospace;
+  overflow-wrap: anywhere;
 }
