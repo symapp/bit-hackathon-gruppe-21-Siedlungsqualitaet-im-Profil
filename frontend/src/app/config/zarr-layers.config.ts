@@ -40,6 +40,23 @@ export interface ZarrLayerDefinition {
   formatValue: (value: number) => string;
   /** Used for the aggregated overview score (0–100). */
   higherIsBetter: boolean;
+  /** Coarse GeoZarr stores for national overview (from coarsen_settlement_layers.py). */
+  overviewCoarse?: {
+    storePath500: string;
+    storePath1000: string;
+    blockFactor500: number;
+    blockFactor1000: number;
+  };
+}
+
+function coarsePaths(fineStorePath: string): ZarrLayerDefinition['overviewCoarse'] {
+  const base = fineStorePath.replace(/\.zarr\/?$/i, '');
+  return {
+    storePath500: `${base}_500m.zarr`,
+    storePath1000: `${base}_1000m.zarr`,
+    blockFactor500: 5,
+    blockFactor1000: 10,
+  };
 }
 
 export const DEFAULT_ACTIVE_ZARR_LAYER_ID = 'tranquillity';
@@ -70,7 +87,7 @@ const CLIM = {
 
 const base = environment.zarrBaseUrl;
 
-export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
+const ZARR_LAYER_DEFINITIONS_BASE: Omit<ZarrLayerDefinition, 'overviewCoarse'>[] = [
   {
     id: 'tranquillity',
     labelKey: 'layers.tranquillity.label',
@@ -102,7 +119,7 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     metricKey: 'populationDensityPerKm2',
     metricLabelKey: 'layers.populationDensity.metricLabel',
     metricUnitKey: 'layers.populationDensity.metricUnit',
-    formatValue: (v) => v.toFixed(2),
+    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: false,
   },
   {
@@ -293,6 +310,13 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     higherIsBetter: true,
   },
 ];
+
+export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = ZARR_LAYER_DEFINITIONS_BASE.map(
+  (definition) => ({
+    ...definition,
+    overviewCoarse: coarsePaths(definition.storePath),
+  }),
+);
 
 /** Layers that use 0 as nodata in GeoZarr but should be treated as empty in the UI. */
 export const ZARR_LAYERS_WITH_NAN_FILL = new Set(

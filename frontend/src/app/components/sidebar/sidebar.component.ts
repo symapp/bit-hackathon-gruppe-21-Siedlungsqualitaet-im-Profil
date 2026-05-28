@@ -7,14 +7,17 @@ import {
   ZARR_LAYER_DEFINITIONS,
   type ZarrLayerDefinition,
 } from '../../config/zarr-layers.config';
+import type { LayerPreference } from '../../models/layer-preference.model';
 import type { LocationMetrics } from '../../models/metrics.model';
 import { LocationService } from '../../services/location.service';
 import type { GroceryStore } from '../../services/overpass.service';
+import { climToNormalizationBounds, metaToNormalizationBounds } from '../../utils/preference-scoring.util';
+import { TrapezoidPreferenceEditorComponent } from '../trapezoid-preference-editor/trapezoid-preference-editor.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, LanguageSelectorComponent],
+  imports: [FormsModule, TranslatePipe, LanguageSelectorComponent, TrapezoidPreferenceEditorComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
@@ -48,12 +51,8 @@ export class SidebarComponent {
     return definition?.formatValue(value) ?? String(value);
   }
 
-  formatClim(clim: [number, number], layerId: string): string {
-    const def = this.metricDefinitions.find((d) => d.id === layerId);
-    if (!def) {
-      return `${clim[0]} – ${clim[1]}`;
-    }
-    return `${def.formatValue(clim[0])} – ${def.formatValue(clim[1])}`;
+  metricUnit(def: ZarrLayerDefinition): string {
+    return this.translate.instant(def.metricUnitKey);
   }
 
   legendGradient(colors: readonly string[] | string[]): string {
@@ -68,13 +67,52 @@ export class SidebarComponent {
     return this.metricDefinitions.find((d) => d.id === layerId);
   }
 
-  onLayerWeightChange(layerId: string, weight: number): void {
-    this.locationService.setZarrLayerWeight(layerId, weight);
+  normalizationBounds(layerId: string) {
+    const layer = this.locationService.zarrLayers().find((l) => l.id === layerId);
+    const def = this.layerDefinition(layerId);
+    if (!def) {
+      return { p5: 0, p95: 1, higherIsBetter: true };
+    }
+    if (layer?.meta) {
+      return metaToNormalizationBounds(layer.meta);
+    }
+    return climToNormalizationBounds(def.clim, def.higherIsBetter);
+  }
+
+  sampleRawForLayer(layerId: string): number | null {
+    const def = this.layerDefinition(layerId);
+    if (!def) {
+      return null;
+    }
+    return this.locationService.metrics()[def.metricKey];
+  }
+
+  onPreferenceChange(layerId: string, preference: LayerPreference): void {
+    this.locationService.setZarrLayerPreference(layerId, preference);
+  }
+
+  onImportanceChange(layerId: string, importance: number): void {
+    const layer = this.locationService.zarrLayers().find((l) => l.id === layerId);
+    if (!layer) {
+      return;
+    }
+    this.locationService.setZarrLayerPreference(layerId, {
+      ...layer.preference,
+      importance,
+    });
   }
 
   onLayerEnabledChange(layerId: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     this.locationService.setZarrLayerEnabled(layerId, input.checked);
+  }
+
+  resetLayerPreference(layerId: string): void {
+    this.locationService.resetZarrLayerPreference(layerId);
+  }
+
+  resetAllPreferences(): void {
+    this.locationService.resetAllZarrPreferences();
   }
 
   deselectAllLayers(): void {

@@ -15,10 +15,15 @@
     "location": "Localisation",
     "radius": "Rayon de recherche",
     "overviewTitle": "Vue d'ensemble",
-    "overviewHint": "Moyenne pondérée de {{count}} indicateurs GeoZarr (0–100, plus élevé = meilleur).",
+    "overviewHint": "Moyenne pondérée des fonctions de notation des facteurs (0–100, plus élevé = meilleur).",
+    "overviewLoading": "Chargement de la carte de synthèse…",
     "overviewMapScale": "Carte : 0 – 100 (moins bon – meilleur)",
-    "layersTitle": "Facteurs & pondération",
-    "layersHint": "Les facteurs actifs avec un poids > 0 forment la carte pondérée et le score global.",
+    "layersTitle": "Facteurs & préférences",
+    "layersHint": "Courbe trapézoïdale par facteur : plateau = 100 points. L'importance pilote le score global et la carte de synthèse.",
+    "importance": "Importance",
+    "resetDefaults": "Valeurs par défaut",
+    "resetLayer": "Réinitialiser le facteur",
+    "metaFallback": "Métadonnées non chargées — échelle par défaut.",
     "weight": "Poids",
     "coordinates": "Coordonnées",
     "calculating": "Calcul des valeurs en cours…",
@@ -36,13 +41,13 @@
       "label": "Tranquillité",
       "description": "Carte de sensibilité au bruit OFEV (qualité de tranquillité)",
       "metricLabel": "Tranquillité",
-      "metricUnit": "score"
+      "metricUnit": "indice"
     },
     "populationDensity": {
       "label": "Densité de population",
       "description": "OFS STATPOP, habitants par km² (grille 100 m)",
       "metricLabel": "Densité de population",
-      "metricUnit": "score"
+      "metricUnit": "hab./km²"
     },
     "ptAccessibility": {
       "label": "Accessibilité TP",
@@ -60,7 +65,7 @@
       "label": "Qualité TP",
       "description": "Classes de qualité TP ARE (A=4 … D=1, plus élevé = meilleur)",
       "metricLabel": "Classe de qualité TP",
-      "metricUnit": "n°"
+      "metricUnit": "classe"
     },
     "ptTravelTime": {
       "label": "Temps de trajet TP",

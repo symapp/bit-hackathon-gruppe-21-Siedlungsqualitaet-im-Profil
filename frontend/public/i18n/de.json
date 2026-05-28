@@ -15,10 +15,15 @@
     "location": "Standort",
     "radius": "Suchradius",
     "overviewTitle": "Gesamtübersicht",
-    "overviewHint": "Gewichteter Durchschnitt von {{count}} GeoZarr-Indikatoren (0–100, höher = besser).",
+    "overviewHint": "Gewichteter Mittelwert der Faktor-Bewertungsfunktionen (0–100, höher = besser).",
+    "overviewLoading": "Übersichtskarte wird geladen…",
     "overviewMapScale": "Karte: 0 – 100 (schlechter – besser)",
-    "layersTitle": "Faktoren & Gewichtung",
-    "layersHint": "Aktive Faktoren mit Gewicht > 0 bilden die gewichtete Karte und den Gesamtscore.",
+    "layersTitle": "Faktoren & Präferenzen",
+    "layersHint": "Trapez-Kurve pro Faktor: Plateau = 100 Punkte. Wichtigkeit steuert den Gesamtscore und die Übersichtskarte.",
+    "importance": "Wichtigkeit",
+    "resetDefaults": "Sinnvolle Defaults",
+    "resetLayer": "Faktor zurücksetzen",
+    "metaFallback": "Metadaten nicht geladen — Skala aus Voreinstellung.",
     "weight": "Gewicht",
     "coordinates": "Koordinaten",
     "calculating": "Werte werden berechnet…",
@@ -36,13 +41,13 @@
       "label": "Ruhe",
       "description": "BAFU Lärmempfindlichkeitskarte (Ruhegüte)",
       "metricLabel": "Ruhegüte",
-      "metricUnit": "Score"
+      "metricUnit": "Index"
     },
     "populationDensity": {
       "label": "Bevölkerungsdichte",
       "description": "BFS STATPOP, Einwohner pro km² (100 m Raster)",
       "metricLabel": "Bevölkerungsdichte",
-      "metricUnit": "Score"
+      "metricUnit": "Einw./km²"
     },
     "ptAccessibility": {
       "label": "ÖV-Erreichbarkeit",
@@ -60,7 +65,7 @@
       "label": "ÖV-Güteklassen",
       "description": "ARE ÖV-Güteklassen (A=4 … D=1, höher = besser)",
       "metricLabel": "ÖV-Güteklasse",
-      "metricUnit": "Nr."
+      "metricUnit": "Güteklasse"
     },
     "ptTravelTime": {
       "label": "Reisezeit ÖV",

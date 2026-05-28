@@ -80,7 +80,7 @@ test.describe('Zarr map overlay', () => {
       .toBeGreaterThan(0);
   });
 
-  test('sidebar overview score appears after zarr sampling', async ({ page }) => {
+  test('preference editor and overview score appear after zarr sampling', async ({ page }) => {
     await page.goto('/');
 
     await expect(page.getByRole('heading', { name: 'Gesamtübersicht', exact: true })).toBeVisible();
@@ -94,5 +94,63 @@ test.describe('Zarr map overlay', () => {
         { timeout: 90_000 },
       )
       .not.toBe('—');
+
+    await expect(page.locator('.trapezoid-svg').first()).toBeVisible();
+  });
+
+  test('overview generation advances after map is ready', async ({ page }) => {
+    await page.goto('/');
+
+    await expect
+      .poll(async () => page.locator('.map-layer-card.loading').count(), { timeout: 90_000 })
+      .toBe(0);
+
+    await expect
+      .poll(async () => {
+        return page.evaluate(() => window.__SIEDLUNG_OVERVIEW__?.generation ?? 0);
+      }, { timeout: 60_000 })
+      .toBeGreaterThan(0);
+  });
+
+  test('preference change rescored without extra zarr fetches when cached', async ({ page }) => {
+    await page.goto('/');
+
+    await expect
+      .poll(async () => page.locator('.map-layer-card.loading').count(), { timeout: 90_000 })
+      .toBe(0);
+
+    await expect
+      .poll(async () => page.evaluate(() => window.__SIEDLUNG_OVERVIEW__?.generation ?? 0), {
+        timeout: 60_000,
+      })
+      .toBeGreaterThan(0);
+
+    const before = await page.evaluate(() => ({
+      gen: window.__SIEDLUNG_OVERVIEW__?.generation ?? 0,
+      zarrRequests: performance
+        .getEntriesByType('resource')
+        .filter((e) => /zarr|backblazeb2/i.test(e.name)).length,
+    }));
+
+    const slider = page.locator('.layer-weight-slider').first();
+    await slider.focus();
+    const box = await slider.boundingBox();
+    if (box) {
+      await page.mouse.click(box.x + box.width * 0.3, box.y + box.height / 2);
+    }
+
+    await expect
+      .poll(async () => page.evaluate(() => window.__SIEDLUNG_OVERVIEW__?.generation ?? 0), {
+        timeout: 15_000,
+      })
+      .toBeGreaterThan(before.gen);
+
+    const after = await page.evaluate(() =>
+      performance
+        .getEntriesByType('resource')
+        .filter((e) => /zarr|backblazeb2/i.test(e.name)).length,
+    );
+
+    expect(after - before.zarrRequests).toBeLessThan(20);
   });
 });

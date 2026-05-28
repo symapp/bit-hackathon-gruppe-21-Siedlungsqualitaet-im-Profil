@@ -15,10 +15,15 @@
     "location": "Location",
     "radius": "Search radius",
     "overviewTitle": "Overview",
-    "overviewHint": "Weighted average of {{count}} GeoZarr indicators (0–100, higher = better).",
+    "overviewHint": "Weighted mean of factor scoring functions (0–100, higher = better).",
+    "overviewLoading": "Loading overview map…",
     "overviewMapScale": "Map: 0 – 100 (worse – better)",
-    "layersTitle": "Factors & weighting",
-    "layersHint": "Active factors with weight > 0 form the weighted map and the overall score.",
+    "layersTitle": "Factors & preferences",
+    "layersHint": "Trapezoid curve per factor: plateau = 100 points. Importance drives the overall score and overview map.",
+    "importance": "Importance",
+    "resetDefaults": "Sensible defaults",
+    "resetLayer": "Reset factor",
+    "metaFallback": "Metadata not loaded — scale from preset.",
     "weight": "Weight",
     "coordinates": "Coordinates",
     "calculating": "Calculating values…",
@@ -36,13 +41,13 @@
       "label": "Tranquillity",
       "description": "FOEN noise sensitivity map (tranquillity quality)",
       "metricLabel": "Tranquillity",
-      "metricUnit": "score"
+      "metricUnit": "index"
     },
     "populationDensity": {
       "label": "Population density",
       "description": "FSO STATPOP, inhabitants per km² (100 m grid)",
       "metricLabel": "Population density",
-      "metricUnit": "score"
+      "metricUnit": "inh./km²"
     },
     "ptAccessibility": {
       "label": "PT accessibility",
@@ -60,7 +65,7 @@
       "label": "PT quality",
       "description": "ARE public transport quality classes (A=4 … D=1, higher = better)",
       "metricLabel": "PT quality class",
-      "metricUnit": "no."
+      "metricUnit": "class"
     },
     "ptTravelTime": {
       "label": "PT travel time",

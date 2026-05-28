@@ -41,6 +41,24 @@ def rasterize_metric(metric_id: str, out_dir: Path, *, force: bool = False) -> P
             zip_url=spec.source_type == ZIP,
         )
 
+    import xarray as xr
+
+    from metric_layer_meta import METRIC_META
+    from settlement_layer_meta import write_meta_for_dataset
+
+    higher_is_better, unit = METRIC_META.get(metric_id, (True, ""))
+    ds = xr.open_zarr(out)
+    try:
+        write_meta_for_dataset(
+            out,
+            ds,
+            spec.variable,
+            higher_is_better=higher_is_better,
+            unit=unit,
+        )
+    finally:
+        ds.close()
+
     print(f"[{metric_id}] wrote {out}")
     return out
 

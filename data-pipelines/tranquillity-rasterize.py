@@ -75,28 +75,25 @@ def main() -> None:
     print("Aligning to shared Swiss 100 m grid (ARE settlement-quality extent)...")
     da = align_raster_to_swiss_100m_grid(da, resampling=Resampling.nearest)
 
-    print(f"Normalizing tranquillity index (percentile-based, cutoff={args.percentile_cutoff}%)...")
-    
-    # Mask nodata values to prevent them from skewing quantiles
-    da_masked = da.where(da != da.rio.nodata)
-    
-    q_low = args.percentile_cutoff / 100.0
-    q_high = 1.0 - q_low
-    
-    # Calculate quantiles on the masked data
-    p_low = da_masked.quantile(q_low).values
-    p_high = da_masked.quantile(q_high).values
-    
-    if p_high == p_low:
-        da = (da_masked > p_low).astype(float)
-    else:
-        da = (da_masked - p_low) / (p_high - p_low)
-        da = da.clip(0.0, 1.0)
-
+    da = da.where(da != da.rio.nodata)
     ds = da.to_dataset(name="tranquillity_index")
 
-    print(f"Writing dataset to GeoZarr: {args.out} ...")
-    write_swiss_grid_zarr(ds, args.out)
+    from settlement_layer_meta import build_layer_meta, compute_percentile_bounds
+
+    p5, p95 = compute_percentile_bounds(
+        ds["tranquillity_index"],
+        percentile_cutoff=args.percentile_cutoff,
+    )
+    meta = build_layer_meta(
+        variable="tranquillity_index",
+        p5=p5,
+        p95=p95,
+        higher_is_better=True,
+        unit="",
+    )
+
+    print(f"Writing raw tranquillity GeoZarr: {args.out} (p5={p5:.4f}, p95={p95:.4f})...")
+    write_swiss_grid_zarr(ds, args.out, layer_meta=meta)
     print("Successfully converted and saved to GeoZarr!")
 
     if args.upload:

@@ -1,7 +1,6 @@
 import argparse
 import shutil
 import geopandas as gpd
-import numpy as np
 from geocube.api.core import make_geocube
 
 from are_rasterize_lib import align_geocube_to_swiss_100m_grid, write_swiss_grid_zarr
@@ -59,29 +58,32 @@ def main() -> None:
     try:
         geodata = gpd.read_file(gpkg_file_path)
 
-        print(f"Normalizing accessibility values (percentile-based, cutoff={args.percentile_cutoff}%)...")
-        p_low = np.percentile(geodata["OeV_Erreichb_EW"], args.percentile_cutoff)
-        p_high = np.percentile(geodata["OeV_Erreichb_EW"], 100 - args.percentile_cutoff)
-        
-        # Avoid division by zero
-        if p_high == p_low:
-             geodata["pt_accessibility_score"] = (geodata["OeV_Erreichb_EW"] > p_low).astype(float)
-        else:
-            geodata["pt_accessibility_score"] = (geodata["OeV_Erreichb_EW"] - p_low) / (p_high - p_low)
-            geodata["pt_accessibility_score"] = geodata["pt_accessibility_score"].clip(0.0, 1.0)
-
         resolution = 100
 
         geocube_grid = make_geocube(
             vector_data=geodata,
-            measurements=["pt_accessibility_score"],
+            measurements=["OeV_Erreichb_EW"],
             resolution=(-resolution, resolution),
             output_crs="EPSG:2056",
             fill=0,
         )
         aligned_grid = align_geocube_to_swiss_100m_grid(geocube_grid, fill_value=0)
 
-        write_swiss_grid_zarr(aligned_grid, args.out)
+        from settlement_layer_meta import build_layer_meta, compute_percentile_bounds
+
+        p5, p95 = compute_percentile_bounds(
+            aligned_grid["OeV_Erreichb_EW"],
+            percentile_cutoff=args.percentile_cutoff,
+        )
+        meta = build_layer_meta(
+            variable="OeV_Erreichb_EW",
+            p5=p5,
+            p95=p95,
+            higher_is_better=True,
+            unit="EW",
+        )
+
+        write_swiss_grid_zarr(aligned_grid, args.out, layer_meta=meta)
 
         print(f"Success! GeoZarr created at: {args.out}")
         print(aligned_grid.head())

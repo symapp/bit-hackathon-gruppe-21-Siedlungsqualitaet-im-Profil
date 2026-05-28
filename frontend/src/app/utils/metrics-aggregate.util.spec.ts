@@ -3,22 +3,11 @@ import {
   SWISS_GRID_LV95_BOUNDS,
   type ZarrLayerDefinition,
 } from '../config/zarr-layers.config';
+import { createGoodPlaceLayerPreference } from '../config/good-place-defaults.config';
 import type { LocationMetrics } from '../models/metrics.model';
-import { computeWeightedOverview, normalizeMetric } from './metrics-aggregate.util';
+import { computePreferenceOverview } from './metrics-aggregate.util';
 
-describe('normalizeMetric', () => {
-  it('maps value into 0–1 using clim', () => {
-    expect(normalizeMetric(50, [0, 100], true)).toBe(0.5);
-    expect(normalizeMetric(50, [0, 100], false)).toBe(0.5);
-  });
-
-  it('inverts when lower is better', () => {
-    expect(normalizeMetric(0, [0, 100], false)).toBe(1);
-    expect(normalizeMetric(100, [0, 100], false)).toBe(0);
-  });
-});
-
-describe('computeWeightedOverview', () => {
+describe('computePreferenceOverview', () => {
   const definitions: ZarrLayerDefinition[] = [
     {
       id: 'a',
@@ -54,33 +43,60 @@ describe('computeWeightedOverview', () => {
     },
   ];
 
-  it('returns weighted mean as 0–100 score', () => {
+  it('returns weighted mean of trapezoid scores', () => {
     const metrics = {
       tranquillityIndex: 100,
       populationDensityPerKm2: 0,
     } as LocationMetrics;
 
-    const score = computeWeightedOverview(
-      metrics,
-      definitions,
-      { a: 100, b: 100 },
-      { a: true, b: true },
-    );
+    const prefA = createGoodPlaceLayerPreference('a');
+    const prefB = {
+      ...createGoodPlaceLayerPreference('b'),
+      rangeMin: 0,
+      rangeMax: 1,
+      falloffLeft: 0.01,
+      falloffRight: 0.01,
+    };
 
-    expect(score).toBe(50);
+    const score = computePreferenceOverview(metrics, {
+      definitions,
+      preferences: { a: prefA, b: prefB },
+      metaByLayerId: {
+        a: { variable: 'a', p5: 0, p95: 100, higherIsBetter: true, unit: '' },
+        b: { variable: 'b', p5: 0, p95: 100, higherIsBetter: true, unit: '' },
+      },
+    });
+
+    expect(score).not.toBeNull();
+    expect(score!).toBeGreaterThan(0);
+    expect(score!).toBeLessThanOrEqual(100);
   });
 
-  it('skips disabled layers and zero weights', () => {
+  it('skips disabled layers', () => {
     const metrics = {
       tranquillityIndex: 100,
       populationDensityPerKm2: 0,
     } as LocationMetrics;
 
-    expect(
-      computeWeightedOverview(metrics, definitions, { a: 100, b: 0 }, { a: true, b: true }),
-    ).toBe(100);
-    expect(
-      computeWeightedOverview(metrics, definitions, { a: 100, b: 100 }, { a: true, b: false }),
-    ).toBe(100);
+    const prefA = {
+      ...createGoodPlaceLayerPreference('a'),
+      enabled: true,
+      importance: 100,
+      rangeMin: 0,
+      rangeMax: 1,
+      falloffLeft: 0.01,
+      falloffRight: 0.01,
+    };
+    const prefB = { ...createGoodPlaceLayerPreference('b'), enabled: false, importance: 100 };
+
+    const score = computePreferenceOverview(metrics, {
+      definitions,
+      preferences: { a: prefA, b: prefB },
+      metaByLayerId: {
+        a: { variable: 'a', p5: 0, p95: 100, higherIsBetter: true, unit: '' },
+      },
+    });
+
+    expect(score).toBe(100);
   });
 });

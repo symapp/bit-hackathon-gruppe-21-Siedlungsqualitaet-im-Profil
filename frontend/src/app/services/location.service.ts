@@ -1,6 +1,7 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { clampToSwitzerland } from '../config/map-bounds.config';
 import { OverpassService, type GroceryStore } from './overpass.service';
+import type { LayerPreference } from '../models/layer-preference.model';
 import { ZarrMapService } from './zarr-map.service';
 
 export interface RegionOfInterest {
@@ -61,6 +62,7 @@ export class LocationService {
   readonly metricsLoading = this.zarrMap.metricsLoading;
   readonly metricsError = this.zarrMap.metricsError;
   readonly overviewScore = this.zarrMap.overviewScore;
+  readonly overviewLoading = this.zarrMap.overviewLoading;
   readonly zarrLayers = this.zarrMap.layerStates;
 
   constructor() {
@@ -175,8 +177,21 @@ export class LocationService {
     this._address.set('');
   }
 
+  setZarrLayerPreference(layerId: string, preference: LayerPreference): void {
+    this.zarrMap.setLayerPreference(layerId, preference);
+  }
+
+  /** @deprecated Use setZarrLayerPreference */
   setZarrLayerWeight(layerId: string, weight: number): void {
     this.zarrMap.setLayerWeight(layerId, weight);
+  }
+
+  resetZarrLayerPreference(layerId: string): void {
+    this.zarrMap.resetLayerPreference(layerId);
+  }
+
+  resetAllZarrPreferences(): void {
+    this.zarrMap.resetAllPreferences();
   }
 
   setZarrLayerEnabled(layerId: string, enabled: boolean): void {
@@ -184,9 +199,7 @@ export class LocationService {
   }
 
   setAllZarrLayersEnabled(enabled: boolean): void {
-    for (const layer of this.zarrLayers()) {
-      this.zarrMap.setLayerEnabled(layer.id, enabled);
-    }
+    this.zarrMap.setAllLayersEnabled(enabled);
   }
 
   private async fetchGroceryStores(lat: number, lng: number, radius: number): Promise<void> {
