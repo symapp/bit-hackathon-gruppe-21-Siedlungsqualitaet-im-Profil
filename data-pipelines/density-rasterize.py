@@ -13,6 +13,8 @@ import pandas as pd
 import requests
 import xr
 
+from zarr_b2_upload import upload_zarr
+
 BFS_ASSETS_URL = "https://dam-api.bfs.admin.ch/hub/api/dam/assets"
 STATPOP_QUERY = "%Geodaten STATPOP%"
 DEFAULT_OUT = "statpop_population_density_100m.zarr"
@@ -259,6 +261,12 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Resolve and print the source asset without downloading/converting.")
     parser.add_argument("--ca-bundle", type=Path, default=None, help="Path to a PEM CA bundle. Defaults to certifi if installed.")
     parser.add_argument("--insecure", action="store_true", help="Disable TLS verification for local development only.")
+    parser.add_argument("--upload", action="store_true", help="Upload the Zarr store to Backblaze B2 after writing.")
+    parser.add_argument(
+        "--remote-name",
+        default=None,
+        help="Object prefix inside the B2 bucket (defaults to the output .zarr folder name).",
+    )
     args = parser.parse_args()
     verify: bool | str = False if args.insecure else str(args.ca_bundle) if args.ca_bundle else default_verify()
 
@@ -312,6 +320,10 @@ def main() -> None:
     log(f"Writing GeoZarr/Zarr store: {args.out}")
     ds.to_zarr(args.out, mode="w", consolidated=True, encoding=encoding)
     log(f"Wrote {args.out}")
+
+    if args.upload:
+        remote = upload_zarr(args.out, remote_name=args.remote_name)
+        log(f"Uploaded to {remote}")
 
 
 if __name__ == "__main__":
