@@ -202,7 +202,7 @@ def read_density_table(zip_path: Path, member: str, columns: list[str], year: in
     return df
 
 
-def density_to_dataset(df: pd.DataFrame, year: int) -> xr.Dataset:
+def density_to_dataset(df: pd.DataFrame, year: int, percentile_cutoff: float = 5.0) -> xr.Dataset:
     try:
         import numpy as np
         import xarray as xr
@@ -216,14 +216,24 @@ def density_to_dataset(df: pd.DataFrame, year: int) -> xr.Dataset:
     xi = ((df["x"].to_numpy() - x[0]) // CELL_SIZE_M).astype("int64")
     yi = ((df["y"].to_numpy() - y[0]) // CELL_SIZE_M).astype("int64")
 
-    density = np.full((len(y), len(x)), np.nan, dtype="float32")
+    log(f"Normalizing density values (percentile-based, cutoff={percentile_cutoff}%)...")
+    p_low = np.percentile(df["population_density_per_km2"], percentile_cutoff)
+    p_high = np.percentile(df["population_density_per_km2"], 100 - percentile_cutoff)
+    
+    if p_high == p_low:
+        df["population_density_score"] = (df["population_density_per_km2"] > p_low).astype("float32")
+    else:
+        df["population_density_score"] = (df["population_density_per_km2"] - p_low) / (p_high - p_low)
+        df["population_density_score"] = df["population_density_score"].clip(0.0, 1.0).astype("float32")
+
+    population_density_score = np.full((len(y), len(x)), np.nan, dtype="float32")
     population = np.full((len(y), len(x)), np.nan, dtype="float32")
-    density[yi, xi] = df["population_density_per_km2"].to_numpy(dtype="float32")
+    population_density_score[yi, xi] = df["population_density_score"].to_numpy(dtype="float32")
     population[yi, xi] = df["population"].to_numpy(dtype="float32")
 
     ds = xr.Dataset(
         data_vars={
-            "population_density_per_km2": (("y", "x"), density),
+            "population_density_score": (("y", "x"), population_density_score),
             "population": (("y", "x"), population),
         },
         coords={"x": x.astype("float64"), "y": y.astype("float64")},
@@ -243,7 +253,7 @@ def density_to_dataset(df: pd.DataFrame, year: int) -> xr.Dataset:
             "crs_wkt": "EPSG:2056",
         },
     )
-    for var in ("population_density_per_km2", "population"):
+    for var in ("population_density_score", "population"):
         ds[var].attrs["grid_mapping"] = "spatial_ref"
     return ds
 
@@ -255,6 +265,12 @@ def main() -> None:
     parser.add_argument("--year", type=int, default=None, help="STATPOP year. Defaults to the newest available year.")
     parser.add_argument("--zip", type=Path, default=None, help="Use an existing STATPOP ZIP instead of downloading.")
     parser.add_argument("--out", type=Path, default=Path(DEFAULT_OUT), help="Output .zarr directory.")
+    parser.add_argument(
+        "--percentile-cutoff",
+        type=float,
+        default=5.0,
+        help="Percentage of data to cut off from top and bottom for normalization (default: 5.0).",
+    )
     parser.add_argument("--cache-dir", "--download-dir", dest="cache_dir", type=Path, default=Path("data"), help="Download/cache directory.")
     parser.add_argument("--chunk-size", type=int, default=1024, help="Zarr chunk size for x and y.")
     parser.add_argument("--force", action="store_true", help="Redownload source ZIP and overwrite output if present.")
@@ -300,7 +316,7 @@ def main() -> None:
     member, columns = choose_csv(zip_path, year)
     log(f"Reading {member}")
     df = read_density_table(zip_path, member, columns, year)
-    ds = density_to_dataset(df, year)
+    ds = density_to_dataset(df, year, percentile_cutoff=args.percentile_cutoff)
 
     if args.out.exists():
         if not args.force:

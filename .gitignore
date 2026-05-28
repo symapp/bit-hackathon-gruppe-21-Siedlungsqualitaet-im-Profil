@@ -2,3 +2,8 @@ __pycache__/
 .idea/
 *.zarr
 .env
+data/
+.venv/
+node_modules/
+dist/
+.angular/
