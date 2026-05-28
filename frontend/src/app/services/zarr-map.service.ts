@@ -22,8 +22,8 @@ interface ManagedZarrLayer {
 
 export interface ZarrLayerState {
   id: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   colormap: string[];
   clim: [number, number];
   enabled: boolean;
@@ -278,8 +278,8 @@ export class ZarrMapService {
     this.layerStates.set(
       [...this.managedLayers.values()].map(({ definition, ready, loading }) => ({
         id: definition.id,
-        label: definition.label,
-        description: definition.description,
+        labelKey: definition.labelKey,
+        descriptionKey: definition.descriptionKey,
         colormap: definition.colormap,
         clim: definition.clim,
         enabled: enabled[definition.id] !== false,

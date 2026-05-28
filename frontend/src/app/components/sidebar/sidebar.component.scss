@@ -22,8 +22,15 @@
     bottom: auto;
     top: 16px;
 
+    .sidebar-header {
+      padding: 0;
+      border-bottom: none;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
     .toggle-btn {
-      position: static;
       width: 100%;
       height: 100%;
       min-height: 48px;
@@ -31,12 +38,18 @@
   }
 }
 
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
 .toggle-btn {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -46,6 +59,7 @@
   color: var(--ch-text-secondary);
   transition: color 0.2s;
   padding: 0;
+  flex-shrink: 0;
 
   &:hover {
     color: var(--ch-text-primary);
@@ -53,7 +67,7 @@
 }
 
 .sidebar-content {
-  padding: 48px 20px 20px;
+  padding: 16px 20px 20px;
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;

@@ -18,8 +18,10 @@ export const SWISS_GRID_LV95_BOUNDS: [number, number, number, number] = [
 
 export interface ZarrLayerDefinition {
   id: string;
-  label: string;
-  description: string;
+  /** i18n key for the layer name, e.g. 'layers.tranquillity.label' */
+  labelKey: string;
+  /** i18n key for the layer description */
+  descriptionKey: string;
   storePath: string;
   variable: string;
   selector?: Selector;
@@ -31,8 +33,10 @@ export interface ZarrLayerDefinition {
   colormap: string[];
   clim: [number, number];
   metricKey: ZarrMetricKey;
-  metricLabel: string;
-  metricUnit: string;
+  /** i18n key for the metric label shown in the sidebar */
+  metricLabelKey: string;
+  /** i18n key for the metric unit */
+  metricUnitKey: string;
   formatValue: (value: number) => string;
   /** Used for the aggregated overview score (0–100). */
   higherIsBetter: boolean;
@@ -69,8 +73,8 @@ const base = environment.zarrBaseUrl;
 export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
   {
     id: 'tranquillity',
-    label: 'Ruhe',
-    description: 'BAFU Lärmempfindlichkeitskarte (Ruhegüte)',
+    labelKey: 'layers.tranquillity.label',
+    descriptionKey: 'layers.tranquillity.description',
     storePath: `${base}/ch_bafu_tranquillity_karte.zarr`,
     variable: 'tranquillity_index',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -79,15 +83,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
     clim: CLIM.tranquillity,
     metricKey: 'tranquillityIndex',
-    metricLabel: 'Ruhegüte',
-    metricUnit: 'Stufe',
+    metricLabelKey: 'layers.tranquillity.metricLabel',
+    metricUnitKey: 'layers.tranquillity.metricUnit',
     formatValue: (v) => v.toFixed(2),
     higherIsBetter: true,
   },
   {
     id: 'population-density',
-    label: 'Bevölkerungsdichte',
-    description: 'BFS STATPOP, Einwohner pro km² (100 m Raster)',
+    labelKey: 'layers.populationDensity.label',
+    descriptionKey: 'layers.populationDensity.description',
     storePath: `${base}/statpop_population_density_100m.zarr`,
     variable: 'population_density_score',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -96,15 +100,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#ffffcc', '#fed976', '#fd8d3c', '#e31a1c', '#800026'],
     clim: CLIM.populationDensity,
     metricKey: 'populationDensityPerKm2',
-    metricLabel: 'Bevölkerungsdichte',
-    metricUnit: 'Score',
+    metricLabelKey: 'layers.populationDensity.metricLabel',
+    metricUnitKey: 'layers.populationDensity.metricUnit',
     formatValue: (v) => v.toFixed(2),
     higherIsBetter: false,
   },
   {
     id: 'pt-accessibility',
-    label: 'ÖV-Erreichbarkeit',
-    description: 'ARE Erreichbarkeitswert ÖV (EW, höher = besser erschlossen)',
+    labelKey: 'layers.ptAccessibility.label',
+    descriptionKey: 'layers.ptAccessibility.description',
     storePath: `${base}/erreichbarkeit_swiss_grid_100m.zarr`,
     variable: 'OeV_Erreichb_EW',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -113,15 +117,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#f7fbff', '#c6dbef', '#6baed6', '#2171b5', '#08306b'],
     clim: CLIM.ptAccessibility,
     metricKey: 'publicTransportAccessibility',
-    metricLabel: 'ÖV-Erreichbarkeit',
-    metricUnit: 'EW',
+    metricLabelKey: 'layers.ptAccessibility.metricLabel',
+    metricUnitKey: 'layers.ptAccessibility.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: true,
   },
   {
     id: 'miv-accessibility',
-    label: 'Strassen-Erreichbarkeit',
-    description: 'ARE Erreichbarkeit MIV (EW, höher = besser erschlossen)',
+    labelKey: 'layers.mivAccessibility.label',
+    descriptionKey: 'layers.mivAccessibility.description',
     storePath: `${base}/erreichbarkeit_miv_swiss_grid_100m.zarr`,
     variable: 'Strasse_Erreichb_EW',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -130,15 +134,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#fff5f0', '#fcbba1', '#fc9272', '#de2d26', '#67000d'],
     clim: CLIM.roadAccessibility,
     metricKey: 'roadAccessibility',
-    metricLabel: 'Strassen-Erreichbarkeit',
-    metricUnit: 'EW',
+    metricLabelKey: 'layers.mivAccessibility.metricLabel',
+    metricUnitKey: 'layers.mivAccessibility.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: true,
   },
   {
     id: 'pt-quality',
-    label: 'ÖV-Güteklassen',
-    description: 'ARE ÖV-Güteklassen (A=4 … D=1, höher = besser)',
+    labelKey: 'layers.ptQuality.label',
+    descriptionKey: 'layers.ptQuality.description',
     storePath: `${base}/pt_quality_swiss_grid_100m.zarr`,
     variable: 'KLASSE_NUM',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -147,15 +151,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#d73027', '#fc8d59', '#91cf60', '#1a9850'],
     clim: CLIM.ptQuality,
     metricKey: 'publicTransportQuality',
-    metricLabel: 'ÖV-Güteklasse',
-    metricUnit: 'Nr.',
+    metricLabelKey: 'layers.ptQuality.metricLabel',
+    metricUnitKey: 'layers.ptQuality.metricUnit',
     formatValue: (v) => v.toFixed(0),
     higherIsBetter: true,
   },
   {
     id: 'pt-travel-time',
-    label: 'Reisezeit ÖV',
-    description: 'ARE Reisezeit zu den 6 grossen Zentren mit ÖV (Minuten)',
+    labelKey: 'layers.ptTravelTime.label',
+    descriptionKey: 'layers.ptTravelTime.description',
     storePath: `${base}/reisezeit_oev_swiss_grid_100m.zarr`,
     variable: 'OeV_Reisezeit_Z',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -164,15 +168,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#004529', '#41ab5d', '#fee08b', '#f46d43', '#a50026'],
     clim: CLIM.ptTravelTime,
     metricKey: 'publicTransportTravelTimeMin',
-    metricLabel: 'Reisezeit ÖV',
-    metricUnit: 'min',
+    metricLabelKey: 'layers.ptTravelTime.metricLabel',
+    metricUnitKey: 'layers.ptTravelTime.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: false,
   },
   {
     id: 'miv-travel-time',
-    label: 'Reisezeit Auto',
-    description: 'ARE Reisezeit zu den 6 grossen Zentren mit Strasse (Minuten)',
+    labelKey: 'layers.mivTravelTime.label',
+    descriptionKey: 'layers.mivTravelTime.description',
     storePath: `${base}/reisezeit_miv_swiss_grid_100m.zarr`,
     variable: 'Strasse_Reisezeit_Z',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -181,15 +185,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#004529', '#41ab5d', '#fee08b', '#f46d43', '#a50026'],
     clim: CLIM.roadTravelTime,
     metricKey: 'roadTravelTimeMin',
-    metricLabel: 'Reisezeit Auto',
-    metricUnit: 'min',
+    metricLabelKey: 'layers.mivTravelTime.metricLabel',
+    metricUnitKey: 'layers.mivTravelTime.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: false,
   },
   {
     id: 'rail-traffic',
-    label: 'Bahn-Belastung',
-    description: 'ARE Personenverkehr Bahn (DTV, niedriger = ruhiger)',
+    labelKey: 'layers.railTraffic.label',
+    descriptionKey: 'layers.railTraffic.description',
     storePath: `${base}/belastung_bahn_swiss_grid_100m.zarr`,
     variable: 'DTV_OEV',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -198,15 +202,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'],
     clim: CLIM.railTraffic,
     metricKey: 'railTrafficLoad',
-    metricLabel: 'Bahn-Belastung',
-    metricUnit: 'DTV',
+    metricLabelKey: 'layers.railTraffic.metricLabel',
+    metricUnitKey: 'layers.railTraffic.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: false,
   },
   {
     id: 'road-traffic',
-    label: 'Strassenverkehr',
-    description: 'ARE Verkehrsbelastung Strasse (DTV Fahrzeuge, niedriger = besser)',
+    labelKey: 'layers.roadTraffic.label',
+    descriptionKey: 'layers.roadTraffic.description',
     storePath: `${base}/belastung_strasse_swiss_grid_100m.zarr`,
     variable: 'DTV_FZG',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -215,15 +219,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'],
     clim: CLIM.roadTraffic,
     metricKey: 'roadTrafficLoad',
-    metricLabel: 'Strassenverkehr',
-    metricUnit: 'DTV',
+    metricLabelKey: 'layers.roadTraffic.metricLabel',
+    metricUnitKey: 'layers.roadTraffic.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: false,
   },
   {
     id: 'secondary-homes',
-    label: 'Zweitwohnungsanteil',
-    description: 'ARE Wohnungsinventar, Anteil Zweitwohnungen (%, niedriger = besser)',
+    labelKey: 'layers.secondaryHomes.label',
+    descriptionKey: 'layers.secondaryHomes.description',
     storePath: `${base}/zweitwohnungsanteil_swiss_grid_100m.zarr`,
     variable: 'ZWG_3110',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -232,15 +236,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#f7fcf5', '#c2e699', '#74c476', '#238b45', '#00441b'],
     clim: CLIM.secondaryHomes,
     metricKey: 'secondaryHomesRatePct',
-    metricLabel: 'Zweitwohnungsanteil',
-    metricUnit: '%',
+    metricLabelKey: 'layers.secondaryHomes.metricLabel',
+    metricUnitKey: 'layers.secondaryHomes.metricUnit',
     formatValue: (v) => v.toFixed(1),
     higherIsBetter: false,
   },
   {
     id: 'landscape-type',
-    label: 'Landschaftstyp',
-    description: 'ARE Landschaftstypologie (Typ-Nr., höher = vielfältigere Kategorie)',
+    labelKey: 'layers.landscapeType.label',
+    descriptionKey: 'layers.landscapeType.description',
     storePath: `${base}/landschaftstypen_swiss_grid_100m.zarr`,
     variable: 'TYP_NR',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -249,15 +253,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#8c510a', '#d8b365', '#5ab4ac', '#01665e', '#003c30'],
     clim: CLIM.landscapeType,
     metricKey: 'landscapeTypeId',
-    metricLabel: 'Landschaftstyp',
-    metricUnit: 'Nr.',
+    metricLabelKey: 'layers.landscapeType.metricLabel',
+    metricUnitKey: 'layers.landscapeType.metricUnit',
     formatValue: (v) => v.toFixed(0),
     higherIsBetter: true,
   },
   {
     id: 'solar-potential',
-    label: 'Solar-Potenzial',
-    description: 'ARE Solaranlagen Nutzungsaspekte (1–5, höher = günstiger)',
+    labelKey: 'layers.solarPotential.label',
+    descriptionKey: 'layers.solarPotential.description',
     storePath: `${base}/solar_nutzungsaspekte.zarr`,
     variable: 'solar_suitability',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -266,15 +270,15 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#fff7bc', '#fec44f', '#d95f0e', '#993404'],
     clim: CLIM.solarSuitability,
     metricKey: 'solarSuitability',
-    metricLabel: 'Solar-Eignung',
-    metricUnit: 'Stufe',
+    metricLabelKey: 'layers.solarPotential.metricLabel',
+    metricUnitKey: 'layers.solarPotential.metricUnit',
     formatValue: (v) => v.toFixed(0),
     higherIsBetter: true,
   },
   {
     id: 'agglomeration',
-    label: 'Agglomeration',
-    description: 'ARE Agglomerationsprogramm (1 = im förderberechtigten Gebiet)',
+    labelKey: 'layers.agglomeration.label',
+    descriptionKey: 'layers.agglomeration.description',
     storePath: `${base}/agglomeration_swiss_grid_100m.zarr`,
     variable: 'in_agglomeration',
     bounds: SWISS_GRID_LV95_BOUNDS,
@@ -283,9 +287,9 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#f0f0f0', '#6366f1'],
     clim: CLIM.agglomeration,
     metricKey: 'inAgglomeration',
-    metricLabel: 'Agglomeration',
-    metricUnit: '',
-    formatValue: (v) => (v >= 1 ? 'ja' : 'nein'),
+    metricLabelKey: 'layers.agglomeration.metricLabel',
+    metricUnitKey: 'layers.agglomeration.metricUnit',
+    formatValue: (v) => (v >= 1 ? '✓' : '✗'),
     higherIsBetter: true,
   },
 ];
@@ -298,9 +302,7 @@ export const ZARR_LAYERS_WITH_NAN_FILL = new Set(
 export const DEFAULT_LAYER_WEIGHT = 100;
 
 export function createDefaultLayerWeights(): Record<string, number> {
-  return Object.fromEntries(
-    ZARR_LAYER_DEFINITIONS.map((d) => [d.id, DEFAULT_LAYER_WEIGHT]),
-  );
+  return Object.fromEntries(ZARR_LAYER_DEFINITIONS.map((d) => [d.id, DEFAULT_LAYER_WEIGHT]));
 }
 
 export function createDefaultLayerEnabled(): Record<string, boolean> {

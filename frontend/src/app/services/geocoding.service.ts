@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import type { GeocodingResult } from '../models/geocoding.model';
 
 interface NominatimResult {
@@ -16,6 +17,8 @@ const RESULT_LIMIT = 6;
   providedIn: 'root',
 })
 export class GeocodingService {
+  private readonly translate = inject(TranslateService);
+
   readonly minQueryLength = MIN_QUERY_LENGTH;
 
   async searchPlaces(query: string, signal?: AbortSignal): Promise<GeocodingResult[]> {
@@ -34,12 +37,13 @@ export class GeocodingService {
       signal,
       headers: {
         Accept: 'application/json',
-        'Accept-Language': 'de',
+        'Accept-Language': this.translate.currentLang ?? 'de',
       },
     });
 
     if (!response.ok) {
-      throw new Error(`Adresssuche fehlgeschlagen (${response.status})`);
+      const msg = this.translate.instant('search.failed', { status: response.status });
+      throw new Error(msg);
     }
 
     const payload = (await response.json()) as NominatimResult[];

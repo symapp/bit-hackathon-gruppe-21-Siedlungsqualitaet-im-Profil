@@ -1,0 +1,114 @@
+{
+  "search": {
+    "placeholder": "Search for an address in Switzerland…",
+    "loading": "Searching…",
+    "clear": "Clear input",
+    "minLength": "Enter at least {{count}} characters",
+    "noResults": "No results for «{{query}}»",
+    "error": "Address search currently unavailable",
+    "failed": "Address search failed ({{status}})"
+  },
+  "sidebar": {
+    "open": "Open panel",
+    "close": "Close panel",
+    "title": "Settlement quality",
+    "location": "Location",
+    "radius": "Search radius",
+    "overviewTitle": "Overview",
+    "overviewHint": "Weighted average of {{count}} GeoZarr indicators (0–100, higher = better).",
+    "overviewMapScale": "Map: 0 – 100 (worse – better)",
+    "layersTitle": "Factors & weighting",
+    "layersHint": "Active factors with weight > 0 form the weighted map and the overall score.",
+    "weight": "Weight",
+    "coordinates": "Coordinates",
+    "calculating": "Calculating values…",
+    "scoreUnit": "/ 100",
+    "layerLoading": "loading…",
+    "radiusMin": "100 m",
+    "radiusMax": "3 km",
+    "groceryTitle": "Grocery stores nearby",
+    "groceryLoading": "Loading…",
+    "groceryAway": "away",
+    "deselectAll": "Deselect all"
+  },
+  "layers": {
+    "tranquillity": {
+      "label": "Tranquillity",
+      "description": "FOEN noise sensitivity map (tranquillity quality)",
+      "metricLabel": "Tranquillity",
+      "metricUnit": "score"
+    },
+    "populationDensity": {
+      "label": "Population density",
+      "description": "FSO STATPOP, inhabitants per km² (100 m grid)",
+      "metricLabel": "Population density",
+      "metricUnit": "score"
+    },
+    "ptAccessibility": {
+      "label": "PT accessibility",
+      "description": "ARE public transport accessibility score (EW, higher = better connected)",
+      "metricLabel": "PT accessibility",
+      "metricUnit": "EW"
+    },
+    "mivAccessibility": {
+      "label": "Road accessibility",
+      "description": "ARE road accessibility score (EW, higher = better connected)",
+      "metricLabel": "Road accessibility",
+      "metricUnit": "EW"
+    },
+    "ptQuality": {
+      "label": "PT quality",
+      "description": "ARE public transport quality classes (A=4 … D=1, higher = better)",
+      "metricLabel": "PT quality class",
+      "metricUnit": "no."
+    },
+    "ptTravelTime": {
+      "label": "PT travel time",
+      "description": "ARE travel time to the 6 major centres by public transport (minutes)",
+      "metricLabel": "PT travel time",
+      "metricUnit": "min"
+    },
+    "mivTravelTime": {
+      "label": "Road travel time",
+      "description": "ARE travel time to the 6 major centres by road (minutes)",
+      "metricLabel": "Road travel time",
+      "metricUnit": "min"
+    },
+    "railTraffic": {
+      "label": "Rail traffic",
+      "description": "ARE rail passenger traffic (AADT, lower = quieter)",
+      "metricLabel": "Rail traffic",
+      "metricUnit": "AADT"
+    },
+    "roadTraffic": {
+      "label": "Road traffic",
+      "description": "ARE road traffic load (AADT vehicles, lower = better)",
+      "metricLabel": "Road traffic",
+      "metricUnit": "AADT"
+    },
+    "secondaryHomes": {
+      "label": "Secondary residences",
+      "description": "ARE housing inventory, share of secondary residences (%, lower = better)",
+      "metricLabel": "Secondary residences",
+      "metricUnit": "%"
+    },
+    "landscapeType": {
+      "label": "Landscape type",
+      "description": "ARE landscape typology (type no., higher = more diverse category)",
+      "metricLabel": "Landscape type",
+      "metricUnit": "no."
+    },
+    "solarPotential": {
+      "label": "Solar potential",
+      "description": "ARE solar installation suitability aspects (1–5, higher = more favourable)",
+      "metricLabel": "Solar suitability",
+      "metricUnit": "level"
+    },
+    "agglomeration": {
+      "label": "Agglomeration",
+      "description": "ARE agglomeration programme (eligible area for subsidies)",
+      "metricLabel": "Agglomeration",
+      "metricUnit": ""
+    }
+  }
+}
