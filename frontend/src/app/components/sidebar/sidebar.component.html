@@ -1,0 +1,102 @@
+<div class="sidebar" [class.collapsed]="isCollapsed">
+  <button class="toggle-btn" (click)="toggleSidebar()">
+    @if (isCollapsed) {
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    } @else {
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    }
+  </button>
+
+  @if (!isCollapsed) {
+    <div class="sidebar-content">
+      <h2 class="sidebar-title">Siedlungsqualität</h2>
+
+      @if (locationService.address()) {
+        <div class="address-display">
+          <span class="address-label">Standort</span>
+          <span class="address-value">{{ locationService.address() }}</span>
+        </div>
+      }
+
+      <div class="radius-section">
+        <div class="radius-header">
+          <span class="radius-label">Suchradius</span>
+          <span class="radius-value">{{ formatRadius(locationService.radius()) }}</span>
+        </div>
+        <input
+          type="range"
+          class="radius-slider"
+          [min]="100"
+          [max]="3000"
+          [step]="50"
+          [(ngModel)]="radiusValue"
+        />
+        <div class="radius-range">
+          <span>100 m</span>
+          <span>3 km</span>
+        </div>
+      </div>
+
+      <div class="metrics-section">
+        <h3 class="metrics-title">Infrastruktur im Umkreis</h3>
+
+        <div class="metric-card">
+          <div class="metric-icon">🍽️</div>
+          <div class="metric-info">
+            <span class="metric-label">Restaurants</span>
+            <span class="metric-value">{{ locationService.metrics().restaurants }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🛒</div>
+          <div class="metric-info">
+            <span class="metric-label">Supermärkte</span>
+            <span class="metric-value">{{ locationService.metrics().supermarkets }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🚌</div>
+          <div class="metric-info">
+            <span class="metric-label">ÖV-Haltestellen</span>
+            <span class="metric-value">{{ locationService.metrics().publicTransport }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🌳</div>
+          <div class="metric-info">
+            <span class="metric-label">Parks & Grünflächen</span>
+            <span class="metric-value">{{ locationService.metrics().parks }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🏫</div>
+          <div class="metric-info">
+            <span class="metric-label">Schulen</span>
+            <span class="metric-value">{{ locationService.metrics().schools }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">💊</div>
+          <div class="metric-info">
+            <span class="metric-label">Apotheken</span>
+            <span class="metric-value">{{ locationService.metrics().pharmacies }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="coordinates-section">
+        <span class="coord-label">Koordinaten</span>
+        <span class="coord-value">{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span>
+      </div>
+    </div>
+  }
+</div>
