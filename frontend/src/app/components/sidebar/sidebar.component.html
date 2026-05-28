@@ -50,8 +50,7 @@
       <div class="overview-section">
         <h3 class="metrics-title">Gesamtübersicht</h3>
         <p class="layers-hint">
-          Gewichteter Durchschnitt von {{ metricDefinitions.length }} GeoZarr-Indikatoren aus
-          map.geo.admin.ch (0–100, höher = besser).
+          Gewichteter Durchschnitt von {{ metricDefinitions.length }} GeoZarr-Indikatoren (0–100, höher = besser).
         </p>
 
         @if (locationService.metricsLoading()) {
@@ -72,10 +71,18 @@
             }
           </div>
         }
+
+        <div class="overview-map-legend">
+          <span class="map-layer-legend" [style.background]="overviewLegendGradient()"></span>
+          <span class="map-layer-scale">Karte: 0 – 100 (schlechter – besser)</span>
+        </div>
       </div>
 
       <div class="layers-section">
-        <h3 class="metrics-title">Gewichtung &amp; Karte</h3>
+        <h3 class="metrics-title">Faktoren &amp; Gewichtung</h3>
+        <p class="layers-hint">
+          Aktive Faktoren mit Gewicht &gt; 0 bilden die gewichtete Karte und den Gesamtscore.
+        </p>
 
         <div class="map-layer-list">
           @for (layer of locationService.zarrLayers(); track layer.id) {
@@ -120,12 +127,6 @@
                   }
                 </span>
               }
-
-              <span
-                class="map-layer-legend"
-                [style.background]="legendGradient(layer.colormap)"
-              ></span>
-              <span class="map-layer-scale">{{ formatClim(layer.clim, layer.id) }}</span>
 
               @if (layer.loading) {
                 <span class="layer-status">lädt…</span>

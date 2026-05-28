@@ -1,0 +1,98 @@
+import { expect, test } from '@playwright/test';
+
+/** Read pixels from the MapLibre WebGL canvas (2d context cannot be used). */
+async function sampleWebglCenterAlpha(page: import('@playwright/test').Page): Promise<number> {
+  return page.evaluate(() => {
+    const canvas = document.querySelector(
+      '.maplibregl-canvas',
+    ) as HTMLCanvasElement | null;
+    if (!canvas) {
+      return 0;
+    }
+
+    const gl =
+      canvas.getContext('webgl2', { preserveDrawingBuffer: true }) ??
+      canvas.getContext('webgl', { preserveDrawingBuffer: true });
+    if (!gl) {
+      return 0;
+    }
+
+    const cx = Math.floor(canvas.width / 2);
+    const cy = Math.floor(canvas.height / 2);
+    const pixels = new Uint8Array(4);
+    gl.readPixels(cx, cy, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    return pixels[3];
+  });
+}
+
+test.describe('Zarr map overlay', () => {
+  test('registers zarr layers on the map', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.getByTestId('map-container')).toBeVisible();
+
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const map = window.__SIEDLUNG_MAP__;
+            if (!map) {
+              return 0;
+            }
+            let count = 0;
+            if (map.getLayer('tranquillity')) {
+              count += 1;
+            }
+            if (map.getLayer('population-density')) {
+              count += 1;
+            }
+            return count;
+          }),
+        { timeout: 90_000 },
+      )
+      .toBe(2);
+  });
+
+  test('factor layers finish loading', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.getByTestId('map-container')).toBeVisible();
+
+    await expect
+      .poll(async () => page.locator('.map-layer-card.loading').count(), { timeout: 90_000 })
+      .toBe(0);
+  });
+
+  test('map canvas has drawn content after zarr render', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+
+    // Wait for layers to load, then allow a few frames for WebGL paint.
+    await expect
+      .poll(async () => page.locator('.map-layer-card.loading').count(), { timeout: 90_000 })
+      .toBe(0);
+
+    await page.waitForTimeout(2_000);
+
+    await expect
+      .poll(async () => sampleWebglCenterAlpha(page), { timeout: 30_000 })
+      .toBeGreaterThan(0);
+  });
+
+  test('sidebar overview score appears after zarr sampling', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.getByRole('heading', { name: 'Gesamtübersicht', exact: true })).toBeVisible();
+
+    await expect
+      .poll(
+        async () => {
+          const text = await page.locator('.overview-score-value').textContent();
+          return text?.trim() ?? '';
+        },
+        { timeout: 90_000 },
+      )
+      .not.toBe('—');
+  });
+});

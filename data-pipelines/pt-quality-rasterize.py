@@ -1,6 +1,8 @@
 import argparse
 import geopandas as gpd
 from geocube.api.core import make_geocube
+
+from are_rasterize_lib import align_geocube_to_swiss_100m_grid, write_swiss_grid_zarr
 from pathlib import Path
 import shutil
 import tempfile
@@ -78,17 +80,18 @@ def main():
         resolution = 100
 
         print(f"Rasterizing to {resolution}m grid...")
-        aligned_grid = make_geocube(
+        geocube_grid = make_geocube(
             vector_data=geodata,
             measurements=["pt_quality_score"],
             resolution=(-resolution, resolution),
             output_crs="EPSG:2056",
             fill=0,
         )
+        aligned_grid = align_geocube_to_swiss_100m_grid(geocube_grid, fill_value=0)
 
         zarr_path = args.out
         print(f"Writing to {zarr_path}...")
-        aligned_grid.to_zarr(zarr_path, mode="w")
+        write_swiss_grid_zarr(aligned_grid, zarr_path)
 
         print(f"Success! GeoZarr created at: {zarr_path}")
 

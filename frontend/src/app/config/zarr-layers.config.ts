@@ -8,12 +8,10 @@ export const SWISS_LV95_PROJ4 =
 
 export type ZarrMetricKey = keyof LocationMetrics;
 
-/** LV95 extent [xMin, yMin, xMax, yMax] for STATPOP 100 m grid (half-cell padding). */
-export const STATPOP_LV95_BOUNDS: [number, number, number, number] = [
-  2_486_150, 1_075_450, 2_832_050, 1_294_850,
-];
-
-/** LV95 extent [xMin, yMin, xMax, yMax] for ARE geocube 100 m grid (half-cell padding). */
+/**
+ * LV95 edge bounds [xMin, yMin, xMax, yMax] for the shared 100 m settlement-quality grid.
+ * All GeoZarr layers (ARE, BAFU, BFS STATPOP) use this extent — see `are_rasterize_lib.SWISS_GRID_100M_EDGE_BOUNDS`.
+ */
 export const SWISS_GRID_LV95_BOUNDS: [number, number, number, number] = [
   2_485_400, 1_075_200, 2_833_000, 1_296_000,
 ];
@@ -25,8 +23,10 @@ export interface ZarrLayerDefinition {
   storePath: string;
   variable: string;
   selector?: Selector;
-  /** Source CRS bounds; required when x/y are int64 (zarr-layer cannot read them). */
-  bounds?: [number, number, number, number];
+  /** LV95 edge bounds [xMin, yMin, xMax, yMax] in source CRS (meters). */
+  bounds: [number, number, number, number];
+  /** False when y decreases northward (shared settlement-quality grid). */
+  latIsAscending: boolean;
   fillValue?: number;
   colormap: string[];
   clim: [number, number];
@@ -39,6 +39,11 @@ export interface ZarrLayerDefinition {
 }
 
 export const DEFAULT_ACTIVE_ZARR_LAYER_ID = 'tranquillity';
+
+export const OVERVIEW_MAP_LAYER_ID = 'settlement-quality-overview';
+
+/** Colormap for the weighted composite overview layer (0 = low, 1 = high score). */
+export const OVERVIEW_COLORMAP = ['#f7fcf5', '#c2e699', '#74c476', '#238b45', '#00441b'] as const;
 
 /**
  * Color scale limits (`clim`) — tune with `visualize-zarr.py` after uploading new layers.
@@ -67,9 +72,10 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     label: 'Ruhe',
     description: 'BAFU Lärmempfindlichkeitskarte (Ruhegüte)',
     storePath: `${base}/ch_bafu_tranquillity_karte.zarr`,
-    variable: 'tranquillity_score',
+    variable: 'tranquillity_index',
     selector: { band: 0 },
     bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
     clim: CLIM.tranquillity,
@@ -85,7 +91,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'BFS STATPOP, Einwohner pro km² (100 m Raster)',
     storePath: `${base}/statpop_population_density_100m.zarr`,
     variable: 'population_density_score',
-    bounds: STATPOP_LV95_BOUNDS,
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#ffffcc', '#fed976', '#fd8d3c', '#e31a1c', '#800026'],
     clim: CLIM.populationDensity,
@@ -100,14 +107,16 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     label: 'ÖV-Erreichbarkeit',
     description: 'ARE Erreichbarkeitswert ÖV (EW, höher = besser erschlossen)',
     storePath: `${base}/erreichbarkeit_swiss_grid_100m.zarr`,
-    variable: 'pt_accessibility_score',
+    variable: 'OeV_Erreichb_EW',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#f7fbff', '#c6dbef', '#6baed6', '#2171b5', '#08306b'],
     clim: CLIM.ptAccessibility,
     metricKey: 'publicTransportAccessibility',
     metricLabel: 'ÖV-Erreichbarkeit',
-    metricUnit: 'Score',
-    formatValue: (v) => v.toFixed(2),
+    metricUnit: 'EW',
+    formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: true,
   },
   {
@@ -116,6 +125,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'ARE Erreichbarkeit MIV (EW, höher = besser erschlossen)',
     storePath: `${base}/erreichbarkeit_miv_swiss_grid_100m.zarr`,
     variable: 'Strasse_Erreichb_EW',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#fff5f0', '#fcbba1', '#fc9272', '#de2d26', '#67000d'],
     clim: CLIM.roadAccessibility,
@@ -130,14 +141,16 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     label: 'ÖV-Güteklassen',
     description: 'ARE ÖV-Güteklassen (A=4 … D=1, höher = besser)',
     storePath: `${base}/pt_quality_swiss_grid_100m.zarr`,
-    variable: 'pt_quality_score',
+    variable: 'KLASSE_NUM',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#d73027', '#fc8d59', '#91cf60', '#1a9850'],
     clim: CLIM.ptQuality,
     metricKey: 'publicTransportQuality',
     metricLabel: 'ÖV-Güteklasse',
-    metricUnit: 'Score',
-    formatValue: (v) => v.toFixed(2),
+    metricUnit: 'Nr.',
+    formatValue: (v) => v.toFixed(0),
     higherIsBetter: true,
   },
   {
@@ -146,6 +159,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'ARE Reisezeit zu den 6 grossen Zentren mit ÖV (Minuten)',
     storePath: `${base}/reisezeit_oev_swiss_grid_100m.zarr`,
     variable: 'OeV_Reisezeit_Z',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#004529', '#41ab5d', '#fee08b', '#f46d43', '#a50026'],
     clim: CLIM.ptTravelTime,
@@ -161,6 +176,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'ARE Reisezeit zu den 6 grossen Zentren mit Strasse (Minuten)',
     storePath: `${base}/reisezeit_miv_swiss_grid_100m.zarr`,
     variable: 'Strasse_Reisezeit_Z',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#004529', '#41ab5d', '#fee08b', '#f46d43', '#a50026'],
     clim: CLIM.roadTravelTime,
@@ -176,6 +193,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'ARE Personenverkehr Bahn (DTV, niedriger = ruhiger)',
     storePath: `${base}/belastung_bahn_swiss_grid_100m.zarr`,
     variable: 'DTV_OEV',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'],
     clim: CLIM.railTraffic,
@@ -191,6 +210,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'ARE Verkehrsbelastung Strasse (DTV Fahrzeuge, niedriger = besser)',
     storePath: `${base}/belastung_strasse_swiss_grid_100m.zarr`,
     variable: 'DTV_FZG',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'],
     clim: CLIM.roadTraffic,
@@ -206,6 +227,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'ARE Wohnungsinventar, Anteil Zweitwohnungen (%, niedriger = besser)',
     storePath: `${base}/zweitwohnungsanteil_swiss_grid_100m.zarr`,
     variable: 'ZWG_3110',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#f7fcf5', '#c2e699', '#74c476', '#238b45', '#00441b'],
     clim: CLIM.secondaryHomes,
@@ -221,6 +244,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'ARE Landschaftstypologie (Typ-Nr., höher = vielfältigere Kategorie)',
     storePath: `${base}/landschaftstypen_swiss_grid_100m.zarr`,
     variable: 'TYP_NR',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#8c510a', '#d8b365', '#5ab4ac', '#01665e', '#003c30'],
     clim: CLIM.landscapeType,
@@ -238,6 +263,7 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     variable: 'solar_suitability',
     selector: { band: 0 },
     bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#fff7bc', '#fec44f', '#d95f0e', '#993404'],
     clim: CLIM.solarSuitability,
@@ -253,6 +279,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'ARE Agglomerationsprogramm (1 = im förderberechtigten Gebiet)',
     storePath: `${base}/agglomeration_swiss_grid_100m.zarr`,
     variable: 'in_agglomeration',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
     fillValue: Number.NaN,
     colormap: ['#f0f0f0', '#6366f1'],
     clim: CLIM.agglomeration,

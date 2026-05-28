@@ -1,9 +1,10 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { ZarrLayer, type QueryResult } from '@carbonplan/zarr-layer';
-import type { Map as MaplibreMap } from 'maplibre-gl';
+import type { CustomLayerInterface, Map as MaplibreMap } from 'maplibre-gl';
 import {
   createDefaultLayerEnabled,
   createDefaultLayerWeights,
+  OVERVIEW_COLORMAP,
   SWISS_LV95_PROJ4,
   ZARR_LAYER_DEFINITIONS,
   ZARR_LAYERS_WITH_NAN_FILL,
@@ -33,6 +34,8 @@ export interface ZarrLayerState {
   ready: boolean;
   loading: boolean;
 }
+
+const MAP_LAYER_OPACITY = 0.82;
 
 @Injectable({
   providedIn: 'root',
@@ -75,12 +78,13 @@ export class ZarrMapService {
         selector: definition.selector,
         bounds: definition.bounds,
         fillValue: definition.fillValue,
-        colormap: definition.colormap,
+        colormap: [...OVERVIEW_COLORMAP],
         clim: definition.clim,
-        opacity: 0.82,
+        opacity: 0,
         zarrVersion: 3,
         proj4: SWISS_LV95_PROJ4,
         spatialDimensions: { lat: 'y', lon: 'x' },
+        latIsAscending: definition.latIsAscending,
         onLoadingStateChange: (state) => {
           this.updateLayerState(definition.id, {
             loading: state.loading || state.metadata,
@@ -130,7 +134,7 @@ export class ZarrMapService {
       return;
     }
     this.layerWeights.update((prev) => ({ ...prev, [layerId]: Math.max(0, weight) }));
-    this.applyLayerDisplay();
+    this.applyOverviewLayerDisplay();
     this.syncLayerStateSignal();
   }
 
@@ -139,7 +143,7 @@ export class ZarrMapService {
       return;
     }
     this.layerEnabled.update((prev) => ({ ...prev, [layerId]: enabled }));
-    this.applyLayerDisplay();
+    this.applyOverviewLayerDisplay();
     this.syncLayerStateSignal();
   }
 
@@ -191,23 +195,27 @@ export class ZarrMapService {
   }
 
   private installLayersOnMap(map: MaplibreMap): void {
-    const addAll = () => {
+    const addLayers = () => {
       for (const { layer } of this.managedLayers.values()) {
         if (!map.getLayer(layer.id)) {
-          map.addLayer(layer);
+          map.addLayer(layer as unknown as CustomLayerInterface);
         }
       }
-      this.applyLayerDisplay();
+      this.applyOverviewLayerDisplay();
     };
 
     if (map.loaded()) {
-      addAll();
+      addLayers();
     } else {
-      map.once('load', addAll);
+      map.once('load', addLayers);
     }
   }
 
-  private applyLayerDisplay(): void {
+  /**
+   * Weighted overview on the map: enabled factors share the 0–100 colormap;
+   * opacity is proportional to weight so the stack reads as one combined layer.
+   */
+  private applyOverviewLayerDisplay(): void {
     if (!this.map) {
       return;
     }
@@ -216,7 +224,8 @@ export class ZarrMapService {
     const enabled = this.layerEnabled();
     const activeWeights = [...this.managedLayers.keys()]
       .filter((id) => enabled[id] !== false)
-      .map((id) => weights[id] ?? 0);
+      .map((id) => weights[id] ?? 0)
+      .filter((w) => w > 0);
     const maxWeight = Math.max(...activeWeights, 1);
 
     for (const { definition, layer } of this.managedLayers.values()) {
@@ -226,14 +235,16 @@ export class ZarrMapService {
 
       const isOn = enabled[definition.id] !== false;
       const w = weights[definition.id] ?? 0;
-      const opacity = isOn && w > 0 ? 0.22 + 0.58 * (w / maxWeight) : 0;
+      const opacity = isOn && w > 0 ? (w / maxWeight) * MAP_LAYER_OPACITY : 0;
 
       layer.setOpacity(opacity);
-      this.map.setLayoutProperty(layer.id, 'visibility', isOn && w > 0 ? 'visible' : 'none');
+
       if (isOn && w > 0) {
         this.map.moveLayer(layer.id);
       }
     }
+
+    this.map.triggerRepaint();
   }
 
   private updateLayerState(
@@ -254,6 +265,10 @@ export class ZarrMapService {
       managed.ready = patch.ready;
       if (becameReady && this.lastSample) {
         void this.sampleLocation(this.lastSample.lng, this.lastSample.lat);
+      }
+      if (patch.ready) {
+        this.applyOverviewLayerDisplay();
+        this.map?.triggerRepaint();
       }
     }
 

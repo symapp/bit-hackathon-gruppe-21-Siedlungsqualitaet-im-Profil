@@ -3,6 +3,8 @@ import shutil
 import geopandas as gpd
 import numpy as np
 from geocube.api.core import make_geocube
+
+from are_rasterize_lib import align_geocube_to_swiss_100m_grid, write_swiss_grid_zarr
 from pathlib import Path
 import tempfile
 import urllib.request
@@ -70,15 +72,16 @@ def main() -> None:
 
         resolution = 100
 
-        aligned_grid = make_geocube(
+        geocube_grid = make_geocube(
             vector_data=geodata,
             measurements=["pt_accessibility_score"],
             resolution=(-resolution, resolution),
             output_crs="EPSG:2056",
             fill=0,
         )
+        aligned_grid = align_geocube_to_swiss_100m_grid(geocube_grid, fill_value=0)
 
-        aligned_grid.to_zarr(args.out, mode="w")
+        write_swiss_grid_zarr(aligned_grid, args.out)
 
         print(f"Success! GeoZarr created at: {args.out}")
         print(aligned_grid.head())

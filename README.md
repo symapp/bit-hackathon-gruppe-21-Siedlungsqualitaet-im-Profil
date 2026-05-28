@@ -3,7 +3,16 @@ Siedlungsqualität im Profil
 
 ## Data pipelines
 
-Rasterize scripts write local `.zarr` stores. To upload to Backblaze B2 after conversion, set credentials and pass `--upload`:
+All rasterize scripts write GeoZarr on the **same 100 m LV95 grid** (`EPSG:2056`, extent `2485400–2833000` E / `1075200–1296000` N). Every layer shares identical `x`/`y` coordinates so the map stacks correctly.
+
+Regenerate and upload everything:
+
+```bash
+cd data-pipelines
+uv run python run-all-pipelines.py --force --upload
+```
+
+Individual scripts also accept `--force` and `--upload`. To upload to Backblaze B2, set credentials in `.env`:
 
 Copy `.env.example` to `.env` at the repo root and set your Backblaze Application Key credentials (`.env` is gitignored).
 

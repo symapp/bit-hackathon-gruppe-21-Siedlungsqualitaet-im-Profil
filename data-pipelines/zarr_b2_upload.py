@@ -126,7 +126,12 @@ def upload_zarr(local_path: Path | str, remote_name: str | None = None) -> str:
         config_kwargs={"max_pool_connections": 50},
     )
 
-    print(f"Uploading '{local}' to 's3://{target_path}'...")
+    remote_uri = f"s3://{target_path}"
+    if fs.exists(target_path):
+        print(f"Removing existing remote store at {remote_uri}...")
+        fs.rm(target_path, recursive=True)
+
+    print(f"Uploading '{local}' to '{remote_uri}'...")
     fs.put(lpath=str(local), rpath=target_path, recursive=True)
     print("Upload completed successfully!")
     return f"s3://{target_path}"

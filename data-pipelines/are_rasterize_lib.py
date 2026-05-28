@@ -43,6 +43,63 @@ def build_swiss_100m_target_grid() -> xr.DataArray:
     return target.rio.write_crs(OUTPUT_CRS)
 
 
+def _default_fill_for_var(data_array: xr.DataArray, fill_value: float | None) -> float | int:
+    if fill_value is not None:
+        return fill_value
+    if np.issubdtype(data_array.dtype, np.floating):
+        return np.nan
+    raw = data_array.attrs.get("_FillValue", 0)
+    return 0 if raw is None else raw
+
+
+def ensure_swiss_grid_dataset(
+    dataset: xr.Dataset,
+    *,
+    fill_value: float | None = None,
+) -> xr.Dataset:
+    """Reindex every x/y variable onto the canonical shared 100 m LV95 grid."""
+    x, y = swiss_100m_grid_coords()
+    out = dataset.copy(deep=False)
+    for name in dataset.data_vars:
+        da = dataset[name]
+        if not {"x", "y"}.issubset(da.dims):
+            continue
+        fill = _default_fill_for_var(da, fill_value)
+        out[name] = da.reindex(x=x, y=y, fill_value=fill)
+    out = out.assign_coords(x=x, y=y)
+    if out.rio.crs is None:
+        out = out.rio.write_crs(OUTPUT_CRS)
+    return out
+
+
+def write_swiss_grid_zarr(
+    dataset: xr.Dataset,
+    out: Path,
+    *,
+    encoding: dict | None = None,
+) -> None:
+    """Write a dataset that is guaranteed to use the shared settlement-quality grid."""
+    aligned = ensure_swiss_grid_dataset(dataset)
+    aligned.to_zarr(out, mode="w", consolidated=True, encoding=encoding or {})
+
+
+def align_geocube_to_swiss_100m_grid(
+    grid: xr.DataArray | xr.Dataset,
+    *,
+    fill_value: float = 0,
+) -> xr.Dataset:
+    """Reindex geocube output onto the shared 100 m LV95 settlement-quality grid."""
+    if isinstance(grid, xr.DataArray):
+        name = grid.name or "data"
+        grid = grid.to_dataset(name=name)
+
+    target = build_swiss_100m_target_grid()
+    var_name = next(iter(grid.data_vars))
+    fill = _default_fill_for_var(grid[var_name], fill_value)
+    aligned = grid.reindex(x=target.x, y=target.y, fill_value=fill)
+    return ensure_swiss_grid_dataset(aligned, fill_value=fill_value)
+
+
 def align_raster_to_swiss_100m_grid(
     data_array: xr.DataArray,
     *,
@@ -99,14 +156,15 @@ def rasterize_vector_field(
     resolution: int = DEFAULT_RESOLUTION_M,
     fill: float = 0,
 ) -> None:
-    aligned_grid = make_geocube(
+    geocube_grid = make_geocube(
         vector_data=geodata,
         measurements=[field],
         resolution=(-resolution, resolution),
         output_crs=OUTPUT_CRS,
         fill=fill,
     )
-    aligned_grid.to_zarr(out, mode="w")
+    aligned_grid = align_geocube_to_swiss_100m_grid(geocube_grid, fill_value=fill)
+    write_swiss_grid_zarr(aligned_grid, out)
 
 
 def prepare_line_geodata(
@@ -171,4 +229,4 @@ def rasterize_from_cog(
     if align_to_swiss_grid:
         data_array = align_raster_to_swiss_100m_grid(data_array, resampling=resampling)
     dataset = data_array.to_dataset(name=variable)
-    dataset.to_zarr(out, mode="w", consolidated=True)
+    write_swiss_grid_zarr(dataset, out)

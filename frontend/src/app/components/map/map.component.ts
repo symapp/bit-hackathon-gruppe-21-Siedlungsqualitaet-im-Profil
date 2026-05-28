@@ -1,14 +1,7 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ElementRef,
-  ViewChild,
-  effect,
-  inject,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
 import { LocationService } from '../../services/location.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
+import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
@@ -67,6 +60,7 @@ export class MapComponent implements OnInit, OnDestroy {
       center: [lng, lat],
       zoom: 14,
       maxBounds: SWITZERLAND_MAX_BOUNDS,
+      canvasContextAttributes: { preserveDrawingBuffer: true },
     });
 
     this.map.addControl(new NavigationControl(), 'top-left');
@@ -99,6 +93,7 @@ export class MapComponent implements OnInit, OnDestroy {
     });
 
     this.map.addControl(this.deckOverlay as any);
+    exposeMapForE2e(this.map);
     this.zarrMapService.attachToMap(this.map);
 
     this.map.on('load', () => {

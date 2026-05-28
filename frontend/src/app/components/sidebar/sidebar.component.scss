@@ -226,6 +226,13 @@
   gap: 8px;
 }
 
+.overview-map-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
 .map-layer-card {
   display: flex;
   flex-direction: column;

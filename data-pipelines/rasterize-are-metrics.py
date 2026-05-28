@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 from pathlib import Path
 
 from are_metrics_registry import ARE_METRICS, COG, NEW_METRIC_IDS, ZIP
@@ -11,9 +12,15 @@ from are_rasterize_lib import rasterize_from_cog, rasterize_from_gpkg
 from zarr_b2_upload import upload_zarr
 
 
-def rasterize_metric(metric_id: str, out_dir: Path) -> Path:
+def rasterize_metric(metric_id: str, out_dir: Path, *, force: bool = False) -> Path:
     spec = ARE_METRICS[metric_id]
     out = out_dir / spec.zarr_name
+
+    if out.exists():
+        if not force:
+            raise RuntimeError(f"Output already exists: {out}. Pass --force to overwrite.")
+        print(f"[{metric_id}] removing {out}")
+        shutil.rmtree(out)
 
     print(f"[{metric_id}] {spec.source_url}")
 
@@ -58,6 +65,7 @@ def main() -> None:
         default=Path("."),
         help="Directory for output .zarr folders (default: data-pipelines cwd).",
     )
+    parser.add_argument("--force", action="store_true", help="Overwrite existing .zarr outputs.")
     parser.add_argument("--upload", action="store_true", help="Upload each Zarr to Backblaze B2.")
     parser.add_argument(
         "--remote-name",
@@ -83,7 +91,7 @@ def main() -> None:
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
     for metric_id in metric_ids:
-        out = rasterize_metric(metric_id, args.out_dir)
+        out = rasterize_metric(metric_id, args.out_dir, force=args.force)
         if args.upload:
             remote_name = args.remote_name if len(metric_ids) == 1 else None
             remote = upload_zarr(out, remote_name=remote_name)

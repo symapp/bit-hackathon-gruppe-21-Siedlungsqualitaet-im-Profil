@@ -6,7 +6,7 @@ import pystac_client
 import rioxarray
 from rasterio.enums import Resampling
 
-from are_rasterize_lib import align_raster_to_swiss_100m_grid
+from are_rasterize_lib import align_raster_to_swiss_100m_grid, write_swiss_grid_zarr
 from zarr_b2_upload import upload_zarr
 
 # Swiss Federal Geoportal STAC API endpoint
@@ -96,7 +96,7 @@ def main() -> None:
     ds = da.to_dataset(name="tranquillity_index")
 
     print(f"Writing dataset to GeoZarr: {args.out} ...")
-    ds.to_zarr(args.out, mode="w", consolidated=True)
+    write_swiss_grid_zarr(ds, args.out)
     print("Successfully converted and saved to GeoZarr!")
 
     if args.upload:
