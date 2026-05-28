@@ -1,0 +1,14 @@
+<div class="lang-selector" role="group" aria-label="Language / Langue / Lingua">
+  @for (lang of languageService.languages; track lang.code) {
+    <button
+      type="button"
+      class="lang-btn"
+      [class.active]="languageService.locale() === lang.code"
+      [attr.aria-pressed]="languageService.locale() === lang.code"
+      (click)="select(lang.code)"
+    >
+      <span class="lang-flag" aria-hidden="true">{{ lang.flag }}</span>
+      <span class="lang-code">{{ lang.label }}</span>
+    </button>
+  }
+</div>

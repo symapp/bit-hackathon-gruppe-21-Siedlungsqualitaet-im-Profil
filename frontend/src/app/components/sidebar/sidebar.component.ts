@@ -1,5 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
 import { ZARR_LAYER_DEFINITIONS, type ZarrLayerDefinition } from '../../config/zarr-layers.config';
 import type { LocationMetrics } from '../../models/metrics.model';
 import { LocationService } from '../../services/location.service';
@@ -7,12 +9,13 @@ import { LocationService } from '../../services/location.service';
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TranslatePipe, LanguageSelectorComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
 export class SidebarComponent {
   protected readonly locationService = inject(LocationService);
+  private readonly translate = inject(TranslateService);
   protected isCollapsed = false;
   protected readonly metricDefinitions = ZARR_LAYER_DEFINITIONS;
 

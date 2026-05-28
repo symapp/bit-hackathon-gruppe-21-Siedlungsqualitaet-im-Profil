@@ -8,10 +8,7 @@ import {
   ZARR_LAYER_DEFINITIONS,
   type ZarrLayerDefinition,
 } from '../config/zarr-layers.config';
-import {
-  EMPTY_LOCATION_METRICS,
-  type LocationMetrics,
-} from '../models/metrics.model';
+import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.model';
 import { computeWeightedOverview } from '../utils/metrics-aggregate.util';
 
 interface ManagedZarrLayer {
@@ -23,8 +20,8 @@ interface ManagedZarrLayer {
 
 export interface ZarrLayerState {
   id: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   colormap: string[];
   clim: [number, number];
   enabled: boolean;
@@ -264,8 +261,8 @@ export class ZarrMapService {
     this.layerStates.set(
       [...this.managedLayers.values()].map(({ definition, ready, loading }) => ({
         id: definition.id,
-        label: definition.label,
-        description: definition.description,
+        labelKey: definition.labelKey,
+        descriptionKey: definition.descriptionKey,
         colormap: definition.colormap,
         clim: definition.clim,
         enabled: enabled[definition.id] !== false,

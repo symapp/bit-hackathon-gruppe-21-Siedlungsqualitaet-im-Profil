@@ -1,21 +1,26 @@
 <div class="sidebar" [class.collapsed]="isCollapsed">
-  <button
-    type="button"
-    class="toggle-btn"
-    [attr.aria-expanded]="!isCollapsed"
-    [attr.aria-label]="isCollapsed ? 'Panel öffnen' : 'Panel schliessen'"
-    (click)="toggleSidebar()"
-  >
-    @if (isCollapsed) {
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    } @else {
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
+  <div class="sidebar-header">
+    <button
+      type="button"
+      class="toggle-btn"
+      [attr.aria-expanded]="!isCollapsed"
+      [attr.aria-label]="(isCollapsed ? 'sidebar.open' : 'sidebar.close') | translate"
+      (click)="toggleSidebar()"
+    >
+      @if (isCollapsed) {
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      }
+    </button>
+    @if (!isCollapsed) {
+      <app-language-selector></app-language-selector>
     }
-  </button>
+  </div>
 
   @if (!isCollapsed) {
     <div class="sidebar-content">
@@ -38,14 +43,14 @@
           [(ngModel)]="radiusValue"
         />
         <div class="radius-range">
-          <span>100 m</span>
-          <span>3 km</span>
+          <span>{{ 'sidebar.radiusMin' | translate }}</span>
+          <span>{{ 'sidebar.radiusMax' | translate }}</span>
         </div>
       </div>
 
       <div class="overview-section">
         @if (locationService.metricsLoading()) {
-          <p class="metrics-hint">Werte werden berechnet…</p>
+          <p class="metrics-hint">{{ 'sidebar.calculating' | translate }}</p>
         } @else if (locationService.metricsError()) {
           <p class="metrics-error">{{ locationService.metricsError() }}</p>
         } @else {
@@ -54,7 +59,7 @@
             <span class="overview-score-value">
               {{ score === null ? '—' : score.toFixed(0) }}
             </span>
-            <span class="overview-score-unit">/ 100</span>
+            <span class="overview-score-unit">{{ 'sidebar.scoreUnit' | translate }}</span>
             @if (score !== null) {
               <div class="overview-score-bar" role="meter" [attr.aria-valuenow]="score" aria-valuemin="0" aria-valuemax="100">
                 <div class="overview-score-fill" [style.width.%]="score"></div>
@@ -79,10 +84,10 @@
                   [checked]="layer.enabled"
                   (change)="onLayerEnabledChange(layer.id, $event)"
                 />
-                <span class="map-layer-title">{{ layer.label }}</span>
+                <span class="map-layer-title">{{ layer.labelKey | translate }}</span>
               </label>
 
-              <span class="map-layer-desc">{{ layer.description }}</span>
+              <span class="map-layer-desc">{{ layer.descriptionKey | translate }}</span>
 
               <div class="layer-weight-row">
                 <span class="layer-weight-value">{{ layer.weight }}</span>
@@ -100,10 +105,10 @@
 
               @if (def) {
                 <span class="map-layer-metric">
-                  {{ def.metricLabel }}:
+                  {{ def.metricLabelKey | translate }}:
                   <strong>{{ formatMetricValue(def.metricKey) }}</strong>
                   @if (locationService.metrics()[def.metricKey] !== null) {
-                    <span class="metric-unit">{{ def.metricUnit }}</span>
+                    <span class="metric-unit">{{ def.metricUnitKey | translate }}</span>
                   }
                 </span>
               }
@@ -115,7 +120,7 @@
               <span class="map-layer-scale">{{ formatClim(layer.clim, layer.id) }}</span>
 
               @if (layer.loading) {
-                <span class="layer-status">lädt…</span>
+                <span class="layer-status">{{ 'sidebar.layerLoading' | translate }}</span>
               }
             </div>
           }

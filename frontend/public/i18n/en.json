@@ -1,0 +1,40 @@
+{
+  "search": {
+    "placeholder": "Search for an address in Switzerland…",
+    "loading": "Searching…",
+    "clear": "Clear input",
+    "minLength": "Enter at least {{count}} characters",
+    "noResults": "No results for «{{query}}»",
+    "error": "Address search currently unavailable",
+    "failed": "Address search failed ({{status}})"
+  },
+  "sidebar": {
+    "open": "Open panel",
+    "close": "Close panel",
+    "calculating": "Calculating values…",
+    "scoreUnit": "/ 100",
+    "layerLoading": "loading…",
+    "radiusMin": "100 m",
+    "radiusMax": "3 km"
+  },
+  "layers": {
+    "tranquillity": {
+      "label": "Tranquillity",
+      "description": "FOEN noise sensitivity map (tranquillity quality)",
+      "metricLabel": "Tranquillity",
+      "metricUnit": "level"
+    },
+    "populationDensity": {
+      "label": "Population density",
+      "description": "FSO STATPOP, inhabitants per km² (100 m grid)",
+      "metricLabel": "Population density",
+      "metricUnit": "inhab./km²"
+    },
+    "ptAccessibility": {
+      "label": "PT accessibility",
+      "description": "ARE public transport accessibility score (EW, higher = better connected)",
+      "metricLabel": "PT accessibility",
+      "metricUnit": "EW"
+    }
+  }
+}

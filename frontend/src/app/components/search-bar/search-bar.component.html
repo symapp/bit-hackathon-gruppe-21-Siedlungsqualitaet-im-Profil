@@ -11,7 +11,7 @@
       #searchInput
       type="search"
       class="search-input"
-      placeholder="Adresse in der Schweiz suchen…"
+      [placeholder]="'search.placeholder' | translate"
       [ngModel]="query()"
       (ngModelChange)="onQueryChange($event)"
       (focus)="onInputFocus()"
@@ -23,11 +23,11 @@
     />
 
     @if (loading()) {
-      <span class="search-spinner" title="Suche läuft…"></span>
+      <span class="search-spinner" [title]="'search.loading' | translate"></span>
     }
 
     @if (showClear() && !loading()) {
-      <button type="button" class="clear-btn" title="Eingabe löschen" (mousedown)="$event.preventDefault()" (click)="clearQuery()">
+      <button type="button" class="clear-btn" [title]="'search.clear' | translate" (mousedown)="$event.preventDefault()" (click)="clearQuery()">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -39,12 +39,12 @@
   @switch (panelMode()) {
     @case ('hint') {
       <div class="panel panel-hint">
-        Mindestens {{ minQueryLength }} Zeichen eingeben
+        {{ 'search.minLength' | translate: { count: minQueryLength } }}
       </div>
     }
     @case ('loading') {
       <div class="panel panel-hint">
-        Suche läuft…
+        {{ 'search.loading' | translate }}
       </div>
     }
     @case ('error') {
@@ -54,7 +54,7 @@
     }
     @case ('empty') {
       <div class="panel panel-empty">
-        Keine Treffer für «{{ query().trim() }}»
+        {{ 'search.noResults' | translate: { query: query().trim() } }}
       </div>
     }
     @case ('results') {

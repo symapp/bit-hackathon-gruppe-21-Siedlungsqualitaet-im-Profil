@@ -1,0 +1,40 @@
+{
+  "search": {
+    "placeholder": "Rechercher une adresse en Suisse…",
+    "loading": "Recherche en cours…",
+    "clear": "Effacer la saisie",
+    "minLength": "Saisir au moins {{count}} caractères",
+    "noResults": "Aucun résultat pour «{{query}}»",
+    "error": "Recherche d'adresse momentanément indisponible",
+    "failed": "Échec de la recherche d'adresse ({{status}})"
+  },
+  "sidebar": {
+    "open": "Ouvrir le panneau",
+    "close": "Fermer le panneau",
+    "calculating": "Calcul des valeurs en cours…",
+    "scoreUnit": "/ 100",
+    "layerLoading": "chargement…",
+    "radiusMin": "100 m",
+    "radiusMax": "3 km"
+  },
+  "layers": {
+    "tranquillity": {
+      "label": "Tranquillité",
+      "description": "Carte de sensibilité au bruit OFEV (qualité de tranquillité)",
+      "metricLabel": "Tranquillité",
+      "metricUnit": "niveau"
+    },
+    "populationDensity": {
+      "label": "Densité de population",
+      "description": "OFS STATPOP, habitants par km² (grille 100 m)",
+      "metricLabel": "Densité de population",
+      "metricUnit": "hab./km²"
+    },
+    "ptAccessibility": {
+      "label": "Accessibilité TP",
+      "description": "Valeur d'accessibilité TP ARE (EW, plus élevé = mieux desservi)",
+      "metricLabel": "Accessibilité TP",
+      "metricUnit": "EW"
+    }
+  }
+}

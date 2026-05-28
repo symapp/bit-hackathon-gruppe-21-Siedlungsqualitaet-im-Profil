@@ -1,0 +1,40 @@
+{
+  "search": {
+    "placeholder": "Cercare un indirizzo in Svizzera…",
+    "loading": "Ricerca in corso…",
+    "clear": "Cancella input",
+    "minLength": "Inserire almeno {{count}} caratteri",
+    "noResults": "Nessun risultato per «{{query}}»",
+    "error": "Ricerca indirizzo momentaneamente non disponibile",
+    "failed": "Ricerca indirizzo fallita ({{status}})"
+  },
+  "sidebar": {
+    "open": "Apri pannello",
+    "close": "Chiudi pannello",
+    "calculating": "Calcolo valori in corso…",
+    "scoreUnit": "/ 100",
+    "layerLoading": "caricamento…",
+    "radiusMin": "100 m",
+    "radiusMax": "3 km"
+  },
+  "layers": {
+    "tranquillity": {
+      "label": "Tranquillità",
+      "description": "Carta della sensibilità al rumore UFAM (qualità della tranquillità)",
+      "metricLabel": "Tranquillità",
+      "metricUnit": "livello"
+    },
+    "populationDensity": {
+      "label": "Densità di popolazione",
+      "description": "UST STATPOP, abitanti per km² (griglia 100 m)",
+      "metricLabel": "Densità di popolazione",
+      "metricUnit": "ab./km²"
+    },
+    "ptAccessibility": {
+      "label": "Accessibilità TP",
+      "description": "Valore di accessibilità TP ARE (EW, più alto = meglio servito)",
+      "metricLabel": "Accessibilità TP",
+      "metricUnit": "EW"
+    }
+  }
+}

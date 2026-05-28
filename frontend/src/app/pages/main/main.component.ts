@@ -8,6 +8,6 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar.compo
   standalone: true,
   imports: [MapComponent, SidebarComponent, SearchBarComponent],
   templateUrl: './main.component.html',
-  styleUrl: './main.component.scss'
+  styleUrl: './main.component.scss',
 })
 export class MainComponent {}

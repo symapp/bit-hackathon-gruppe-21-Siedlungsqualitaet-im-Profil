@@ -1,0 +1,40 @@
+{
+  "search": {
+    "placeholder": "Adresse in der Schweiz suchen…",
+    "loading": "Suche läuft…",
+    "clear": "Eingabe löschen",
+    "minLength": "Mindestens {{count}} Zeichen eingeben",
+    "noResults": "Keine Treffer für «{{query}}»",
+    "error": "Adresssuche momentan nicht möglich",
+    "failed": "Adresssuche fehlgeschlagen ({{status}})"
+  },
+  "sidebar": {
+    "open": "Panel öffnen",
+    "close": "Panel schliessen",
+    "calculating": "Werte werden berechnet…",
+    "scoreUnit": "/ 100",
+    "layerLoading": "lädt…",
+    "radiusMin": "100 m",
+    "radiusMax": "3 km"
+  },
+  "layers": {
+    "tranquillity": {
+      "label": "Ruhe",
+      "description": "BAFU Lärmempfindlichkeitskarte (Ruhegüte)",
+      "metricLabel": "Ruhegüte",
+      "metricUnit": "Stufe"
+    },
+    "populationDensity": {
+      "label": "Bevölkerungsdichte",
+      "description": "BFS STATPOP, Einwohner pro km² (100 m Raster)",
+      "metricLabel": "Bevölkerungsdichte",
+      "metricUnit": "Einw./km²"
+    },
+    "ptAccessibility": {
+      "label": "ÖV-Erreichbarkeit",
+      "description": "ARE Erreichbarkeitswert ÖV (EW, höher = besser erschlossen)",
+      "metricLabel": "ÖV-Erreichbarkeit",
+      "metricUnit": "EW"
+    }
+  }
+}

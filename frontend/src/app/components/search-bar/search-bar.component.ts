@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   EMPTY,
   Subject,
@@ -31,7 +32,7 @@ type PanelMode = 'hidden' | 'hint' | 'loading' | 'results' | 'empty' | 'error';
 @Component({
   selector: 'app-search-bar',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './search-bar.component.html',
   styleUrl: './search-bar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +40,7 @@ type PanelMode = 'hidden' | 'hint' | 'loading' | 'results' | 'empty' | 'error';
 export class SearchBarComponent {
   private readonly locationService = inject(LocationService);
   private readonly geocoding = inject(GeocodingService);
+  private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
@@ -119,7 +121,7 @@ export class SearchBarComponent {
           return from(this.geocoding.searchPlaces(trimmed, abort.signal)).pipe(
             catchError((err: unknown) => {
               const message =
-                err instanceof Error ? err.message : 'Adresssuche momentan nicht möglich';
+                err instanceof Error ? err.message : this.translate.instant('search.error');
               this.error.set(message);
               this.suggestions.set([]);
               this.hasSearched.set(true);

@@ -15,8 +15,10 @@ export const STATPOP_LV95_BOUNDS: [number, number, number, number] = [
 
 export interface ZarrLayerDefinition {
   id: string;
-  label: string;
-  description: string;
+  /** i18n key for the layer name, e.g. 'layers.tranquillity.label' */
+  labelKey: string;
+  /** i18n key for the layer description */
+  descriptionKey: string;
   storePath: string;
   variable: string;
   selector?: Selector;
@@ -26,8 +28,10 @@ export interface ZarrLayerDefinition {
   colormap: string[];
   clim: [number, number];
   metricKey: ZarrMetricKey;
-  metricLabel: string;
-  metricUnit: string;
+  /** i18n key for the metric label shown in the sidebar */
+  metricLabelKey: string;
+  /** i18n key for the metric unit */
+  metricUnitKey: string;
   formatValue: (value: number) => string;
   /** Used for the aggregated overview score (0–100). */
   higherIsBetter: boolean;
@@ -50,23 +54,23 @@ const base = environment.zarrBaseUrl;
 export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
   {
     id: 'tranquillity',
-    label: 'Ruhe',
-    description: 'BAFU Lärmempfindlichkeitskarte (Ruhegüte)',
+    labelKey: 'layers.tranquillity.label',
+    descriptionKey: 'layers.tranquillity.description',
     storePath: `${base}/ch_bafu_tranquillity_karte.zarr`,
     variable: 'tranquillity_index',
     selector: { band: 0 },
     colormap: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
     clim: CLIM.tranquillity,
     metricKey: 'tranquillityIndex',
-    metricLabel: 'Ruhegüte',
-    metricUnit: 'Stufe',
+    metricLabelKey: 'layers.tranquillity.metricLabel',
+    metricUnitKey: 'layers.tranquillity.metricUnit',
     formatValue: (v) => v.toFixed(1),
     higherIsBetter: true,
   },
   {
     id: 'population-density',
-    label: 'Bevölkerungsdichte',
-    description: 'BFS STATPOP, Einwohner pro km² (100 m Raster)',
+    labelKey: 'layers.populationDensity.label',
+    descriptionKey: 'layers.populationDensity.description',
     storePath: `${base}/statpop_population_density_100m.zarr`,
     variable: 'population_density_per_km2',
     bounds: STATPOP_LV95_BOUNDS,
@@ -74,22 +78,22 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     colormap: ['#ffffcc', '#fed976', '#fd8d3c', '#e31a1c', '#800026'],
     clim: CLIM.populationDensity,
     metricKey: 'populationDensityPerKm2',
-    metricLabel: 'Bevölkerungsdichte',
-    metricUnit: 'Einw./km²',
+    metricLabelKey: 'layers.populationDensity.metricLabel',
+    metricUnitKey: 'layers.populationDensity.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: false,
   },
   {
     id: 'pt-accessibility',
-    label: 'ÖV-Erreichbarkeit',
-    description: 'ARE Erreichbarkeitswert ÖV (EW, höher = besser erschlossen)',
+    labelKey: 'layers.ptAccessibility.label',
+    descriptionKey: 'layers.ptAccessibility.description',
     storePath: `${base}/erreichbarkeit_swiss_grid_100m.zarr`,
     variable: 'OeV_Erreichb_EW',
     colormap: ['#f7fbff', '#c6dbef', '#6baed6', '#2171b5', '#08306b'],
     clim: CLIM.ptAccessibility,
     metricKey: 'publicTransportAccessibility',
-    metricLabel: 'ÖV-Erreichbarkeit',
-    metricUnit: 'EW',
+    metricLabelKey: 'layers.ptAccessibility.metricLabel',
+    metricUnitKey: 'layers.ptAccessibility.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: true,
   },
@@ -98,9 +102,7 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
 export const DEFAULT_LAYER_WEIGHT = 100;
 
 export function createDefaultLayerWeights(): Record<string, number> {
-  return Object.fromEntries(
-    ZARR_LAYER_DEFINITIONS.map((d) => [d.id, DEFAULT_LAYER_WEIGHT]),
-  );
+  return Object.fromEntries(ZARR_LAYER_DEFINITIONS.map((d) => [d.id, DEFAULT_LAYER_WEIGHT]));
 }
 
 export function createDefaultLayerEnabled(): Record<string, boolean> {
