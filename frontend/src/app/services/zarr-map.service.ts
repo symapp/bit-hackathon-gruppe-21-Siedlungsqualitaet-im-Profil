@@ -6,6 +6,7 @@ import {
   createDefaultLayerWeights,
   SWISS_LV95_PROJ4,
   ZARR_LAYER_DEFINITIONS,
+  ZARR_LAYERS_WITH_NAN_FILL,
   type ZarrLayerDefinition,
 } from '../config/zarr-layers.config';
 import {
@@ -91,8 +92,9 @@ export class ZarrMapService {
         },
       };
 
-      // ÖV: metadata _FillValue=0, but empty cells are NaN.
-      if (definition.id === 'pt-accessibility') {
+      if (definition.fillValue !== undefined) {
+        layerOptions.fillValue = definition.fillValue;
+      } else if (ZARR_LAYERS_WITH_NAN_FILL.has(definition.id)) {
         layerOptions.fillValue = Number.NaN;
       }
 

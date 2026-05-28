@@ -44,6 +44,11 @@
       </div>
 
       <div class="overview-section">
+        <p class="layers-hint">
+          Gewichteter Durchschnitt von {{ metricDefinitions.length }} GeoZarr-Indikatoren aus
+          map.geo.admin.ch (0–100, höher = besser).
+        </p>
+
         @if (locationService.metricsLoading()) {
           <p class="metrics-hint">Werte werden berechnet…</p>
         } @else if (locationService.metricsError()) {
