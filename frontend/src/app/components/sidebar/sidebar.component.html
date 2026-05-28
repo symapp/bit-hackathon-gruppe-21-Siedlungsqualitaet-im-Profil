@@ -24,18 +24,18 @@
 
   @if (!isCollapsed) {
     <div class="sidebar-content">
-      <h2 class="sidebar-title">Siedlungsqualität</h2>
+      <h2 class="sidebar-title">{{ 'sidebar.title' | translate }}</h2>
 
       @if (locationService.address()) {
         <div class="address-display">
-          <span class="address-label">Standort</span>
+          <span class="address-label">{{ 'sidebar.location' | translate }}</span>
           <span class="address-value">{{ locationService.address() }}</span>
         </div>
       }
 
       <div class="radius-section">
         <div class="radius-header">
-          <span class="radius-label">Suchradius</span>
+          <span class="radius-label">{{ 'sidebar.radius' | translate }}</span>
           <span class="radius-value">{{ formatRadius(locationService.radius()) }}</span>
         </div>
         <input
@@ -53,9 +53,9 @@
       </div>
 
       <div class="overview-section">
-        <h3 class="metrics-title">Gesamtübersicht</h3>
+        <h3 class="metrics-title">{{ 'sidebar.overviewTitle' | translate }}</h3>
         <p class="layers-hint">
-          Gewichteter Durchschnitt von {{ metricDefinitions.length }} GeoZarr-Indikatoren (0–100, höher = besser).
+          {{ 'sidebar.overviewHint' | translate: { count: metricDefinitions.length } }}
         </p>
 
         @if (locationService.metricsLoading()) {
@@ -79,15 +79,13 @@
 
         <div class="overview-map-legend">
           <span class="map-layer-legend" [style.background]="overviewLegendGradient()"></span>
-          <span class="map-layer-scale">Karte: 0 – 100 (schlechter – besser)</span>
+          <span class="map-layer-scale">{{ 'sidebar.overviewMapScale' | translate }}</span>
         </div>
       </div>
 
       <div class="layers-section">
-        <h3 class="metrics-title">Faktoren &amp; Gewichtung</h3>
-        <p class="layers-hint">
-          Aktive Faktoren mit Gewicht &gt; 0 bilden die gewichtete Karte und den Gesamtscore.
-        </p>
+        <h3 class="metrics-title">{{ 'sidebar.layersTitle' | translate }}</h3>
+        <p class="layers-hint">{{ 'sidebar.layersHint' | translate }}</p>
 
         <div class="map-layer-list">
           @for (layer of locationService.zarrLayers(); track layer.id) {
@@ -109,7 +107,7 @@
               <span class="map-layer-desc">{{ layer.descriptionKey | translate }}</span>
 
               <div class="layer-weight-row">
-                <span class="layer-weight-label">Gewicht</span>
+                <span class="layer-weight-label">{{ 'sidebar.weight' | translate }}</span>
                 <span class="layer-weight-value">{{ layer.weight }}</span>
               </div>
               <input
@@ -142,7 +140,7 @@
       </div>
 
       <div class="coordinates-section">
-        <span class="coord-label">Koordinaten</span>
+        <span class="coord-label">{{ 'sidebar.coordinates' | translate }}</span>
         <span class="coord-value">{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span>
       </div>
     </div>
