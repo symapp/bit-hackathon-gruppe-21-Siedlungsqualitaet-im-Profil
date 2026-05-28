@@ -299,10 +299,19 @@ function extractScalar(result: QueryResult, variable: string): number | null {
   if (typeof raw === 'number' && Number.isFinite(raw)) {
     return raw;
   }
-  if (Array.isArray(raw) && raw.length > 0) {
-    const value = raw[0];
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return value;
+  if (typeof raw === 'bigint') {
+    return Number(raw);
+  }
+  if (Array.isArray(raw) || ArrayBuffer.isView(raw)) {
+    const arr = raw as unknown as ArrayLike<any>;
+    if (arr.length > 0) {
+      const value = arr[0];
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+      }
+      if (typeof value === 'bigint') {
+        return Number(value);
+      }
     }
   }
   return null;

@@ -116,8 +116,7 @@ def align_raster_to_swiss_100m_grid(
     target = build_swiss_100m_target_grid()
     aligned = data_array.rio.reproject_match(target, resampling=resampling)
 
-    if had_band:
-        aligned = aligned.expand_dims("band")
+    # Note: we used to re-add "band" here, but keeping it 2D is better for Zarr storage and frontend performance.
     return aligned
 
 

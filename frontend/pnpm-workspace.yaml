@@ -3,3 +3,5 @@ allowBuilds:
   esbuild: true
   lmdb: true
   msgpackr-extract: true
+patchedDependencies:
+  '@carbonplan/zarr-layer': patches/@carbonplan__zarr-layer.patch

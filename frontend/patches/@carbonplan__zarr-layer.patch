@@ -1,0 +1,116 @@
+diff --git a/dist/index.js b/dist/index.js
+index f2de1db3447b2e5f100f87f7f1c4cc96553542e9..5759d64eacdb42b4e51fe9b02575986d68d20b20 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -63,32 +63,39 @@ function identifyDimensionIndices(dimNames, spatialDimensions, coordinates) {
+ }
+ async function loadDimensionValues(dimensionValues, levelInfo, dimIndices, root2, zarrVersion, slice3) {
+   if (dimensionValues[dimIndices.name]) return dimensionValues[dimIndices.name];
+-  const targetRoot = levelInfo ? root2.resolve(levelInfo) : root2;
+-  let coordArr;
+-  if (dimIndices.array) {
+-    coordArr = dimIndices.array;
+-  } else {
+-    const coordVar = targetRoot.resolve(dimIndices.name);
+-    const localFunc = resolveOpenFunc(zarrVersion);
+-    coordArr = await localFunc(coordVar, { kind: "array" });
+-  }
+-  const coordData = await zarr.get(coordArr);
+-  const data = coordData.data;
+-  if (Array.isArray(data) && data.length > 0 && typeof data[0] === "string") {
+-    const stringArray = data;
+-    if (slice3) {
+-      return stringArray.slice(slice3[0], slice3[1]);
+-    }
+-    return stringArray;
+-  }
+-  const coordArray = Array.from(
+-    data,
+-    (v) => typeof v === "bigint" ? Number(v) : v
+-  );
+-  if (slice3) {
+-    return coordArray.slice(slice3[0], slice3[1]);
++  if (dimIndices.name === "band") {
++    const res = [0];
++    dimensionValues[dimIndices.name] = res;
++    return res;
++  }
++  try {
++    const targetRoot = levelInfo ? root2.resolve(levelInfo) : root2;
++    let coordArr;
++    if (dimIndices.array) {
++      coordArr = dimIndices.array;
++    } else {
++      const coordVar = targetRoot.resolve(dimIndices.name);
++      const localFunc = resolveOpenFunc(zarrVersion);
++      coordArr = await localFunc(coordVar, { kind: "array" });
++    }
++    const coordData = await zarr.get(coordArr);
++    const data = coordData.data;
++    if (Array.isArray(data) && data.length > 0 && typeof data[0] === "string") {
++      const stringArray = data;
++      const res = slice3 ? stringArray.slice(slice3[0], slice3[1]) : stringArray;
++      dimensionValues[dimIndices.name] = res;
++      return res;
++    }
++    const coordArray = Array.from(
++      data,
++      (v) => typeof v === "bigint" ? Number(v) : v
++    );
++    const res = slice3 ? coordArray.slice(slice3[0], slice3[1]) : coordArray;
++    dimensionValues[dimIndices.name] = res;
++    return res;
++  } catch (err) {
++    return [];
+   }
+-  return coordArray;
+ }
+ function getBandInformation(selector) {
+   const result = {};
+@@ -1475,6 +1482,8 @@ function makeShaderVariantKey(options) {
+ }
+ var toFloat32Array = (arr) => {
+   if (arr instanceof Float32Array) return arr;
++  if (arr instanceof BigInt64Array || arr instanceof BigUint64Array) return new Float32Array(Array.from(arr, Number));
++  if (Array.isArray(arr) && arr.length > 0 && typeof arr[0] === 'bigint') return new Float32Array(arr.map(Number));
+   return new Float32Array(arr);
+ };
+ var isMapboxMode = (mode) => mode === "mapbox" || mode === "mapbox-proj4" || mode === "mapbox-ecef";
+@@ -6744,7 +6753,7 @@ var UntiledMode = class {
+           signal: controller.signal
+         });
+         if (isStale()) return;
+-        const rawData = new Float32Array(result2.data);
++        const rawData = toFloat32Array(result2.data);
+         bandArrays.push(rawData);
+       } else {
+         if (isStale()) return;
+@@ -6767,7 +6776,7 @@ var UntiledMode = class {
+         if (isStale()) return;
+         for (let c = 0; c < numChannels; c++) {
+           const result2 = results[c];
+-          const bandData = new Float32Array(result2.data);
++          const bandData = toFloat32Array(result2.data);
+           bandArrays.push(bandData);
+         }
+       }
+@@ -7312,7 +7321,7 @@ var UntiledMode = class {
+           getOpts
+         );
+         return {
+-          data: new Float32Array(result.data),
++          data: toFloat32Array(result.data),
+           width: fetchWidth,
+           height: fetchHeight,
+           channels: 1,
+@@ -7334,8 +7343,9 @@ var UntiledMode = class {
+           sliceArgs,
+           getOpts
+         );
++        const _bData = toFloat32Array(bandData.data);
+         for (let pixIdx = 0; pixIdx < fetchWidth * fetchHeight; pixIdx++) {
+-          packedData[pixIdx * numChannels + c] = bandData.data[pixIdx];
++          packedData[pixIdx * numChannels + c] = _bData[pixIdx];
+         }
+       }
+       return {

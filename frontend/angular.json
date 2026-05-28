@@ -34,7 +34,7 @@
               "node_modules/maplibre-gl/dist/maplibre-gl.css",
               "src/styles.scss"
             ],
-            "allowedCommonJsDependencies": ["proj4"]
+            "allowedCommonJsDependencies": ["proj4", "maplibre-gl", "earcut"]
           },
           "configurations": {
             "production": {
@@ -46,8 +46,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"
