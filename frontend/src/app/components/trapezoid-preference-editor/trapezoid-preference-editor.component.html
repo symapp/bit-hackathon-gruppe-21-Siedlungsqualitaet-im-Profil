@@ -1,0 +1,44 @@
+<div class="trapezoid-editor" [class.disabled]="disabled()">
+  <svg
+    #svgRoot
+    class="trapezoid-svg"
+    [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
+    role="img"
+    aria-label="Bewertungsfunktion"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+  >
+    <line
+      [attr.x1]="PAD.left"
+      [attr.y1]="viewHeight - PAD.bottom"
+      [attr.x2]="viewWidth - PAD.right"
+      [attr.y2]="viewHeight - PAD.bottom"
+      class="axis"
+    />
+  @for (tick of tickLabels(); track tick.t) {
+    <text [attr.x]="tick.x" [attr.y]="viewHeight - 6" class="tick" text-anchor="middle">
+      {{ tick.label }}
+    </text>
+  }
+
+    <polyline [attr.points]="chartPoints()" class="curve" />
+    @if (sampleMarker(); as m) {
+      <line [attr.x1]="m.x" [attr.y1]="PAD.top" [attr.x2]="m.x" [attr.y2]="viewHeight - PAD.bottom" class="sample-line" />
+      <circle [attr.cx]="m.x" [attr.cy]="m.y" r="4" class="sample-dot" />
+    }
+
+    @for (handle of handleKeys(); track handle) {
+      @let pos = handlePos(handle);
+      <circle
+        [attr.cx]="pos.x"
+        [attr.cy]="pos.y"
+        r="8"
+        class="handle"
+        (pointerdown)="onPointerDown(handle, $event)"
+      />
+    }
+  </svg>
+  <p class="chart-hint">{{ axisCaption() }}</p>
+  <p class="chart-hint chart-hint-sub">Plateau und Abfall links/rechts an den Griffen ziehen.</p>
+</div>

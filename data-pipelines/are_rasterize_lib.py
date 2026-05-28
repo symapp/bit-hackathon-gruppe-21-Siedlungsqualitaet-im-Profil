@@ -77,10 +77,15 @@ def write_swiss_grid_zarr(
     out: Path,
     *,
     encoding: dict | None = None,
+    layer_meta: dict | None = None,
 ) -> None:
     """Write a dataset that is guaranteed to use the shared settlement-quality grid."""
     aligned = ensure_swiss_grid_dataset(dataset)
     aligned.to_zarr(out, mode="w", consolidated=True, encoding=encoding or {})
+    if layer_meta is not None:
+        from settlement_layer_meta import write_settlement_layer_meta
+
+        write_settlement_layer_meta(out, layer_meta)
 
 
 def align_geocube_to_swiss_100m_grid(

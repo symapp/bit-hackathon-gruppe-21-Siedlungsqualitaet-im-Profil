@@ -228,19 +228,9 @@ def density_to_dataset(df: pd.DataFrame, year: int, percentile_cutoff: float = 5
         xi = xi[in_bounds]
         yi = yi[in_bounds]
 
-    log(f"Normalizing density values (percentile-based, cutoff={percentile_cutoff}%)...")
-    p_low = np.percentile(df["population_density_per_km2"], percentile_cutoff)
-    p_high = np.percentile(df["population_density_per_km2"], 100 - percentile_cutoff)
-    
-    if p_high == p_low:
-        df["population_density_score"] = (df["population_density_per_km2"] > p_low).astype("float32")
-    else:
-        df["population_density_score"] = (df["population_density_per_km2"] - p_low) / (p_high - p_low)
-        df["population_density_score"] = df["population_density_score"].clip(0.0, 1.0).astype("float32")
-
     population_density_score = np.full((len(y), len(x)), np.nan, dtype="float32")
     population = np.full((len(y), len(x)), np.nan, dtype="float32")
-    population_density_score[yi, xi] = df["population_density_score"].to_numpy(dtype="float32")
+    population_density_score[yi, xi] = df["population_density_per_km2"].to_numpy(dtype="float32")
     population[yi, xi] = df["population"].to_numpy(dtype="float32")
 
     ds = xr.Dataset(
@@ -346,8 +336,23 @@ def main() -> None:
                 )
             }
 
+    from settlement_layer_meta import build_layer_meta, compute_percentile_bounds
+
+    ds_aligned = ensure_swiss_grid_dataset(ds)
+    p5, p95 = compute_percentile_bounds(
+        ds_aligned["population_density_score"],
+        percentile_cutoff=args.percentile_cutoff,
+    )
+    meta = build_layer_meta(
+        variable="population_density_score",
+        p5=p5,
+        p95=p95,
+        higher_is_better=False,
+        unit="per km²",
+    )
+
     log(f"Writing GeoZarr/Zarr store: {args.out}")
-    write_swiss_grid_zarr(ensure_swiss_grid_dataset(ds), args.out, encoding=encoding)
+    write_swiss_grid_zarr(ds_aligned, args.out, encoding=encoding, layer_meta=meta)
     log(f"Wrote {args.out}")
 
     if args.upload:

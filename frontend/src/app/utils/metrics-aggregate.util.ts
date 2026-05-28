@@ -1,40 +1,55 @@
 import type { ZarrLayerDefinition } from '../config/zarr-layers.config';
+import type { LayerPreference } from '../models/layer-preference.model';
+import type { SettlementLayerMeta } from '../models/settlement-layer-meta.model';
 import type { LocationMetrics } from '../models/metrics.model';
+import {
+  climToNormalizationBounds,
+  computePreferenceOverviewScore,
+  factorScoreFromRaw,
+  metaToNormalizationBounds,
+  normalizeToPreferenceScale,
+  type NormalizationBounds,
+} from './preference-scoring.util';
 
-/** Map raw metric to 0–1 using layer color scale; clamped to clim range. */
+export type { NormalizationBounds };
+
+/** @deprecated Use normalizeToPreferenceScale */
 export function normalizeMetric(
   value: number,
   clim: [number, number],
   higherIsBetter: boolean,
 ): number {
-  const [min, max] = clim;
-  if (max <= min) {
-    return 0;
+  return normalizeToPreferenceScale(value, climToNormalizationBounds(clim, higherIsBetter));
+}
+
+export interface ComputeOverviewContext {
+  definitions: readonly ZarrLayerDefinition[];
+  preferences: Readonly<Record<string, LayerPreference>>;
+  metaByLayerId: Readonly<Record<string, SettlementLayerMeta | null>>;
+}
+
+function boundsForLayer(
+  def: ZarrLayerDefinition,
+  meta: SettlementLayerMeta | null | undefined,
+): NormalizationBounds {
+  if (meta) {
+    return metaToNormalizationBounds(meta);
   }
-  const t = Math.min(1, Math.max(0, (value - min) / (max - min)));
-  return higherIsBetter ? t : 1 - t;
+  return climToNormalizationBounds(def.clim, def.higherIsBetter);
 }
 
 /**
- * Weighted mean of normalized layer scores (0–1 each), returned as 0–100 overview score.
- * Layers with weight ≤ 0 or null metrics are skipped.
+ * Weighted mean of trapezoid factor scores (0–100) from user preferences.
  */
-export function computeWeightedOverview(
+export function computePreferenceOverview(
   metrics: LocationMetrics,
-  definitions: readonly ZarrLayerDefinition[],
-  weights: Readonly<Record<string, number>>,
-  enabled: Readonly<Record<string, boolean>>,
+  ctx: ComputeOverviewContext,
 ): number | null {
-  let weightedSum = 0;
-  let weightTotal = 0;
+  const contributions: { layerId: string; score: number; importance: number }[] = [];
 
-  for (const def of definitions) {
-    if (enabled[def.id] === false) {
-      continue;
-    }
-
-    const w = weights[def.id] ?? 0;
-    if (w <= 0) {
+  for (const def of ctx.definitions) {
+    const pref = ctx.preferences[def.id];
+    if (!pref || pref.enabled === false || pref.importance <= 0) {
       continue;
     }
 
@@ -43,14 +58,38 @@ export function computeWeightedOverview(
       continue;
     }
 
-    const normalized = normalizeMetric(raw, def.clim, def.higherIsBetter);
-    weightedSum += normalized * w;
-    weightTotal += w;
+    const bounds = boundsForLayer(def, ctx.metaByLayerId[def.id]);
+    contributions.push({
+      layerId: def.id,
+      score: factorScoreFromRaw(raw, bounds, pref),
+      importance: pref.importance,
+    });
   }
 
-  if (weightTotal === 0) {
-    return null;
-  }
+  return computePreferenceOverviewScore(contributions);
+}
 
-  return (weightedSum / weightTotal) * 100;
+/** @deprecated Use computePreferenceOverview */
+export function computeWeightedOverview(
+  metrics: LocationMetrics,
+  definitions: readonly ZarrLayerDefinition[],
+  weights: Readonly<Record<string, number>>,
+  enabled: Readonly<Record<string, boolean>>,
+): number | null {
+  const preferences: Record<string, LayerPreference> = {};
+  for (const def of definitions) {
+    preferences[def.id] = {
+      enabled: enabled[def.id] !== false,
+      importance: weights[def.id] ?? 0,
+      rangeMin: 0,
+      rangeMax: 1,
+      falloffLeft: 0,
+      falloffRight: 0,
+    };
+  }
+  return computePreferenceOverview(metrics, {
+    definitions,
+    preferences,
+    metaByLayerId: {},
+  });
 }

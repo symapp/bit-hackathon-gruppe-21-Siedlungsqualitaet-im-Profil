@@ -86,6 +86,12 @@
           </div>
         }
 
+        @if (locationService.overviewLoading()) {
+          <p class="metrics-hint" data-testid="overview-loading">
+            {{ 'sidebar.overviewLoading' | translate }}
+          </p>
+        }
+
         <div class="overview-map-legend">
           <span class="map-layer-legend" [style.background]="overviewLegendGradient()"></span>
           <span class="map-layer-scale">{{ 'sidebar.overviewMapScale' | translate }}</span>
@@ -95,14 +101,19 @@
       <div class="layers-section">
         <div class="layers-header">
           <h3 class="metrics-title">{{ 'sidebar.layersTitle' | translate }}</h3>
-          <button
-            type="button"
-            class="layers-reset-btn"
-            [disabled]="!isAnyLayerEnabled()"
-            (click)="deselectAllLayers()"
-          >
-            {{ 'sidebar.deselectAll' | translate }}
-          </button>
+          <div class="layers-header-actions">
+            <button type="button" class="layers-reset-btn" (click)="resetAllPreferences()">
+              {{ 'sidebar.resetDefaults' | translate }}
+            </button>
+            <button
+              type="button"
+              class="layers-reset-btn"
+              [disabled]="!isAnyLayerEnabled()"
+              (click)="deselectAllLayers()"
+            >
+              {{ 'sidebar.deselectAll' | translate }}
+            </button>
+          </div>
         </div>
         <p class="layers-hint">{{ 'sidebar.layersHint' | translate }}</p>
 
@@ -125,22 +136,45 @@
 
               <span class="map-layer-desc">{{ layer.descriptionKey | translate }}</span>
 
-              <div class="layer-weight-row">
-                <span class="layer-weight-label">{{ 'sidebar.weight' | translate }}</span>
-                <span class="layer-weight-value">{{ layer.weight }}</span>
-              </div>
-              <input
-                type="range"
-                class="layer-weight-slider"
-                [min]="0"
-                [max]="200"
-                [step]="5"
-                [disabled]="!layer.enabled"
-                [ngModel]="layer.weight"
-                (ngModelChange)="onLayerWeightChange(layer.id, $event)"
-              />
+              @if (layer.metaFromFallback) {
+                <span class="meta-warning">{{ 'sidebar.metaFallback' | translate }}</span>
+              }
 
               @if (def) {
+                <app-trapezoid-preference-editor
+                  [preference]="layer.preference"
+                  [bounds]="normalizationBounds(layer.id)"
+                  [sampleRaw]="sampleRawForLayer(layer.id)"
+                  [disabled]="!layer.enabled"
+                  [formatRaw]="def.formatValue"
+                  [unit]="def.metricUnit"
+                  (preferenceChange)="onPreferenceChange(layer.id, $event)"
+                />
+
+                <div class="layer-weight-row">
+                  <span class="layer-weight-label">{{ 'sidebar.importance' | translate }}</span>
+                  <span class="layer-weight-value">{{ layer.preference.importance }}</span>
+                </div>
+                <input
+                  type="range"
+                  class="layer-weight-slider"
+                  [min]="0"
+                  [max]="200"
+                  [step]="5"
+                  [disabled]="!layer.enabled"
+                  [ngModel]="layer.preference.importance"
+                  (ngModelChange)="onImportanceChange(layer.id, $event)"
+                />
+
+                <button
+                  type="button"
+                  class="layer-reset-pref-btn"
+                  [disabled]="!layer.enabled"
+                  (click)="resetLayerPreference(layer.id)"
+                >
+                  {{ 'sidebar.resetLayer' | translate }}
+                </button>
+
                 <span class="map-layer-metric">
                   {{ def.metricLabelKey | translate }}:
                   <strong>{{ formatMetricValue(def.metricKey) }}</strong>

@@ -44,9 +44,17 @@ To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use th
 ng test
 ```
 
+## Settlement-quality preferences
+
+Each factor uses an interactive **trapezoid** editor (plateau = score 100, linear falloff outside). **Wichtigkeit** controls the weighted overview score and composite map.
+
+Normalization uses `settlement-layer-meta.json` next to each GeoZarr (`p5`, `p95`, `higherIsBetter`) from the data pipelines. Until meta is deployed, the UI falls back to `clim` from `zarr-layers.config.ts`.
+
+Default preferences follow a **“good place to live”** profile (`good-place-defaults.config.ts`). Use **Sinnvolle Defaults** in the sidebar to reset.
+
 ## Running end-to-end tests
 
-Playwright tests cover the MapLibre Zarr overlay (layer registration, visible raster colors, sidebar score).
+Playwright tests cover the MapLibre Zarr overlay (layer registration, visible raster colors, sidebar score, trapezoid editor).
 
 ```bash
 cd frontend

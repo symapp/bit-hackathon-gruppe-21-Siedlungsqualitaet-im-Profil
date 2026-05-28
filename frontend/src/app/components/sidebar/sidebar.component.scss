@@ -215,6 +215,32 @@
   margin-bottom: 20px;
 }
 
+.layers-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-warning {
+  font-size: 0.68rem;
+  color: #b45309;
+}
+
+.layer-reset-pref-btn {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border: 1px solid var(--ch-border);
+  border-radius: 6px;
+  background: #f8fafc;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .layers-header {
   display: flex;
   align-items: center;

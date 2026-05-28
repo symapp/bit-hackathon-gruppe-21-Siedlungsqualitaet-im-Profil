@@ -24,14 +24,13 @@ def download_and_extract_gpkg(url: str) -> Path:
     temp_dir = Path(tempfile.mkdtemp())
     with zipfile.ZipFile(temp_zip_path, "r") as zip_ref:
         zip_ref.extractall(temp_dir)
-    
+
     temp_zip_path.unlink()
-    
-    # Find the .gpkg file in the extracted directory
+
     gpkg_files = list(temp_dir.glob("*.gpkg"))
     if not gpkg_files:
         raise FileNotFoundError("No .gpkg file found in the zip archive")
-    
+
     return gpkg_files[0]
 
 
@@ -55,7 +54,7 @@ def main():
         "--percentile-cutoff",
         type=float,
         default=5.0,
-        help="Percentage of data to cut off from top and bottom for normalization (not applied to categorical quality classes).",
+        help="Percentile cutoff for settlement-layer-meta.json (p5/p95).",
     )
     parser.add_argument(
         "--remote-name",
@@ -69,29 +68,40 @@ def main():
 
     try:
         print(f"Reading {gpkg_file_path}...")
-        # Specifically use the layer 'OeV_Gueteklassen_ARE'
-        geodata = gpd.read_file(gpkg_file_path, layer='OeV_Gueteklassen_ARE')
+        geodata = gpd.read_file(gpkg_file_path, layer="OeV_Gueteklassen_ARE")
 
-        print("Mapping classes to numeric values (0.0-1.0 range)...")
-        # Map classes A-D to numeric values 1.0-0.25
-        class_mapping = {"A": 1.0, "B": 0.75, "C": 0.5, "D": 0.25}
-        geodata["pt_quality_score"] = geodata["KLASSE"].map(class_mapping).fillna(0.0).astype(float)
+        class_mapping = {"A": 4, "B": 3, "C": 2, "D": 1}
+        geodata["KLASSE_NUM"] = geodata["KLASSE"].map(class_mapping).fillna(0).astype(float)
 
         resolution = 100
 
         print(f"Rasterizing to {resolution}m grid...")
         geocube_grid = make_geocube(
             vector_data=geodata,
-            measurements=["pt_quality_score"],
+            measurements=["KLASSE_NUM"],
             resolution=(-resolution, resolution),
             output_crs="EPSG:2056",
             fill=0,
         )
         aligned_grid = align_geocube_to_swiss_100m_grid(geocube_grid, fill_value=0)
 
-        zarr_path = args.out
+        from settlement_layer_meta import build_layer_meta, compute_percentile_bounds
+
+        p5, p95 = compute_percentile_bounds(
+            aligned_grid["KLASSE_NUM"],
+            percentile_cutoff=args.percentile_cutoff,
+        )
+        meta = build_layer_meta(
+            variable="KLASSE_NUM",
+            p5=p5,
+            p95=p95,
+            higher_is_better=True,
+            unit="Nr.",
+        )
+
+        zarr_path = Path(args.out)
         print(f"Writing to {zarr_path}...")
-        write_swiss_grid_zarr(aligned_grid, zarr_path)
+        write_swiss_grid_zarr(aligned_grid, zarr_path, layer_meta=meta)
 
         print(f"Success! GeoZarr created at: {zarr_path}")
 
@@ -100,7 +110,6 @@ def main():
             print(f"Uploaded to {remote}")
 
     finally:
-        # Cleanup: remove the temp directory and its contents
         if gpkg_file_path.exists():
             temp_dir = gpkg_file_path.parent
             shutil.rmtree(temp_dir)
