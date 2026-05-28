@@ -60,6 +60,8 @@ export class ZarrMapService {
         source: definition.storePath,
         variable: definition.variable,
         selector: definition.selector,
+        bounds: definition.bounds,
+        fillValue: definition.fillValue,
         colormap: definition.colormap,
         clim: definition.clim,
         opacity: 0.82,
@@ -77,7 +79,7 @@ export class ZarrMapService {
         },
       };
 
-      // Zarr metadata marks _FillValue=0, but rasterized cells outside polygons are NaN.
+      // ÖV: metadata _FillValue=0, but empty cells are NaN.
       if (definition.id === 'pt-accessibility') {
         layerOptions.fillValue = Number.NaN;
       }

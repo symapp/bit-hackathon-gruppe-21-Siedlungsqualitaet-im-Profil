@@ -8,6 +8,11 @@ export const SWISS_LV95_PROJ4 =
 
 export type ZarrMetricKey = keyof LocationMetrics;
 
+/** LV95 extent [xMin, yMin, xMax, yMax] for STATPOP 100 m grid (half-cell padding). */
+export const STATPOP_LV95_BOUNDS: [number, number, number, number] = [
+  2_486_150, 1_075_450, 2_832_050, 1_294_850,
+];
+
 export interface ZarrLayerDefinition {
   id: string;
   label: string;
@@ -15,6 +20,9 @@ export interface ZarrLayerDefinition {
   storePath: string;
   variable: string;
   selector?: Selector;
+  /** Source CRS bounds; required when x/y are int64 (zarr-layer cannot read them). */
+  bounds?: [number, number, number, number];
+  fillValue?: number;
   colormap: string[];
   clim: [number, number];
   metricKey: ZarrMetricKey;
@@ -58,6 +66,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     description: 'BFS STATPOP, Einwohner pro km² (100 m Raster)',
     storePath: `${base}/statpop_population_density_100m.zarr`,
     variable: 'population_density_per_km2',
+    bounds: STATPOP_LV95_BOUNDS,
+    fillValue: Number.NaN,
     colormap: ['#ffffcc', '#fed976', '#fd8d3c', '#e31a1c', '#800026'],
     clim: CLIM.populationDensity,
     metricKey: 'populationDensityPerKm2',
