@@ -1,5 +1,11 @@
 <div class="sidebar" [class.collapsed]="isCollapsed">
-  <button class="toggle-btn" (click)="toggleSidebar()">
+  <button
+    type="button"
+    class="toggle-btn"
+    [attr.aria-expanded]="!isCollapsed"
+    [attr.aria-label]="isCollapsed ? 'Panel öffnen' : 'Panel schliessen'"
+    (click)="toggleSidebar()"
+  >
     @if (isCollapsed) {
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="15 18 9 12 15 6"></polyline>
@@ -13,18 +19,14 @@
 
   @if (!isCollapsed) {
     <div class="sidebar-content">
-      <h2 class="sidebar-title">Siedlungsqualität</h2>
-
       @if (locationService.address()) {
         <div class="address-display">
-          <span class="address-label">Standort</span>
           <span class="address-value">{{ locationService.address() }}</span>
         </div>
       }
 
       <div class="radius-section">
         <div class="radius-header">
-          <span class="radius-label">Suchradius</span>
           <span class="radius-value">{{ formatRadius(locationService.radius()) }}</span>
         </div>
         <input
@@ -42,11 +44,6 @@
       </div>
 
       <div class="overview-section">
-        <h3 class="metrics-title">Gesamtübersicht</h3>
-        <p class="layers-hint">
-          Gewichteter Durchschnitt aller aktiven GeoZarr-Indikatoren (0–100, höher = besser).
-        </p>
-
         @if (locationService.metricsLoading()) {
           <p class="metrics-hint">Werte werden berechnet…</p>
         } @else if (locationService.metricsError()) {
@@ -68,9 +65,6 @@
       </div>
 
       <div class="layers-section">
-        <h3 class="metrics-title">Gewichtung &amp; Karte</h3>
-        <p class="layers-hint">Alle Ebenen sind aktiv; Deckkraft folgt der Gewichtung.</p>
-
         <div class="map-layer-list">
           @for (layer of locationService.zarrLayers(); track layer.id) {
             @let def = layerDefinition(layer.id);
@@ -91,7 +85,6 @@
               <span class="map-layer-desc">{{ layer.description }}</span>
 
               <div class="layer-weight-row">
-                <span class="layer-weight-label">Gewicht</span>
                 <span class="layer-weight-value">{{ layer.weight }}</span>
               </div>
               <input
@@ -130,7 +123,6 @@
       </div>
 
       <div class="coordinates-section">
-        <span class="coord-label">Koordinaten</span>
         <span class="coord-value">{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span>
       </div>
     </div>
