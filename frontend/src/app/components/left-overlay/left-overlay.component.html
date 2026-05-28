@@ -1,0 +1,128 @@
+<div class="regions-sidebar" [class.collapsed]="isCollapsed">
+  <button
+    type="button"
+    class="toggle-btn"
+    [attr.aria-expanded]="!isCollapsed"
+    [attr.aria-label]="isCollapsed ? 'Panel öffnen' : 'Panel schliessen'"
+    (click)="toggleSidebar()"
+  >
+    @if (isCollapsed) {
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    } @else {
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    }
+  </button>
+
+  @if (!isCollapsed) {
+    <div class="regions-content">
+      <div class="regions-header">
+        <h2>Regions of interest</h2>
+        <button type="button" class="add-btn" (click)="addRegion()">+ Region</button>
+      </div>
+
+      <div class="regions-list">
+        @for (region of locationService.regions(); track region.id) {
+          <div
+            class="region-card"
+            [class.active]="isActive(region.id)"
+            (click)="setActiveRegion(region.id)"
+          >
+            <div class="region-row">
+              <label class="field-label" [for]="'region-name-' + region.id">Name</label>
+              <button
+                type="button"
+                class="trash-btn"
+                title="Region löschen"
+                [attr.aria-label]="region.name + ' löschen'"
+                (click)="removeRegion(region, $event)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6l-1 14H6L5 6"></path>
+                  <path d="M10 11v6"></path>
+                  <path d="M14 11v6"></path>
+                  <path d="M9 6V4h6v2"></path>
+                </svg>
+              </button>
+            </div>
+
+            <input
+              [id]="'region-name-' + region.id"
+              type="text"
+              class="text-input"
+              [ngModel]="region.name"
+              (ngModelChange)="updateName(region, $event)"
+              (click)="$event.stopPropagation()"
+            />
+
+            <div class="region-row">
+              <label class="field-label" [for]="'region-color-' + region.id">Farbe</label>
+              <input
+                [id]="'region-color-' + region.id"
+                type="color"
+                class="color-input"
+                [ngModel]="region.color"
+                (ngModelChange)="updateColor(region, $event)"
+                (click)="$event.stopPropagation()"
+              />
+            </div>
+
+            <div class="radius-block" (click)="$event.stopPropagation()">
+              <div class="radius-header">
+                <span class="field-label">Suchradius</span>
+                <span class="radius-value">{{ formatRadius(region.radius) }}</span>
+              </div>
+              <input
+                type="range"
+                class="radius-slider"
+                [min]="100"
+                [max]="3000"
+                [step]="50"
+                [ngModel]="region.radius"
+                (ngModelChange)="updateRadius(region, $event)"
+              />
+              <div class="radius-range">
+                <span>100 m</span>
+                <span>3 km</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

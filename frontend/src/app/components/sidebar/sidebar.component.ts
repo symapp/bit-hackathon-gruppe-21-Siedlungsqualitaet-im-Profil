@@ -20,23 +20,8 @@ export class SidebarComponent {
   protected isCollapsed = false;
   protected readonly metricDefinitions = ZARR_LAYER_DEFINITIONS;
 
-  protected get radiusValue(): number {
-    return this.locationService.radius();
-  }
-
-  protected set radiusValue(value: number) {
-    this.locationService.setRadius(value);
-  }
-
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
-  }
-
-  formatRadius(value: number): string {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)} km`;
-    }
-    return `${value} m`;
   }
 
   formatMetricValue(key: keyof LocationMetrics): string {

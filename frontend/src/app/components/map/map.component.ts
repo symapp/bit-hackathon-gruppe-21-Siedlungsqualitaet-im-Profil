@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
-import { LocationService } from '../../services/location.service';
+import { LocationService, type RegionOfInterest } from '../../services/location.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker } from 'maplibre-gl';
@@ -24,14 +24,13 @@ export class MapComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      const lat = this.locationService.lat();
-      const lng = this.locationService.lng();
-      const radius = this.locationService.radius();
+      const regions = this.locationService.regions();
+      const activeRegion = this.locationService.activeRegion();
 
-      if (this.map && this.marker && this.deckOverlay) {
-        this.marker.setLngLat([lng, lat]);
-        this.updateDeckLayers(lat, lng, radius);
-        this.map.flyTo({ center: [lng, lat], essential: true });
+      if (this.map && this.marker && this.deckOverlay && activeRegion) {
+        this.marker.setLngLat([activeRegion.lng, activeRegion.lat]);
+        this.updateDeckLayers(regions, activeRegion.id);
+        this.map.flyTo({ center: [activeRegion.lng, activeRegion.lat], essential: true });
       }
     });
   }
@@ -51,8 +50,10 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   private initMap(): void {
-    const lat = this.locationService.lat();
-    const lng = this.locationService.lng();
+    const activeRegion = this.locationService.activeRegion();
+    const lat = activeRegion?.lat ?? 47.3769;
+    const lng = activeRegion?.lng ?? 8.5417;
+    this.locationService.setViewCenter(lat, lng);
 
     this.map = new Map({
       container: this.mapContainer.nativeElement,
@@ -96,21 +97,57 @@ export class MapComponent implements OnInit, OnDestroy {
     exposeMapForE2e(this.map);
     this.zarrMapService.attachToMap(this.map);
 
+    this.map.on('moveend', () => {
+      const center = this.map.getCenter();
+      this.locationService.setViewCenter(center.lat, center.lng);
+    });
+
     this.map.on('load', () => {
-      this.updateDeckLayers(lat, lng, this.locationService.radius());
+      const regions = this.locationService.regions();
+      const currentActiveRegion = this.locationService.activeRegion();
+      this.updateDeckLayers(regions, currentActiveRegion?.id ?? '');
+      const center = this.map.getCenter();
+      this.locationService.setViewCenter(center.lat, center.lng);
     });
   }
 
-  private updateDeckLayers(lat: number, lng: number, radius: number): void {
-    const circlePolygon = this.createCirclePolygon(lng, lat, radius);
+  private updateDeckLayers(regions: RegionOfInterest[], activeRegionId: string): void {
+    const circleData = regions.map((region) => {
+      const baseColor = this.hexToRgb(region.color);
+      const isActive = region.id === activeRegionId;
+
+      return {
+        polygon: this.createCirclePolygon(region.lng, region.lat, region.radius),
+        center: [region.lng, region.lat] as [number, number],
+        fillColor: [baseColor[0], baseColor[1], baseColor[2], isActive ? 46 : 24] as [
+          number,
+          number,
+          number,
+          number,
+        ],
+        lineColor: [baseColor[0], baseColor[1], baseColor[2], isActive ? 220 : 140] as [
+          number,
+          number,
+          number,
+          number,
+        ],
+        pointColor: [baseColor[0], baseColor[1], baseColor[2], isActive ? 240 : 190] as [
+          number,
+          number,
+          number,
+          number,
+        ],
+        pointRadius: isActive ? 8 : 6,
+      };
+    });
 
     const layers = [
       new PolygonLayer({
-        id: 'radius-circle-fill',
-        data: [{ polygon: circlePolygon }],
+        id: 'region-circles-fill',
+        data: circleData,
         getPolygon: (d: { polygon: [number, number][] }) => d.polygon,
-        getFillColor: [99, 102, 241, 25],
-        getLineColor: [99, 102, 241, 160],
+        getFillColor: (d: { fillColor: [number, number, number, number] }) => d.fillColor,
+        getLineColor: (d: { lineColor: [number, number, number, number] }) => d.lineColor,
         getLineWidth: 2,
         lineWidthUnits: 'pixels',
         filled: true,
@@ -118,11 +155,11 @@ export class MapComponent implements OnInit, OnDestroy {
         pickable: false,
       }),
       new ScatterplotLayer({
-        id: 'center-point',
-        data: [{ position: [lng, lat] }],
-        getPosition: (d: { position: [number, number] }) => d.position,
-        getFillColor: [99, 102, 241, 200],
-        getRadius: 8,
+        id: 'region-center-points',
+        data: circleData,
+        getPosition: (d: { center: [number, number] }) => d.center,
+        getFillColor: (d: { pointColor: [number, number, number, number] }) => d.pointColor,
+        getRadius: (d: { pointRadius: number }) => d.pointRadius,
         radiusUnits: 'pixels',
         filled: true,
         pickable: false,
@@ -148,5 +185,28 @@ export class MapComponent implements OnInit, OnDestroy {
     }
 
     return coords;
+  }
+
+  private hexToRgb(hexColor: string): [number, number, number] {
+    const normalized = hexColor.replace('#', '').trim();
+    const shortHex = normalized.length === 3;
+
+    if (![3, 6].includes(normalized.length)) {
+      return [99, 102, 241];
+    }
+
+    const full = shortHex
+      ? normalized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : normalized;
+
+    const value = Number.parseInt(full, 16);
+    if (Number.isNaN(value)) {
+      return [99, 102, 241];
+    }
+
+    return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
   }
 }
