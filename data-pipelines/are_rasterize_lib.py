@@ -10,11 +10,58 @@ from pathlib import Path
 from typing import Callable
 
 import geopandas as gpd
+import numpy as np
 import rioxarray
+import xarray as xr
 from geocube.api.core import make_geocube
+from rasterio.enums import Resampling
 
 DEFAULT_RESOLUTION_M = 100
 OUTPUT_CRS = "EPSG:2056"
+
+# Outer pixel edges of the shared 100 m LV95 grid (matches geocube ARE rasters).
+SWISS_GRID_100M_EDGE_BOUNDS = (2_485_400.0, 1_075_200.0, 2_833_000.0, 1_296_000.0)
+
+
+def swiss_100m_grid_coords() -> tuple[np.ndarray, np.ndarray]:
+    """Cell-center x/y coordinates for the shared 100 m settlement-quality grid."""
+    xmin, ymin, xmax, ymax = SWISS_GRID_100M_EDGE_BOUNDS
+    res = DEFAULT_RESOLUTION_M
+    half = res / 2.0
+    x = np.arange(xmin + half, xmax - half + 1, res, dtype=np.float64)
+    y = np.arange(ymax - half, ymin + half - 1, -res, dtype=np.float64)
+    return x, y
+
+
+def build_swiss_100m_target_grid() -> xr.DataArray:
+    x, y = swiss_100m_grid_coords()
+    target = xr.DataArray(
+        np.zeros((len(y), len(x)), dtype=np.float32),
+        coords={"y": y, "x": x},
+        dims=("y", "x"),
+    )
+    return target.rio.write_crs(OUTPUT_CRS)
+
+
+def align_raster_to_swiss_100m_grid(
+    data_array: xr.DataArray,
+    *,
+    resampling: Resampling = Resampling.nearest,
+) -> xr.DataArray:
+    """Clip and resample an LV95 raster to the shared 100 m settlement-quality grid."""
+    had_band = "band" in data_array.dims
+    if had_band and data_array.sizes.get("band", 0) == 1:
+        data_array = data_array.squeeze("band", drop=True)
+
+    if data_array.rio.crs is None:
+        data_array = data_array.rio.write_crs(OUTPUT_CRS)
+
+    target = build_swiss_100m_target_grid()
+    aligned = data_array.rio.reproject_match(target, resampling=resampling)
+
+    if had_band:
+        aligned = aligned.expand_dims("band")
+    return aligned
 
 
 def download_file(url: str, suffix: str = "") -> Path:
@@ -116,8 +163,12 @@ def rasterize_from_cog(
     out: Path,
     variable: str,
     chunks: dict[str, int] | None = None,
+    resampling: Resampling = Resampling.nearest,
+    align_to_swiss_grid: bool = True,
 ) -> None:
     chunk_cfg = chunks or {"x": 1024, "y": 1024}
     data_array = rioxarray.open_rasterio(url, chunks=chunk_cfg)
+    if align_to_swiss_grid:
+        data_array = align_raster_to_swiss_100m_grid(data_array, resampling=resampling)
     dataset = data_array.to_dataset(name=variable)
     dataset.to_zarr(out, mode="w", consolidated=True)

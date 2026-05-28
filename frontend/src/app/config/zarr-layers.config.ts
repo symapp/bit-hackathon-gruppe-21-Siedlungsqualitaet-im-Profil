@@ -13,6 +13,11 @@ export const STATPOP_LV95_BOUNDS: [number, number, number, number] = [
   2_486_150, 1_075_450, 2_832_050, 1_294_850,
 ];
 
+/** LV95 extent [xMin, yMin, xMax, yMax] for ARE geocube 100 m grid (half-cell padding). */
+export const SWISS_GRID_LV95_BOUNDS: [number, number, number, number] = [
+  2_485_400, 1_075_200, 2_833_000, 1_296_000,
+];
+
 export interface ZarrLayerDefinition {
   id: string;
   label: string;
@@ -64,6 +69,8 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     storePath: `${base}/ch_bafu_tranquillity_karte.zarr`,
     variable: 'tranquillity_score',
     selector: { band: 0 },
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    fillValue: Number.NaN,
     colormap: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
     clim: CLIM.tranquillity,
     metricKey: 'tranquillityIndex',
@@ -230,6 +237,7 @@ export const ZARR_LAYER_DEFINITIONS: ZarrLayerDefinition[] = [
     storePath: `${base}/solar_nutzungsaspekte.zarr`,
     variable: 'solar_suitability',
     selector: { band: 0 },
+    bounds: SWISS_GRID_LV95_BOUNDS,
     fillValue: Number.NaN,
     colormap: ['#fff7bc', '#fec44f', '#d95f0e', '#993404'],
     clim: CLIM.solarSuitability,

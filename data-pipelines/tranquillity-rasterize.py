@@ -4,7 +4,9 @@ from pathlib import Path
 
 import pystac_client
 import rioxarray
+from rasterio.enums import Resampling
 
+from are_rasterize_lib import align_raster_to_swiss_100m_grid
 from zarr_b2_upload import upload_zarr
 
 # Swiss Federal Geoportal STAC API endpoint
@@ -70,6 +72,9 @@ def main() -> None:
 
     da = rioxarray.open_rasterio(cog_url, chunks={"x": 1024, "y": 1024})
 
+    print("Aligning to shared Swiss 100 m grid (ARE settlement-quality extent)...")
+    da = align_raster_to_swiss_100m_grid(da, resampling=Resampling.nearest)
+
     print(f"Normalizing tranquillity index (percentile-based, cutoff={args.percentile_cutoff}%)...")
     
     # Mask nodata values to prevent them from skewing quantiles
@@ -88,7 +93,7 @@ def main() -> None:
         da = (da_masked - p_low) / (p_high - p_low)
         da = da.clip(0.0, 1.0)
 
-    ds = da.to_dataset(name="tranquillity_score")
+    ds = da.to_dataset(name="tranquillity_index")
 
     print(f"Writing dataset to GeoZarr: {args.out} ...")
     ds.to_zarr(args.out, mode="w", consolidated=True)
