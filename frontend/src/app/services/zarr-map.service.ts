@@ -10,10 +10,7 @@ import {
   ZARR_LAYERS_WITH_NAN_FILL,
   type ZarrLayerDefinition,
 } from '../config/zarr-layers.config';
-import {
-  EMPTY_LOCATION_METRICS,
-  type LocationMetrics,
-} from '../models/metrics.model';
+import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.model';
 import { computeWeightedOverview } from '../utils/metrics-aggregate.util';
 
 interface ManagedZarrLayer {

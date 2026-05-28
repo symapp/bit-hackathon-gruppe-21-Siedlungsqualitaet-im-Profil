@@ -46,6 +46,28 @@
         </div>
       }
 
+      <div class="grocery-count-section">
+        <h3 class="metrics-title">Lädeli in der Region</h3>
+        @if (locationService.groceryCountLoading()) {
+          <p class="store-count-status">Loading...</p>
+        } @else if (locationService.groceryCountError()) {
+          <p class="store-count-status error">{{ locationService.groceryCountError() }}</p>
+        } @else {
+          <p class="store-count-value">{{ locationService.groceryCount() }}</p>
+          @if (locationService.groceryStores().length > 0) {
+            <div class="store-location-list">
+              @for (store of locationService.groceryStores(); track store.id) {
+                <div class="store-location-item">
+                  <span class="store-location-name">{{ store.name }}</span>
+                  <span class="store-location-meta">{{ formatStoreDistance(store) }} away</span>
+                  <span class="store-location-address">{{ formatStoreLocation(store) }}</span>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+
       <div class="overview-section">
         <h3 class="metrics-title">Gesamtübersicht</h3>
         <p class="layers-hint">

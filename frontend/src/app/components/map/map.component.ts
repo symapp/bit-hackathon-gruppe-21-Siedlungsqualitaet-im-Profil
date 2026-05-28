@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
+import type { GroceryStore } from '../../services/overpass.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker } from 'maplibre-gl';
@@ -26,9 +27,10 @@ export class MapComponent implements OnInit, OnDestroy {
     effect(() => {
       const regions = this.locationService.regions();
       const activeRegion = this.locationService.activeRegion();
+      const groceryStores = this.locationService.groceryStores();
 
       if (this.map && this.marker && this.deckOverlay) {
-        this.updateDeckLayers(regions, activeRegion?.id ?? '');
+        this.updateDeckLayers(regions, activeRegion?.id ?? '', groceryStores);
 
         if (!activeRegion) {
           this.marker.getElement().style.display = 'none';
@@ -112,13 +114,21 @@ export class MapComponent implements OnInit, OnDestroy {
     this.map.on('load', () => {
       const regions = this.locationService.regions();
       const currentActiveRegion = this.locationService.activeRegion();
-      this.updateDeckLayers(regions, currentActiveRegion?.id ?? '');
+      this.updateDeckLayers(
+        regions,
+        currentActiveRegion?.id ?? '',
+        this.locationService.groceryStores(),
+      );
       const center = this.map.getCenter();
       this.locationService.setViewCenter(center.lat, center.lng);
     });
   }
 
-  private updateDeckLayers(regions: RegionOfInterest[], activeRegionId: string): void {
+  private updateDeckLayers(
+    regions: RegionOfInterest[],
+    activeRegionId: string,
+    groceryStores: GroceryStore[],
+  ): void {
     const circleData = regions.map((region) => {
       const baseColor = this.hexToRgb(region.color);
       const isActive = region.id === activeRegionId;
@@ -169,6 +179,20 @@ export class MapComponent implements OnInit, OnDestroy {
         getRadius: (d: { pointRadius: number }) => d.pointRadius,
         radiusUnits: 'pixels',
         filled: true,
+        pickable: false,
+      }),
+      new ScatterplotLayer<GroceryStore>({
+        id: 'grocery-store-points',
+        data: groceryStores,
+        getPosition: (store) => [store.lng, store.lat],
+        getFillColor: [16, 185, 129, 220],
+        getLineColor: [4, 120, 87, 255],
+        getLineWidth: 2,
+        getRadius: 7,
+        lineWidthUnits: 'pixels',
+        radiusUnits: 'pixels',
+        filled: true,
+        stroked: true,
         pickable: false,
       }),
     ];

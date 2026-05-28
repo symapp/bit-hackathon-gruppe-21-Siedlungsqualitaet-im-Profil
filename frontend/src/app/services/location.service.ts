@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { clampToSwitzerland } from '../config/map-bounds.config';
+import { OverpassService, type GroceryStore } from './overpass.service';
 import { ZarrMapService } from './zarr-map.service';
 
 export interface RegionOfInterest {
@@ -29,10 +30,17 @@ function createDefaultRegion(): RegionOfInterest {
 })
 export class LocationService {
   private readonly zarrMap = inject(ZarrMapService);
+  private readonly overpass = inject(OverpassService);
 
   private readonly _regions = signal<RegionOfInterest[]>([createDefaultRegion()]);
   private readonly _activeRegionId = signal(this._regions()[0]?.id ?? '');
   private readonly _viewCenter = signal({ lat: 47.3769, lng: 8.5417 });
+  private readonly _groceryCount = signal(0);
+  private readonly _groceryStores = signal<GroceryStore[]>([]);
+  private readonly _groceryCountLoading = signal(false);
+  private readonly _groceryCountError = signal<string | null>(null);
+  private groceryFetchGeneration = 0;
+  private groceryAbort: AbortController | null = null;
   private readonly _address = signal('');
 
   readonly regions = this._regions.asReadonly();
@@ -42,6 +50,11 @@ export class LocationService {
   );
   readonly lat = computed(() => this.activeRegion()?.lat ?? 47.3769);
   readonly lng = computed(() => this.activeRegion()?.lng ?? 8.5417);
+  readonly radius = computed(() => this.activeRegion()?.radius ?? 500);
+  readonly groceryCount = this._groceryCount.asReadonly();
+  readonly groceryStores = this._groceryStores.asReadonly();
+  readonly groceryCountLoading = this._groceryCountLoading.asReadonly();
+  readonly groceryCountError = this._groceryCountError.asReadonly();
   readonly address = this._address.asReadonly();
 
   readonly metrics = this.zarrMap.metrics;
@@ -51,10 +64,25 @@ export class LocationService {
   readonly zarrLayers = this.zarrMap.layerStates;
 
   constructor() {
-    effect(() => {
-      const lat = this.lat();
-      const lng = this.lng();
-      void this.zarrMap.sampleLocation(lng, lat);
+    effect((onCleanup) => {
+      const activeRegion = this.activeRegion();
+
+      if (!activeRegion) {
+        this._groceryStores.set([]);
+        this._groceryCount.set(0);
+        this._groceryCountLoading.set(false);
+        this._groceryCountError.set(null);
+        return;
+      }
+
+      const { lat, lng, radius } = activeRegion;
+
+      const timer = setTimeout(() => {
+        void this.zarrMap.sampleLocation(lng, lat);
+        void this.fetchGroceryStores(lat, lng, radius);
+      }, 300);
+
+      onCleanup(() => clearTimeout(timer));
     });
   }
 
@@ -158,6 +186,39 @@ export class LocationService {
   setAllZarrLayersEnabled(enabled: boolean): void {
     for (const layer of this.zarrLayers()) {
       this.zarrMap.setLayerEnabled(layer.id, enabled);
+    }
+  }
+
+  private async fetchGroceryStores(lat: number, lng: number, radius: number): Promise<void> {
+    const generation = ++this.groceryFetchGeneration;
+    this.groceryAbort?.abort();
+    this.groceryAbort = new AbortController();
+    this._groceryCountLoading.set(true);
+    this._groceryCountError.set(null);
+
+    try {
+      const stores = await this.overpass.getGroceryStores(
+        lat,
+        lng,
+        radius,
+        this.groceryAbort.signal,
+      );
+      if (generation === this.groceryFetchGeneration) {
+        this._groceryStores.set(stores);
+        this._groceryCount.set(stores.length);
+        this._groceryCountLoading.set(false);
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+      if (generation === this.groceryFetchGeneration) {
+        console.warn('Failed to fetch grocery store count:', error);
+        this._groceryStores.set([]);
+        this._groceryCount.set(0);
+        this._groceryCountError.set('Unable to load');
+        this._groceryCountLoading.set(false);
+      }
     }
   }
 }

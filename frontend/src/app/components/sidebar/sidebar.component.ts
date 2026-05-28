@@ -7,6 +7,7 @@ import {
 } from '../../config/zarr-layers.config';
 import type { LocationMetrics } from '../../models/metrics.model';
 import { LocationService } from '../../services/location.service';
+import type { GroceryStore } from '../../services/overpass.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -22,6 +23,17 @@ export class SidebarComponent {
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  formatStoreDistance(store: GroceryStore): string {
+    if (store.distanceMeters >= 1000) {
+      return `${(store.distanceMeters / 1000).toFixed(1)} km`;
+    }
+    return `${Math.round(store.distanceMeters)} m`;
+  }
+
+  formatStoreLocation(store: GroceryStore): string {
+    return store.address || `${store.lat.toFixed(5)}, ${store.lng.toFixed(5)}`;
   }
 
   formatMetricValue(key: keyof LocationMetrics): string {
