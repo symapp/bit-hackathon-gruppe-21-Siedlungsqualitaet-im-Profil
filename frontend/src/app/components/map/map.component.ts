@@ -13,6 +13,12 @@ import { Map, NavigationControl, Marker } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
 
+/** Switzerland WGS84 bbox (swisstopo) with ~0.75° padding on each side. */
+const SWITZERLAND_MAX_BOUNDS: [[number, number], [number, number]] = [
+  [5.206, 45.068],
+  [11.242, 48.558],
+];
+
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -65,6 +71,7 @@ export class MapComponent implements OnInit, OnDestroy {
       style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       center: [lng, lat],
       zoom: 14,
+      maxBounds: SWITZERLAND_MAX_BOUNDS,
     });
 
     this.map.addControl(new NavigationControl(), 'top-left');
