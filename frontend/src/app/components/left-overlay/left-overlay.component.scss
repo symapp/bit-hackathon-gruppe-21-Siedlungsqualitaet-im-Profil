@@ -241,14 +241,14 @@
   justify-content: space-between;
   gap: 10px;
   padding: 10px 12px;
-  background: var(--sds-green-50);
-  border: 1px solid var(--sds-green-200);
+  background: #fff;
+  border: 1px solid var(--ch-border);
   border-radius: 2px;
   margin-top: 4px;
   transition: all 0.2s ease;
 
   &:hover {
-    background: var(--sds-green-100);
+    background: var(--ch-bg-light);
   }
 }
 
@@ -256,13 +256,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--sds-green-700);
+  color: var(--ch-text-secondary);
 }
 
 .grocery-icon {
   flex-shrink: 0;
-  color: var(--sds-green-600);
-  opacity: 0.9;
+  color: var(--ch-red);
+  opacity: 0.8;
 }
 
 .region-grocery-label {
@@ -276,14 +276,14 @@
   min-width: 0;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--sds-green-900);
+  color: var(--ch-text-primary);
   overflow-wrap: anywhere;
   text-align: right;
 
   &.muted {
     font-size: 0.75rem;
     font-weight: 500;
-    color: var(--sds-green-600);
+    color: var(--ch-text-secondary);
   }
 
   &.error {
@@ -296,9 +296,9 @@
 .grocery-count-section {
   margin-top: 16px;
   padding: 16px;
-  background: var(--sds-green-50);
+  background: var(--ch-bg-light);
   border-radius: 2px;
-  border: 1px solid var(--sds-green-200);
+  border: 1px solid var(--ch-border);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -306,7 +306,6 @@
   &.disabled {
     opacity: 0.6;
     background: #fcfcfc;
-    border-color: var(--ch-border);
   }
 }
 
@@ -320,7 +319,7 @@
   input {
     width: 18px;
     height: 18px;
-    accent-color: var(--sds-green-600);
+    accent-color: var(--ch-red);
     flex: 0 0 auto;
     cursor: pointer;
   }
@@ -331,7 +330,7 @@
   overflow-wrap: anywhere;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--sds-green-800);
+  color: var(--ch-text-primary);
 }
 
 .grocery-summary {
@@ -345,20 +344,20 @@
 .grocery-summary-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--sds-green-700);
+  color: var(--ch-text-secondary);
 }
 
 .grocery-summary-value {
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--sds-green-600);
+  color: var(--ch-red);
   line-height: 1;
 }
 
 .grocery-count-section .store-count-status {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--sds-green-700);
+  color: var(--ch-text-secondary);
   margin: 0;
   padding-left: 28px;
 }

@@ -78,8 +78,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 12px;
-  background: var(--sds-green-50);
-  border: 1px solid var(--sds-green-200);
+  background: var(--ch-bg-light);
   border-radius: 2px;
   margin-bottom: 16px;
 }
@@ -89,12 +88,12 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--sds-green-700);
+  color: var(--ch-text-secondary);
 }
 
 .address-value {
   font-size: 0.85rem;
-  color: var(--sds-green-900);
+  color: var(--ch-text-primary);
   font-weight: 500;
   overflow-wrap: anywhere;
 }
@@ -431,9 +430,9 @@
   gap: 2px;
   padding: 10px 12px;
   margin-bottom: 16px;
-  background: var(--sds-green-50);
-  border: 1px solid var(--sds-green-200);
+  background: var(--ch-bg-light);
   border-radius: 2px;
+  border: 1px solid var(--ch-border);
 }
 
 .coord-label {
@@ -441,12 +440,12 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--sds-green-700);
+  color: var(--ch-text-secondary);
 }
 
 .coord-value {
   font-size: 0.75rem;
-  color: var(--sds-green-800);
+  color: var(--ch-text-secondary);
   font-family: 'JetBrains Mono', monospace;
   overflow-wrap: anywhere;
 }
