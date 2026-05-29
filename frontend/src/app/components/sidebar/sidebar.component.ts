@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
 import {
@@ -18,6 +19,7 @@ import { TrapezoidPreferenceEditorComponent } from '../trapezoid-preference-edit
   standalone: true,
   imports: [
     FormsModule,
+    RouterLink,
     TranslatePipe,
     LanguageSelectorComponent,
     TrapezoidPreferenceEditorComponent,
@@ -29,6 +31,7 @@ export class SidebarComponent {
   protected readonly locationService = inject(LocationService);
   private readonly translate = inject(TranslateService);
   protected isCollapsed = false;
+  protected readonly showAdvanced = signal(false);
   protected readonly metricDefinitions = ZARR_LAYER_DEFINITIONS;
 
   toggleSidebar(): void {
@@ -103,5 +106,9 @@ export class SidebarComponent {
 
   isAnyLayerEnabled(): boolean {
     return this.locationService.zarrLayers().some((layer) => layer.enabled);
+  }
+
+  toggleAdvanced(): void {
+    this.showAdvanced.update((current) => !current);
   }
 }

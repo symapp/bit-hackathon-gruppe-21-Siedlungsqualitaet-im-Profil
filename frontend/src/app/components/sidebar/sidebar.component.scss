@@ -73,6 +73,22 @@
   flex: 1;
 }
 
+.sidebar-title {
+  margin: 0;
+}
+
+.tinder-mode-btn {
+  margin: 10px 0 14px;
+  display: inline-flex;
+  border: 1px solid var(--ch-red);
+  color: var(--ch-red);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 2px;
+  padding: 6px 10px;
+}
+
 .address-display {
   display: flex;
   flex-direction: column;
@@ -218,6 +234,18 @@
   color: var(--ch-text-secondary);
   margin: 0 0 10px 0;
   line-height: 1.4;
+}
+
+.advanced-toggle-btn {
+  margin-bottom: 10px;
+  border: 1px solid var(--ch-border);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--ch-text-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 8px;
+  cursor: pointer;
 }
 
 .map-layer-list {

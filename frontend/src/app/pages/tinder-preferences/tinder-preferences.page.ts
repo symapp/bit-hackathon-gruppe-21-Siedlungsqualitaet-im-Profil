@@ -1,0 +1,263 @@
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
+import { MapComponent } from '../../components/map/map.component';
+import { ZARR_LAYER_DEFINITIONS, type ZarrLayerDefinition } from '../../config/zarr-layers.config';
+import { OnboardingPreferencesService } from '../../services/onboarding-preferences.service';
+import { TinderPreferencesService } from '../../services/tinder-preferences.service';
+import type { TinderRating } from '../../utils/tinder-inference.util';
+import {
+  normalizationBoundsForLayer,
+  normalizedRawPercent,
+} from '../../utils/preference-scoring.util';
+
+interface RatingOption {
+  value: TinderRating;
+  labelKey: string;
+  className: string;
+}
+
+interface RadarAxis {
+  id: string;
+  x2: number;
+  y2: number;
+  labelX: number;
+  labelY: number;
+  textAnchor: 'start' | 'middle' | 'end';
+  labelKey: string;
+}
+
+const RADAR_SIZE = 320;
+const RADAR_CENTER = RADAR_SIZE / 2;
+const RADAR_RADIUS = 116;
+const RADAR_RINGS = [20, 40, 60, 80, 100];
+
+@Component({
+  selector: 'app-tinder-preferences-page',
+  standalone: true,
+  imports: [TranslatePipe, RouterLink, MapComponent],
+  templateUrl: './tinder-preferences.page.html',
+  styleUrl: './tinder-preferences.page.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class TinderPreferencesPage {
+  private readonly router = inject(Router);
+  private readonly onboarding = inject(OnboardingPreferencesService);
+  private readonly tinderPreferences = inject(TinderPreferencesService);
+
+  protected readonly places = this.tinderPreferences.featuredPlaces;
+  protected readonly layerDefinitions = ZARR_LAYER_DEFINITIONS;
+  protected readonly currentIndex = signal(0);
+  protected readonly ratingsByPlaceId = signal<Record<string, TinderRating>>({});
+  protected readonly samplesByPlaceId = signal<Record<string, Record<string, number | null>>>({});
+  protected readonly loadingSamples = signal(true);
+  protected readonly applyInProgress = signal(false);
+  protected readonly loadError = signal<string | null>(null);
+  protected readonly autoAdvancing = signal(false);
+  protected readonly animateStage = signal<'idle' | 'out' | 'in'>('idle');
+  private autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  protected readonly ratingOptions: readonly RatingOption[] = [
+    { value: -2, labelKey: 'tinder.rating.definitelyNot', className: 'negative' },
+    { value: -1, labelKey: 'tinder.rating.no', className: 'negative' },
+    { value: 0, labelKey: 'tinder.rating.neutral', className: 'neutral' },
+    { value: 1, labelKey: 'tinder.rating.yes', className: 'positive' },
+    { value: 2, labelKey: 'tinder.rating.forSure', className: 'positive' },
+  ];
+
+  protected readonly currentPlace = computed(() => this.places[this.currentIndex()] ?? null);
+  protected readonly progressPercent = computed(() =>
+    this.places.length === 0 ? 0 : ((this.currentIndex() + 1) / this.places.length) * 100,
+  );
+  protected readonly currentPlaceFactors = computed(() => {
+    const place = this.currentPlace();
+    if (!place) {
+      return [];
+    }
+    const values = this.samplesByPlaceId()[place.id];
+    return this.layerDefinitions.map((layer) => ({
+      layer,
+      value: values?.[layer.id] ?? null,
+    }));
+  });
+  protected readonly currentPlaceRadarPercentages = computed(() =>
+    this.currentPlaceFactors().map((factor) => ({
+      layer: factor.layer,
+      value: factor.value,
+      percent: this.normalizedFactorPercent(factor.layer, factor.value),
+    })),
+  );
+  protected readonly radarViewSize = RADAR_SIZE;
+  protected readonly radarCenter = RADAR_CENTER;
+  protected readonly radarRings = RADAR_RINGS;
+  protected readonly radarAxes = computed(() => {
+    const factors = this.currentPlaceRadarPercentages();
+    const count = factors.length;
+    if (count < 3) {
+      return [] as RadarAxis[];
+    }
+    return factors.map((factor, index) => {
+      const endpoint = this.polarToCartesian(RADAR_RADIUS, index, count);
+      const labelPoint = this.polarToCartesian(RADAR_RADIUS + 18, index, count);
+      return {
+        id: factor.layer.id,
+        x2: endpoint.x,
+        y2: endpoint.y,
+        labelX: labelPoint.x,
+        labelY: labelPoint.y,
+        textAnchor:
+          labelPoint.x < RADAR_CENTER - 6 ? 'end' : labelPoint.x > RADAR_CENTER + 6 ? 'start' : 'middle',
+        labelKey: factor.layer.labelKey,
+      };
+    });
+  });
+  protected readonly radarGridPolygons = computed(() => {
+    const count = this.currentPlaceFactors().length;
+    if (count < 3) {
+      return [] as { level: number; points: string }[];
+    }
+    return RADAR_RINGS.map((level) => ({
+      level,
+      points: this.radarPolygonPoints((level / 100) * RADAR_RADIUS, count),
+    }));
+  });
+  protected readonly radarDataPolygon = computed(() => {
+    const factors = this.currentPlaceRadarPercentages();
+    const count = factors.length;
+    if (count < 3) {
+      return '';
+    }
+    return factors
+      .map((factor, index) => this.polarToCartesian((factor.percent / 100) * RADAR_RADIUS, index, count))
+      .map((point) => `${point.x},${point.y}`)
+      .join(' ');
+  });
+  protected readonly isLastPlace = computed(() => this.currentIndex() >= this.places.length - 1);
+
+  constructor() {
+    this.onboarding.markPromptSeen();
+    void this.loadSamples();
+  }
+
+  protected selectedRating(placeId: string): TinderRating | null {
+    return this.ratingsByPlaceId()[placeId] ?? null;
+  }
+
+  protected setRating(rating: TinderRating): void {
+    const place = this.currentPlace();
+    if (!place) {
+      return;
+    }
+    this.ratingsByPlaceId.update((prev) => ({ ...prev, [place.id]: rating }));
+    this.queueAutoAdvance();
+  }
+
+  protected next(): void {
+    if (this.currentIndex() >= this.places.length - 1) {
+      return;
+    }
+    this.currentIndex.update((index) => index + 1);
+  }
+
+  protected back(): void {
+    if (this.currentIndex() <= 0) {
+      return;
+    }
+    this.currentIndex.update((index) => index - 1);
+  }
+
+  protected async finish(): Promise<void> {
+    if (this.applyInProgress()) {
+      return;
+    }
+    this.applyInProgress.set(true);
+    try {
+      const inferred = this.tinderPreferences.inferPreferences(
+        this.ratingsByPlaceId(),
+        this.samplesByPlaceId(),
+      );
+      this.tinderPreferences.applyPreferences(inferred);
+      this.onboarding.markCompleted();
+      await this.router.navigateByUrl('/');
+    } finally {
+      this.applyInProgress.set(false);
+    }
+  }
+
+  protected formatFactorValue(layer: ZarrLayerDefinition, value: number | null): string {
+    if (value === null) {
+      return '—';
+    }
+    return layer.formatValue(value);
+  }
+
+  protected formatFactorPercent(value: number): string {
+    return `${Math.round(value)}%`;
+  }
+
+  ngOnDestroy(): void {
+    if (this.autoAdvanceTimer) {
+      clearTimeout(this.autoAdvanceTimer);
+      this.autoAdvanceTimer = null;
+    }
+  }
+
+  private async loadSamples(): Promise<void> {
+    this.loadingSamples.set(true);
+    this.loadError.set(null);
+    try {
+      await this.tinderPreferences.waitUntilLayersReady();
+      const samples = await this.tinderPreferences.sampleFeaturedPlaces(this.places);
+      this.samplesByPlaceId.set(samples);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load samples';
+      this.loadError.set(message);
+    } finally {
+      this.loadingSamples.set(false);
+    }
+  }
+
+  private queueAutoAdvance(): void {
+    if (this.isLastPlace()) {
+      return;
+    }
+    if (this.autoAdvanceTimer) {
+      clearTimeout(this.autoAdvanceTimer);
+    }
+    this.autoAdvancing.set(true);
+    this.animateStage.set('out');
+    this.autoAdvanceTimer = setTimeout(() => {
+      this.currentIndex.update((index) => Math.min(index + 1, this.places.length - 1));
+      this.animateStage.set('in');
+      this.autoAdvanceTimer = setTimeout(() => {
+        this.autoAdvancing.set(false);
+        this.animateStage.set('idle');
+        this.autoAdvanceTimer = null;
+      }, 200);
+    }, 220);
+  }
+
+  private normalizedFactorPercent(layer: ZarrLayerDefinition, raw: number | null): number {
+    if (raw === null) {
+      return 0;
+    }
+    const meta = this.tinderPreferences.layerMetaById()[layer.id] ?? null;
+    const bounds = normalizationBoundsForLayer(layer.clim, layer.higherIsBetter, meta);
+    return normalizedRawPercent(raw, bounds);
+  }
+
+  private radarPolygonPoints(radius: number, axisCount: number): string {
+    return Array.from({ length: axisCount }, (_, index) => {
+      const point = this.polarToCartesian(radius, index, axisCount);
+      return `${point.x},${point.y}`;
+    }).join(' ');
+  }
+
+  private polarToCartesian(radius: number, index: number, axisCount: number): { x: number; y: number } {
+    const angle = -Math.PI / 2 + (index * 2 * Math.PI) / axisCount;
+    return {
+      x: RADAR_CENTER + radius * Math.cos(angle),
+      y: RADAR_CENTER + radius * Math.sin(angle),
+    };
+  }
+}

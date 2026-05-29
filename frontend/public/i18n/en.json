@@ -36,7 +36,41 @@
     "groceryLoading": "Loading…",
     "groceryAway": "away",
     "deselectAll": "Deselect all",
-    "deactivated": "Deactivated"
+    "deactivated": "Deactivated",
+    "showAdvanced": "Show advanced value function",
+    "hideAdvanced": "Hide advanced value function"
+  },
+  "tinder": {
+    "title": "Preference onboarding",
+    "subtitle": "Rate these representative Swiss places to preload your preferences.",
+    "loading": "Loading factor values for featured places…",
+    "loadError": "Failed to load featured place factors.",
+    "backToMap": "Back to map",
+    "progress": "Place {{current}} of {{total}}",
+    "factorsTitle": "Factor values at this place",
+    "radiusAverage": "Average values in a 500 m radius",
+    "radarTitle": "Radar view of aggregated place factors",
+    "ratingQuestion": "Would you like to live here?",
+    "openButton": "Open Tinder mode",
+    "prompt": {
+      "title": "Quick preference setup",
+      "description": "Want a fast start? Rate 10 diverse Swiss places and we will preload your factor preferences.",
+      "start": "Start Tinder mode",
+      "later": "Maybe later"
+    },
+    "rating": {
+      "definitelyNot": "Definitely not",
+      "no": "No",
+      "neutral": "Not sure",
+      "yes": "Yes",
+      "forSure": "For sure"
+    },
+    "actions": {
+      "back": "Back",
+      "next": "Next place",
+      "finish": "Apply preferences"
+    },
+    "autoAdvance": "Selection automatically jumps to the next place."
   },
   "layers": {
     "tranquillity": {

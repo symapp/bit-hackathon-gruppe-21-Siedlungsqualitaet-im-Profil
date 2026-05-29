@@ -34,7 +34,41 @@
     "groceryTitle": "Negozi in zona",
     "groceryLoading": "Caricamento…",
     "groceryAway": "di distanza",
-    "deselectAll": "Deseleziona tutto"
+    "deselectAll": "Deseleziona tutto",
+    "showAdvanced": "Mostra funzione avanzata",
+    "hideAdvanced": "Nascondi funzione avanzata"
+  },
+  "tinder": {
+    "title": "Onboarding preferenze",
+    "subtitle": "Valuta questi luoghi svizzeri rappresentativi per pre-caricare le tue preferenze.",
+    "loading": "Caricamento dei fattori per i luoghi selezionati…",
+    "loadError": "Impossibile caricare i fattori dei luoghi.",
+    "backToMap": "Torna alla mappa",
+    "progress": "Luogo {{current}} di {{total}}",
+    "factorsTitle": "Valori dei fattori per questo luogo",
+    "radiusAverage": "Valori medi in un raggio di 500 m",
+    "radarTitle": "Vista radar dei fattori aggregati del luogo",
+    "ratingQuestion": "Ti piacerebbe vivere qui?",
+    "openButton": "Apri modalità Tinder",
+    "prompt": {
+      "title": "Setup rapido preferenze",
+      "description": "Vuoi partire velocemente? Valuta 10 luoghi svizzeri diversi e pre-caricheremo le tue preferenze.",
+      "start": "Avvia modalità Tinder",
+      "later": "Più tardi"
+    },
+    "rating": {
+      "definitelyNot": "Assolutamente no",
+      "no": "No",
+      "neutral": "Indifferente",
+      "yes": "Sì",
+      "forSure": "Sicuramente"
+    },
+    "actions": {
+      "back": "Indietro",
+      "next": "Prossimo luogo",
+      "finish": "Applica preferenze"
+    },
+    "autoAdvance": "La selezione passa automaticamente al luogo successivo."
   },
   "layers": {
     "tranquillity": {

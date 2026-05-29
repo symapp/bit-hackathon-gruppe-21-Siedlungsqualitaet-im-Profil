@@ -36,7 +36,41 @@
     "groceryLoading": "Wird geladen…",
     "groceryAway": "entfernt",
     "deselectAll": "Alle abwählen",
-    "deactivated": "Deaktiviert"
+    "deactivated": "Deaktiviert",
+    "showAdvanced": "Erweiterte Bewertungsfunktion anzeigen",
+    "hideAdvanced": "Erweiterte Bewertungsfunktion ausblenden"
+  },
+  "tinder": {
+    "title": "Präferenz-Onboarding",
+    "subtitle": "Bewerten Sie diese repräsentativen Schweizer Orte, um Ihre Präferenzen vorzuladen.",
+    "loading": "Faktorwerte für die ausgewählten Orte werden geladen…",
+    "loadError": "Faktorwerte konnten nicht geladen werden.",
+    "backToMap": "Zurück zur Karte",
+    "progress": "Ort {{current}} von {{total}}",
+    "factorsTitle": "Faktorwerte an diesem Ort",
+    "radiusAverage": "Durchschnittswerte im 500-m-Radius",
+    "radarTitle": "Radaransicht der aggregierten Ortsfaktoren",
+    "ratingQuestion": "Würden Sie hier gerne wohnen?",
+    "openButton": "Tinder-Modus öffnen",
+    "prompt": {
+      "title": "Schnelles Präferenz-Setup",
+      "description": "Schnell starten? Bewerten Sie 10 unterschiedliche Schweizer Orte und wir laden Ihre Faktor-Präferenzen vor.",
+      "start": "Tinder-Modus starten",
+      "later": "Später"
+    },
+    "rating": {
+      "definitelyNot": "Auf keinen Fall",
+      "no": "Eher nein",
+      "neutral": "Unentschieden",
+      "yes": "Eher ja",
+      "forSure": "Unbedingt"
+    },
+    "actions": {
+      "back": "Zurück",
+      "next": "Nächster Ort",
+      "finish": "Präferenzen übernehmen"
+    },
+    "autoAdvance": "Auswahl springt automatisch zum nächsten Ort."
   },
   "layers": {
     "tranquillity": {

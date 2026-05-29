@@ -1,0 +1,129 @@
+<main class="tinder-page" data-testid="tinder-page">
+  <div class="tinder-map-bootstrap" aria-hidden="true">
+    <app-map></app-map>
+  </div>
+  <div class="tinder-shell">
+    <header class="tinder-header">
+      <h1>{{ 'tinder.title' | translate }}</h1>
+      <p>{{ 'tinder.subtitle' | translate }}</p>
+    </header>
+
+    @if (loadingSamples()) {
+      <section class="status-card">
+        <p>{{ 'tinder.loading' | translate }}</p>
+      </section>
+    } @else if (loadError()) {
+      <section class="status-card error">
+        <p>{{ 'tinder.loadError' | translate }}</p>
+        <p class="error-detail">{{ loadError() }}</p>
+        <a routerLink="/" class="secondary-btn">{{ 'tinder.backToMap' | translate }}</a>
+      </section>
+    } @else if (currentPlace(); as place) {
+      <section class="progress-card shimmer-card">
+        <span>{{ 'tinder.progress' | translate: { current: currentIndex() + 1, total: places.length } }}</span>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" [style.width.%]="progressPercent()"></div>
+        </div>
+      </section>
+
+      <section class="content-grid" [class.stage-out]="animateStage() === 'out'" [class.stage-in]="animateStage() === 'in'">
+        <div class="left-column">
+          <section class="place-card shimmer-card" data-testid="tinder-place-card">
+            <img [src]="place.imagePath" [alt]="place.name" loading="lazy" />
+            <div class="place-details">
+              <h2>{{ place.name }} ({{ place.canton }})</h2>
+              <p>{{ place.description }}</p>
+            </div>
+          </section>
+        </div>
+
+        <section class="factors-card shimmer-card">
+          <h3>{{ 'tinder.factorsTitle' | translate }}</h3>
+          <p class="radius-note">{{ 'tinder.radiusAverage' | translate }}</p>
+
+          <div class="radar-wrap">
+            <svg
+              class="radar-svg"
+              [attr.viewBox]="'0 0 ' + radarViewSize + ' ' + radarViewSize"
+              role="img"
+              [attr.aria-label]="'tinder.radarTitle' | translate"
+            >
+              @for (ring of radarGridPolygons(); track ring.level) {
+                <polygon [attr.points]="ring.points" class="radar-ring"></polygon>
+              }
+
+              @for (axis of radarAxes(); track axis.id) {
+                <line
+                  [attr.x1]="radarCenter"
+                  [attr.y1]="radarCenter"
+                  [attr.x2]="axis.x2"
+                  [attr.y2]="axis.y2"
+                  class="radar-axis"
+                ></line>
+                <text
+                  [attr.x]="axis.labelX"
+                  [attr.y]="axis.labelY"
+                  class="radar-label"
+                  [attr.text-anchor]="axis.textAnchor"
+                  dominant-baseline="middle"
+                >
+                  {{ axis.labelKey | translate }}
+                </text>
+              }
+
+              <polygon class="radar-data" [attr.points]="radarDataPolygon()"></polygon>
+            </svg>
+          </div>
+
+          <div class="factor-list">
+            @for (factor of currentPlaceRadarPercentages(); track factor.layer.id) {
+              <div class="factor-row">
+                <span>{{ factor.layer.labelKey | translate }}</span>
+                <span>
+                  {{ formatFactorValue(factor.layer, factor.value) }}
+                  @if (factor.value !== null && factor.layer.metricUnitKey) {
+                    <small>{{ factor.layer.metricUnitKey | translate }}</small>
+                  }
+                  <em>{{ formatFactorPercent(factor.percent) }}</em>
+                </span>
+              </div>
+            }
+          </div>
+        </section>
+      </section>
+
+      <section class="rating-card shimmer-card">
+        <h3>{{ 'tinder.ratingQuestion' | translate }}</h3>
+        <div class="rating-grid">
+          @for (option of ratingOptions; track option.value) {
+            <button
+              type="button"
+              class="rating-btn {{ option.className }}"
+              [class.active]="selectedRating(place.id) === option.value"
+              [disabled]="autoAdvancing()"
+              (click)="setRating(option.value)"
+            >
+              {{ option.labelKey | translate }}
+            </button>
+          }
+        </div>
+        @if (!isLastPlace()) {
+          <p class="auto-advance-hint">{{ 'tinder.autoAdvance' | translate }}</p>
+        }
+      </section>
+
+      <footer class="actions shimmer-card">
+        <button type="button" class="secondary-btn" [disabled]="currentIndex() === 0" (click)="back()">
+          {{ 'tinder.actions.back' | translate }}
+        </button>
+        @if (isLastPlace()) {
+          <button type="button" class="primary-btn" [disabled]="applyInProgress()" (click)="finish()">
+            {{ 'tinder.actions.finish' | translate }}
+          </button>
+        } @else {
+          <span class="actions-spacer"></span>
+        }
+      </footer>
+    }
+  </div>
+</main>

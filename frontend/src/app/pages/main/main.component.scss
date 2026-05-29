@@ -5,3 +5,51 @@
   overflow: hidden;
   box-sizing: border-box;
 }
+
+.tinder-prompt-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: rgba(15, 23, 42, 0.42);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.tinder-prompt-card {
+  width: min(500px, 100%);
+  background: #fff;
+  border-radius: 2px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28);
+}
+
+.tinder-prompt-card h2 {
+  margin: 0;
+}
+
+.tinder-prompt-card p {
+  color: var(--ch-text-secondary);
+  margin: 10px 0 16px;
+}
+
+.tinder-prompt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tinder-prompt-actions button {
+  border-radius: 2px;
+  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tinder-prompt-actions .primary {
+  background: var(--ch-red);
+  border-color: var(--ch-red);
+  color: #fff;
+}

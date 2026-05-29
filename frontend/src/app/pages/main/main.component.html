@@ -3,4 +3,21 @@
   <app-left-overlay></app-left-overlay>
   <app-sidebar></app-sidebar>
   <app-search-bar></app-search-bar>
+
+  @if (onboardingPreferences.shouldShowPrompt()) {
+    <section class="tinder-prompt-backdrop" role="dialog" aria-modal="true">
+      <div class="tinder-prompt-card">
+        <h2>{{ 'tinder.prompt.title' | translate }}</h2>
+        <p>{{ 'tinder.prompt.description' | translate }}</p>
+        <div class="tinder-prompt-actions">
+          <button type="button" class="secondary" (click)="dismissPrompt()">
+            {{ 'tinder.prompt.later' | translate }}
+          </button>
+          <button type="button" class="primary" (click)="startTinderMode()">
+            {{ 'tinder.prompt.start' | translate }}
+          </button>
+        </div>
+      </div>
+    </section>
+  }
 </div>
