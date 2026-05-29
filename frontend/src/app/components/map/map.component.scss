@@ -11,12 +11,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.28));
-  transition: transform 0.12s ease;
 
-  &:hover,
-  &:focus-visible {
+  &:hover .amenity-map-marker-dot,
+  &:focus-visible .amenity-map-marker-dot {
     transform: scale(1.15);
+  }
+
+  &:focus-visible {
     outline: none;
   }
 }
@@ -28,6 +29,8 @@
   background: var(--ch-red, #d8232a);
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.35);
+  transition: transform 0.12s ease;
+  will-change: transform;
 }
 
 :host ::ng-deep .amenity-map-popup {

@@ -30,7 +30,7 @@ export class MapComponent implements OnInit, OnDestroy {
   private amenityHoverPopup: Popup | null = null;
   private amenityHoverPopupAmenityId: string | null = null;
   private amenityPopupHideTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly amenityPopupOffset: [number, number] = [0, -58];
+  private readonly amenityPopupOffset: [number, number] = [0, -10];
   private readonly amenityPopupHideDelayMs = 180;
   private deckOverlay!: MapboxOverlay;
   private locationService = inject(LocationService);
@@ -148,6 +148,10 @@ export class MapComponent implements OnInit, OnDestroy {
     this.map.addControl(this.deckOverlay as any);
     exposeMapForE2e(this.map);
     this.zarrMapService.attachToMap(this.map);
+
+    this.map.on('movestart', () => {
+      this.hideAmenityPopupImmediate();
+    });
 
     this.map.on('moveend', () => {
       const center = this.map.getCenter();
