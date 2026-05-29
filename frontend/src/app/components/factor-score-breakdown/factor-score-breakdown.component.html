@@ -1,0 +1,36 @@
+@if (hasRows()) {
+  <div class="breakdown" data-testid="factor-score-breakdown">
+    <button
+      type="button"
+      class="breakdown-toggle"
+      [attr.aria-expanded]="expanded()"
+      (click)="toggleExpanded($event)"
+    >
+      <span class="breakdown-toggle-label">{{ 'breakdown.title' | translate }}</span>
+      @if (overviewScore() !== null) {
+        <span class="breakdown-toggle-score">
+          {{ overviewScore()!.toFixed(0) }}{{ 'sidebar.scoreUnit' | translate }}
+        </span>
+      }
+      <span class="breakdown-chevron" [class.expanded]="expanded()">▾</span>
+    </button>
+
+    @if (expanded()) {
+      <p class="breakdown-hint">{{ 'breakdown.hint' | translate }}</p>
+      <ul class="breakdown-list">
+        @for (row of rows(); track row.layerId) {
+          <li class="breakdown-row">
+            <div class="breakdown-row-head">
+              <span class="breakdown-label">{{ row.labelKey | translate }}</span>
+              <span class="breakdown-score">{{ row.score.toFixed(0) }}</span>
+            </div>
+            <div class="breakdown-bar-track">
+              <div class="breakdown-bar-fill" [style.width]="barWidth(row.score)"></div>
+            </div>
+            <span class="breakdown-raw">{{ row.rawLabel }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+}

@@ -15,7 +15,9 @@
     "location": "Standort",
     "radius": "Suchradius",
     "overviewTitle": "Gesamtübersicht",
-    "overviewHint": "Gewichteter Mittelwert der Faktor-Bewertungsfunktionen (0–100, höher = besser).",
+    "overviewFitTitle": "Passung für Ihre Präferenzen",
+    "overviewHint": "Gewichteter Mittelwert der Faktor-Bewertungsfunktionen (0–100, höher = besser zur Wohnsuche).",
+    "dealbreaker": "Ausschlusskriterium (0 ausserhalb des Bereichs)",
     "overviewLoading": "Übersichtskarte wird geladen…",
     "overviewMapScale": "Karte: 0 – 100 (schlechter – besser)",
     "layersTitle": "Faktoren & Präferenzen",
@@ -42,8 +44,8 @@
     "amenityCategoryHospital": "Spital",
     "deselectAll": "Alle abwählen",
     "deactivated": "Deaktiviert",
-    "showAdvanced": "Erweiterte Bewertungsfunktion anzeigen",
-    "hideAdvanced": "Erweiterte Bewertungsfunktion ausblenden"
+    "showLayerAdvanced": "Erweiterte Einstellungen",
+    "hideLayerAdvanced": "Erweiterte Einstellungen ausblenden"
   },
   "tinder": {
     "title": "Präferenz-Onboarding",
@@ -76,6 +78,33 @@
       "finish": "Präferenzen übernehmen"
     },
     "autoAdvance": "Auswahl springt automatisch zum nächsten Ort."
+  },
+  "presets": {
+    "label": "Lebensstil-Voreinstellung",
+    "balanced": {
+      "label": "Ausgewogen",
+      "description": "Weiche Bewertungskurven für eine erkundbare Übersichtskarte."
+    },
+    "urbanTransit": {
+      "label": "Stadt & ÖV",
+      "description": "ÖV, Reisezeiten und urbane Erreichbarkeit im Fokus."
+    },
+    "quietGreen": {
+      "label": "Ruhig & grün",
+      "description": "Ruhe, Grünflächen und geringe Verkehrsbelastung."
+    },
+    "carOriented": {
+      "label": "Auto-orientiert",
+      "description": "Strassenerreichbarkeit und kurze Autoreisezeiten."
+    },
+    "family": {
+      "label": "Familie",
+      "description": "Dichte, ÖV, Ruhe und Nahversorgung ausgewogen."
+    }
+  },
+  "breakdown": {
+    "title": "Warum dieser Score?",
+    "hint": "Beitrag jedes aktiven Faktors zum Gesamtscore der aktiven Region."
   },
   "layers": {
     "tranquillity": {

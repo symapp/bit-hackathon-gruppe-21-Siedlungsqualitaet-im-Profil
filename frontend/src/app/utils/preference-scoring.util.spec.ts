@@ -4,12 +4,14 @@ import {
   computePreferenceOverviewScore,
   factorScoreFromRaw,
   handlesFromPreference,
+  importanceFromStars,
   normalizeToPreferenceScale,
   normalizedRawPercent,
   normalizationBoundsForLayer,
   preferenceFactor,
   preferenceFromHandles,
   preferenceScaleToRaw,
+  starsFromImportance,
 } from './preference-scoring.util';
 
 describe('normalizeToPreferenceScale', () => {
@@ -24,9 +26,18 @@ describe('normalizeToPreferenceScale', () => {
 });
 
 describe('preferenceFactor', () => {
-  const symmetric = { rangeMin: 0.4, rangeMax: 0.6, falloffLeft: 0.1, falloffRight: 0.1 };
+  const symmetric = {
+    rangeMin: 0.4,
+    rangeMax: 0.6,
+    falloffLeft: 0.1,
+    falloffRight: 0.1,
+    floorLeft: 0,
+    floorRight: 0,
+    plateauLeftFactor: 1,
+    plateauRightFactor: 1,
+  };
 
-  it('returns 1 inside plateau', () => {
+  it('returns plateau factor inside plateau', () => {
     expect(preferenceFactor(0.5, symmetric)).toBe(1);
     expect(preferenceFactor(0.4, symmetric)).toBe(1);
     expect(preferenceFactor(0.6, symmetric)).toBe(1);
@@ -38,12 +49,32 @@ describe('preferenceFactor', () => {
     expect(preferenceFactor(0.3, symmetric)).toBe(0);
   });
 
+  it('uses soft floors when configured', () => {
+    const soft = {
+      rangeMin: 0.4,
+      rangeMax: 0.6,
+      falloffLeft: 0.1,
+      falloffRight: 0.1,
+      floorLeft: 0.2,
+      floorRight: 0.2,
+      plateauLeftFactor: 1,
+      plateauRightFactor: 1,
+    };
+    expect(preferenceFactor(0, soft)).toBe(0.2);
+    expect(preferenceFactor(1, soft)).toBe(0.2);
+    expect(preferenceFactor(0.35, soft)).toBeCloseTo(0.6, 5);
+  });
+
   it('uses independent left and right falloff widths', () => {
     const asymmetric = {
       rangeMin: 0.4,
       rangeMax: 0.6,
       falloffLeft: 0.2,
       falloffRight: 0.05,
+      floorLeft: 0,
+      floorRight: 0,
+      plateauLeftFactor: 1,
+      plateauRightFactor: 1,
     };
     expect(preferenceFactor(0.3, asymmetric)).toBeCloseTo(0.5, 5);
     expect(preferenceFactor(0.625, asymmetric)).toBeCloseTo(0.5, 5);
@@ -62,6 +93,9 @@ describe('factorScoreFromRaw', () => {
       falloffRight: 0.1,
       enabled: true,
       importance: 100,
+      floorLeft: 0,
+      floorRight: 0,
+      plateauFactor: 1,
     };
     const rawInRange = preferenceScaleToRaw(0.5, bounds);
     expect(factorScoreFromRaw(rawInRange, bounds, pref)).toBe(100);
@@ -142,18 +176,47 @@ describe('good-place miv-accessibility default', () => {
 });
 
 describe('handles roundtrip', () => {
-  it('preserves trapezoid shape with asymmetric falloff', () => {
+  it('preserves curve shape with asymmetric falloff and floors', () => {
     const pref = {
       rangeMin: 0.4,
       rangeMax: 0.6,
       falloffLeft: 0.15,
       falloffRight: 0.08,
+      floorLeft: 0.2,
+      floorRight: 0.25,
+      plateauLeftFactor: 0.95,
+      plateauRightFactor: 0.75,
     };
     const h = handlesFromPreference(pref);
-    const back = preferenceFromHandles(h.plateauLeft, h.plateauRight, h.leftZero, h.rightZero);
+    const back = preferenceFromHandles(h);
     expect(back.rangeMin).toBeCloseTo(0.4, 2);
     expect(back.rangeMax).toBeCloseTo(0.6, 2);
     expect(back.falloffLeft).toBeCloseTo(0.15, 2);
     expect(back.falloffRight).toBeCloseTo(0.08, 2);
+    expect(back.floorLeft).toBeCloseTo(0.2, 2);
+    expect(back.floorRight).toBeCloseTo(0.25, 2);
+    expect(back.plateauLeftFactor).toBeCloseTo(0.95, 2);
+    expect(back.plateauRightFactor).toBeCloseTo(0.75, 2);
+  });
+
+  it('interpolates asymmetric plateau height', () => {
+    const pref = {
+      rangeMin: 0.4,
+      rangeMax: 0.6,
+      falloffLeft: 0.1,
+      falloffRight: 0.1,
+      plateauLeftFactor: 1,
+      plateauRightFactor: 0.6,
+    };
+    expect(preferenceFactor(0.4, pref)).toBeCloseTo(1, 5);
+    expect(preferenceFactor(0.6, pref)).toBeCloseTo(0.6, 5);
+    expect(preferenceFactor(0.5, pref)).toBeCloseTo(0.8, 5);
+  });
+});
+
+describe('importance stars', () => {
+  it('maps stars to weights and back', () => {
+    expect(importanceFromStars(3)).toBe(100);
+    expect(starsFromImportance(100)).toBe(3);
   });
 });

@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
+import { FactorScoreBreakdownComponent } from '../factor-score-breakdown/factor-score-breakdown.component';
 import { RegionFactorsChartComponent } from '../region-factors-chart/region-factors-chart.component';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
 import { getAmenityCategory, getAmenityIcon } from '../../services/overpass.service';
@@ -8,7 +9,7 @@ import { getAmenityCategory, getAmenityIcon } from '../../services/overpass.serv
 @Component({
   selector: 'app-left-overlay',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, RegionFactorsChartComponent],
+  imports: [FormsModule, TranslatePipe, RegionFactorsChartComponent, FactorScoreBreakdownComponent],
   templateUrl: './left-overlay.component.html',
   styleUrl: './left-overlay.component.scss',
 })

@@ -15,7 +15,9 @@
     "location": "Location",
     "radius": "Search radius",
     "overviewTitle": "Overview",
-    "overviewHint": "Weighted mean of factor scoring functions (0–100, higher = better).",
+    "overviewFitTitle": "Fit for your preferences",
+    "overviewHint": "Weighted mean of factor scoring functions (0–100, higher = better for your housing search).",
+    "dealbreaker": "Dealbreaker (zero outside range)",
     "overviewLoading": "Loading overview map…",
     "overviewMapScale": "Map: 0 – 100 (worse – better)",
     "layersTitle": "Factors & preferences",
@@ -42,8 +44,8 @@
     "amenityCategoryHospital": "Hospital",
     "deselectAll": "Deselect all",
     "deactivated": "Deactivated",
-    "showAdvanced": "Show advanced value function",
-    "hideAdvanced": "Hide advanced value function"
+    "showLayerAdvanced": "Advanced settings",
+    "hideLayerAdvanced": "Hide advanced settings"
   },
   "tinder": {
     "title": "Preference onboarding",
@@ -76,6 +78,33 @@
       "finish": "Apply preferences"
     },
     "autoAdvance": "Selection automatically jumps to the next place."
+  },
+  "presets": {
+    "label": "Lifestyle preset",
+    "balanced": {
+      "label": "Balanced",
+      "description": "Soft scoring curves for an explorable overview map."
+    },
+    "urbanTransit": {
+      "label": "Urban & transit",
+      "description": "Focus on public transport, travel times, and urban access."
+    },
+    "quietGreen": {
+      "label": "Quiet & green",
+      "description": "Tranquility, greenery, and low traffic load."
+    },
+    "carOriented": {
+      "label": "Car-oriented",
+      "description": "Road access and short car travel times."
+    },
+    "family": {
+      "label": "Family",
+      "description": "Balanced density, transit, tranquility, and local services."
+    }
+  },
+  "breakdown": {
+    "title": "Why this score?",
+    "hint": "Each active factor's contribution to the active region's overall score."
   },
   "layers": {
     "tranquillity": {

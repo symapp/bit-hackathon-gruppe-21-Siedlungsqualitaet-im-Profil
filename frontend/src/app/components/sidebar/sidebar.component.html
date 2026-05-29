@@ -48,8 +48,27 @@
         </div>
       }
 
+      <div class="preset-section">
+        <label class="preset-label" for="lifestyle-preset">{{ 'presets.label' | translate }}</label>
+        <select
+          id="lifestyle-preset"
+          class="preset-select"
+          [value]="activePresetId()"
+          (change)="onPresetChange($event)"
+        >
+          @for (preset of lifestylePresets; track preset.id) {
+            <option [value]="preset.id">{{ preset.labelKey | translate }}</option>
+          }
+        </select>
+        @for (preset of lifestylePresets; track preset.id) {
+          @if (preset.id === activePresetId()) {
+            <p class="layers-hint preset-hint">{{ preset.descriptionKey | translate }}</p>
+          }
+        }
+      </div>
+
       <div class="overview-section">
-        <h3 class="metrics-title">{{ 'sidebar.overviewTitle' | translate }}</h3>
+        <h3 class="metrics-title">{{ 'sidebar.overviewFitTitle' | translate }}</h3>
         <p class="layers-hint">
           {{ 'sidebar.overviewHint' | translate: { count: metricDefinitions.length } }}
         </p>
@@ -84,13 +103,6 @@
           </div>
         </div>
         <p class="layers-hint">{{ 'sidebar.layersHint' | translate }}</p>
-        <button type="button" class="advanced-toggle-btn" (click)="toggleAdvanced()">
-          {{
-            showAdvanced()
-              ? ('sidebar.hideAdvanced' | translate)
-              : ('sidebar.showAdvanced' | translate)
-          }}
-        </button>
 
         <div class="map-layer-list">
           @for (layer of locationService.zarrLayers(); track layer.id) {
@@ -118,19 +130,18 @@
               @if (def) {
                 <div class="layer-weight-row">
                   <span class="layer-weight-label">{{ 'sidebar.importance' | translate }}</span>
-                  <span class="layer-weight-value">{{ layer.preference.importance }}</span>
+                  <span class="layer-weight-value">{{ importanceStars(layer.id) }}/5</span>
                 </div>
                 <input
                   type="range"
                   class="layer-weight-slider"
                   [min]="0"
-                  [max]="200"
-                  [step]="5"
+                  [max]="5"
+                  [step]="1"
                   [disabled]="!layer.enabled"
-                  [ngModel]="layer.preference.importance"
-                  (ngModelChange)="onImportanceChange(layer.id, $event)"
+                  [ngModel]="importanceStars(layer.id)"
+                  (ngModelChange)="onImportanceStarsChange(layer.id, $event)"
                 />
-
                 <button
                   type="button"
                   class="layer-reset-pref-btn"
@@ -140,15 +151,40 @@
                   {{ 'sidebar.resetLayer' | translate }}
                 </button>
 
-                @if (showAdvanced()) {
-                  <app-trapezoid-preference-editor
-                    [preference]="layer.preference"
-                    [bounds]="normalizationBounds(layer.id)"
-                    [disabled]="!layer.enabled"
-                    [formatRaw]="def.formatValue"
-                    [unit]="metricUnit(def)"
-                    (preferenceChange)="onPreferenceChange(layer.id, $event)"
-                  />
+                <button
+                  type="button"
+                  class="layer-advanced-toggle"
+                  [disabled]="!layer.enabled"
+                  [attr.aria-expanded]="isLayerAdvancedOpen(layer.id)"
+                  (click)="toggleLayerAdvanced(layer.id, $event)"
+                >
+                  {{
+                    isLayerAdvancedOpen(layer.id)
+                      ? ('sidebar.hideLayerAdvanced' | translate)
+                      : ('sidebar.showLayerAdvanced' | translate)
+                  }}
+                </button>
+
+                @if (isLayerAdvancedOpen(layer.id)) {
+                  <div class="layer-advanced-panel">
+                    <label class="dealbreaker-toggle">
+                      <input
+                        type="checkbox"
+                        [checked]="isDealbreaker(layer.id)"
+                        [disabled]="!layer.enabled"
+                        (change)="onDealbreakerChange(layer.id, $event)"
+                      />
+                      <span>{{ 'sidebar.dealbreaker' | translate }}</span>
+                    </label>
+                    <app-trapezoid-preference-editor
+                      [preference]="layer.preference"
+                      [bounds]="normalizationBounds(layer.id)"
+                      [disabled]="!layer.enabled"
+                      [formatRaw]="def.formatValue"
+                      [unit]="metricUnit(def)"
+                      (preferenceChange)="onPreferenceChange(layer.id, $event)"
+                    />
+                  </div>
                 }
               }
 

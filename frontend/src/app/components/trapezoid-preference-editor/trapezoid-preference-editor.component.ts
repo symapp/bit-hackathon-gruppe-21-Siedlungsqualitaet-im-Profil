@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import type { LayerPreference } from '../../models/layer-preference.model';
-import type { NormalizationBounds } from '../../utils/preference-scoring.util';
+import type { NormalizationBounds, PreferenceHandles } from '../../utils/preference-scoring.util';
 import {
   clampLayerPreference,
   handlesFromPreference,
@@ -45,11 +45,15 @@ export class TrapezoidPreferenceEditorComponent {
 
   private dragging: DragHandle | null = null;
 
-  readonly handles = signal({
+  readonly handles = signal<PreferenceHandles>({
     plateauLeft: 0.35,
     plateauRight: 0.65,
+    plateauLeftFactor: 1,
+    plateauRightFactor: 1,
     leftZero: 0.25,
     rightZero: 0.75,
+    floorLeft: 0.2,
+    floorRight: 0.2,
   });
 
   constructor() {
@@ -78,10 +82,14 @@ export class TrapezoidPreferenceEditorComponent {
     switch (this.dragging) {
       case 'plateauLeft':
         h.plateauLeft = Math.min(pt.t, h.plateauRight - 0.02);
+        h.plateauLeftFactor = Math.min(1, Math.max(0.05, pt.factor));
+        h.floorLeft = Math.min(h.floorLeft, h.plateauLeftFactor);
         h.leftZero = Math.min(h.leftZero, h.plateauLeft);
         break;
       case 'plateauRight':
         h.plateauRight = Math.max(pt.t, h.plateauLeft + 0.02);
+        h.plateauRightFactor = Math.min(1, Math.max(0.05, pt.factor));
+        h.floorRight = Math.min(h.floorRight, h.plateauRightFactor);
         h.rightZero = Math.max(h.rightZero, h.plateauRight);
         break;
       case 'leftZero':
@@ -96,22 +104,7 @@ export class TrapezoidPreferenceEditorComponent {
     h.rightZero = Math.min(1, h.rightZero);
 
     this.handles.set(h);
-    const updated = preferenceFromHandles(
-      h.plateauLeft,
-      h.plateauRight,
-      h.leftZero,
-      h.rightZero,
-    );
-    const current = this.preference();
-    this.preferenceChange.emit(
-      clampLayerPreference({
-        ...current,
-        rangeMin: updated.rangeMin,
-        rangeMax: updated.rangeMax,
-        falloffLeft: updated.falloffLeft,
-        falloffRight: updated.falloffRight,
-      }),
-    );
+    this.emitFromHandles(h);
   }
 
   onPointerUp(event: PointerEvent): void {
@@ -121,30 +114,58 @@ export class TrapezoidPreferenceEditorComponent {
     }
   }
 
-  chartPoints(): string {
+  /** Closed path for the curve stroke. */
+  curvePoints(): string {
+    return this.curveVertices()
+      .map((p) => `${p.x},${p.y}`)
+      .join(' ');
+  }
+
+  /** Closed polygon including baseline (factor = 0) for correct fill. */
+  fillPoints(): string {
     const h = this.handles();
+    const axis = (t: number) => this.toSvg(t, 0);
     const pts = [
-      this.toSvg(0, 0),
-      this.toSvg(h.leftZero, 0),
-      this.toSvg(h.plateauLeft, 1),
-      this.toSvg(h.plateauRight, 1),
-      this.toSvg(h.rightZero, 0),
-      this.toSvg(1, 0),
+      axis(0),
+      ...(h.leftZero > 0.001 ? [axis(h.leftZero)] : []),
+      this.toSvg(h.leftZero, h.floorLeft),
+      this.toSvg(h.plateauLeft, h.plateauLeftFactor),
+      this.toSvg(h.plateauRight, h.plateauRightFactor),
+      this.toSvg(h.rightZero, h.floorRight),
+      axis(h.rightZero),
+      ...(h.rightZero < 0.999 ? [axis(1)] : []),
+      axis(0),
     ];
     return pts.map((p) => `${p.x},${p.y}`).join(' ');
+  }
+
+  private curveVertices(): { x: number; y: number }[] {
+    const h = this.handles();
+    const pts: { x: number; y: number }[] = [];
+    if (h.leftZero > 0.001) {
+      pts.push(this.toSvg(0, h.floorLeft));
+    }
+    pts.push(this.toSvg(h.leftZero, h.floorLeft));
+    pts.push(this.toSvg(h.plateauLeft, h.plateauLeftFactor));
+    pts.push(this.toSvg(h.plateauRight, h.plateauRightFactor));
+    pts.push(this.toSvg(h.rightZero, h.floorRight));
+    if (h.rightZero < 0.999) {
+      pts.push(this.toSvg(1, h.floorRight));
+    }
+    return pts;
   }
 
   handlePos(handle: DragHandle): { x: number; y: number } {
     const h = this.handles();
     switch (handle) {
       case 'plateauLeft':
-        return this.toSvg(h.plateauLeft, 1);
+        return this.toSvg(h.plateauLeft, h.plateauLeftFactor);
       case 'plateauRight':
-        return this.toSvg(h.plateauRight, 1);
+        return this.toSvg(h.plateauRight, h.plateauRightFactor);
       case 'leftZero':
-        return this.toSvg(h.leftZero, 0);
+        return this.toSvg(h.leftZero, h.floorLeft);
       case 'rightZero':
-        return this.toSvg(h.rightZero, 0);
+        return this.toSvg(h.rightZero, h.floorRight);
     }
   }
 
@@ -156,7 +177,6 @@ export class TrapezoidPreferenceEditorComponent {
     }));
   }
 
-  /** Raw metric value at t with correct unit (not “Score”). */
   formatAxisTick(t: number): string {
     const raw = preferenceScaleToRaw(t, this.bounds());
     const formatted = this.formatRaw()(raw);
@@ -182,6 +202,25 @@ export class TrapezoidPreferenceEditorComponent {
 
   protected handleKeys(): DragHandle[] {
     return ['plateauLeft', 'plateauRight', 'leftZero', 'rightZero'];
+  }
+
+  private emitFromHandles(h: PreferenceHandles): void {
+    const updated = preferenceFromHandles(h);
+    const current = this.preference();
+    this.preferenceChange.emit(
+      clampLayerPreference({
+        ...current,
+        rangeMin: updated.rangeMin,
+        rangeMax: updated.rangeMax,
+        falloffLeft: updated.falloffLeft,
+        falloffRight: updated.falloffRight,
+        floorLeft: updated.floorLeft,
+        floorRight: updated.floorRight,
+        plateauLeftFactor: updated.plateauLeftFactor,
+        plateauRightFactor: updated.plateauRightFactor,
+        plateauFactor: updated.plateauFactor,
+      }),
+    );
   }
 
   private toSvg(t: number, factor: number): { x: number; y: number } {

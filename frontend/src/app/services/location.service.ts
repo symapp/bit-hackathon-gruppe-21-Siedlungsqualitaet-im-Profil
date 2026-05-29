@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { clampToSwitzerland } from '../config/map-bounds.config';
+import type { LifestylePresetId } from '../config/lifestyle-presets.config';
 import { getAmenityCategory, OverpassService, type NearbyAmenity } from './overpass.service';
 import { ZARR_LAYER_DEFINITIONS } from '../config/zarr-layers.config';
 import type { LayerPreference } from '../models/layer-preference.model';
@@ -395,6 +396,10 @@ export class LocationService {
 
   resetAllZarrPreferences(): void {
     this.zarrMap.resetAllPreferences();
+  }
+
+  applyLifestylePreset(presetId: LifestylePresetId): void {
+    this.zarrMap.applyLifestylePreset(presetId);
   }
 
   setZarrLayerEnabled(layerId: string, enabled: boolean): void {

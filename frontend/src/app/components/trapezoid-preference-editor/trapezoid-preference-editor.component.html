@@ -16,13 +16,14 @@
       [attr.y2]="viewHeight - PAD.bottom"
       class="axis"
     />
-  @for (tick of tickLabels(); track tick.t) {
-    <text [attr.x]="tick.x" [attr.y]="viewHeight - 6" class="tick" text-anchor="middle">
-      {{ tick.label }}
-    </text>
-  }
+    @for (tick of tickLabels(); track tick.t) {
+      <text [attr.x]="tick.x" [attr.y]="viewHeight - 6" class="tick" text-anchor="middle">
+        {{ tick.label }}
+      </text>
+    }
 
-    <polyline [attr.points]="chartPoints()" class="curve" />
+    <polygon [attr.points]="fillPoints()" class="fill" />
+    <polyline [attr.points]="curvePoints()" class="curve" />
 
     @for (handle of handleKeys(); track handle) {
       @let pos = handlePos(handle);
@@ -31,10 +32,13 @@
         [attr.cy]="pos.y"
         r="8"
         class="handle"
+        [class.handle-plateau]="handle === 'plateauLeft' || handle === 'plateauRight'"
         (pointerdown)="onPointerDown(handle, $event)"
       />
     }
   </svg>
   <p class="chart-hint">{{ axisCaption() }}</p>
-  <p class="chart-hint chart-hint-sub">Plateau und Abfall links/rechts an den Griffen ziehen.</p>
+  <p class="chart-hint chart-hint-sub">
+    Obere Griffe: links/rechts horizontal und vertikal. Untere Griffe: Breite des Abfalls.
+  </p>
 </div>

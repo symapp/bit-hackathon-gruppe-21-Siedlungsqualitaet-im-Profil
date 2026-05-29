@@ -4,6 +4,7 @@ import {
   clampLayerPreference,
   normalizationBoundsForLayer,
   normalizeToPreferenceScale,
+  preferenceFromHandles,
 } from './preference-scoring.util';
 
 export type TinderRating = -2 | -1 | 0 | 1 | 2;
@@ -20,6 +21,9 @@ export interface TinderPlaceSample {
   rating: TinderRating;
   valuesByLayerId: Readonly<Record<string, number | null>>;
 }
+
+const SOFT_FLOOR = 0.2;
+const STRICT_FLOOR = 0.05;
 
 export function inferPreferencesFromTinderRatings(
   layers: readonly TinderInferenceLayerInput[],
@@ -58,6 +62,10 @@ function inferLayerPreference(
       rangeMax: 0.65,
       falloffLeft: 0.15,
       falloffRight: 0.15,
+      floorLeft: SOFT_FLOOR,
+      floorRight: SOFT_FLOOR,
+      plateauLeftFactor: 1,
+      plateauRightFactor: 1,
     });
   }
 
@@ -76,7 +84,7 @@ function inferLayerPreference(
   const p10 = weightedQuantile(oriented, effectiveWeights, 0.1);
   const p90 = weightedQuantile(oriented, effectiveWeights, 0.9);
   const spread = Math.max(0.08, p90 - p10);
-  const falloff = Math.min(0.35, Math.max(0.08, spread * 0.6));
+  const falloff = Math.min(0.25, Math.max(0.08, spread * 0.6));
 
   const orientedMin = Math.min(plateauLeft, plateauRight);
   const orientedMax = Math.max(plateauLeft, plateauRight);
@@ -87,13 +95,29 @@ function inferLayerPreference(
   const rangeMin = correlation >= 0 ? plateauMin : 1 - plateauMax;
   const rangeMax = correlation >= 0 ? plateauMax : 1 - plateauMin;
 
+  const negativeAtExtremes = pairs.some(
+    (p) => p.affinity <= -1 && (p.t <= 0.15 || p.t >= 0.85),
+  );
+  const floor = confidence >= 0.45 && negativeAtExtremes ? STRICT_FLOOR : SOFT_FLOOR;
+
+  const leftZero = Math.max(0.02, rangeMin - falloff);
+  const rightZero = Math.min(0.85, rangeMax + falloff);
+
+  const fromHandles = preferenceFromHandles({
+    plateauLeft: rangeMin,
+    plateauRight: rangeMax,
+    leftZero,
+    rightZero,
+    floorLeft: floor,
+    floorRight: floor,
+    plateauLeftFactor: 1,
+    plateauRightFactor: 1,
+  });
+
   return clampLayerPreference({
+    ...fromHandles,
     enabled: importance > 0,
     importance,
-    rangeMin,
-    rangeMax,
-    falloffLeft: falloff,
-    falloffRight: falloff,
   });
 }
 
@@ -135,7 +159,10 @@ function weightedQuantile(
 
   const totalWeight = sorted.reduce((sum, item) => sum + item.weight, 0);
   if (totalWeight <= 0) {
-    const fallbackIndex = Math.min(sorted.length - 1, Math.max(0, Math.round((sorted.length - 1) * clampedQuantile)));
+    const fallbackIndex = Math.min(
+      sorted.length - 1,
+      Math.max(0, Math.round((sorted.length - 1) * clampedQuantile)),
+    );
     return sorted[fallbackIndex].value;
   }
 

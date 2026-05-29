@@ -1,7 +1,13 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { ZarrLayer, type QueryResult } from '@carbonplan/zarr-layer';
 import type { CustomLayerInterface, ImageSource, Map as MaplibreMap } from 'maplibre-gl';
-import { createDefaultLayerPreferences } from '../config/good-place-defaults.config';
+import {
+  createInitialLayerPreferences,
+  createPreferencesForPreset,
+  resetPreferencesForActivePreset,
+  storeLifestylePresetId,
+  type LifestylePresetId,
+} from '../config/lifestyle-presets.config';
 import {
   OVERVIEW_MAP_LAYER_ID,
   SWISS_LV95_PROJ4,
@@ -110,7 +116,7 @@ export class ZarrMapService {
   private readonly onMapViewChange = (): void => this.scheduleOverviewComposite();
 
   readonly layerPreferences = signal<Record<string, LayerPreference>>(
-    createDefaultLayerPreferences(),
+    createInitialLayerPreferences(),
   );
   readonly layerMeta = signal<Record<string, SettlementLayerMeta | null>>({});
   readonly metaFallback = signal<Record<string, boolean>>({});
@@ -251,14 +257,21 @@ export class ZarrMapService {
   }
 
   resetLayerPreference(layerId: string): void {
-    const defaults = createDefaultLayerPreferences();
+    const defaults = resetPreferencesForActivePreset();
     if (defaults[layerId]) {
       this.setLayerPreference(layerId, defaults[layerId]);
     }
   }
 
   resetAllPreferences(): void {
-    this.layerPreferences.set(createDefaultLayerPreferences());
+    this.layerPreferences.set(resetPreferencesForActivePreset());
+    this.applyLayerDisplay({ rescoreOnly: true });
+    this.syncLayerStateSignal();
+  }
+
+  applyLifestylePreset(presetId: LifestylePresetId): void {
+    storeLifestylePresetId(presetId);
+    this.layerPreferences.set(createPreferencesForPreset(presetId));
     this.applyLayerDisplay({ rescoreOnly: true });
     this.syncLayerStateSignal();
   }
@@ -829,7 +842,7 @@ export class ZarrMapService {
         colormap: definition.colormap,
         clim: definition.clim,
         enabled: preferences[definition.id]?.enabled !== false,
-        preference: preferences[definition.id] ?? createDefaultLayerPreferences()[definition.id],
+        preference: preferences[definition.id] ?? createInitialLayerPreferences()[definition.id],
         meta: meta[definition.id] ?? null,
         metaFromFallback: fallback[definition.id] ?? true,
         ready,

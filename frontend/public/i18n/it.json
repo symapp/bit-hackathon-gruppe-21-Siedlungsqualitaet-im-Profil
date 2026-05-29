@@ -15,7 +15,9 @@
     "location": "Posizione",
     "radius": "Raggio di ricerca",
     "overviewTitle": "Panoramica generale",
-    "overviewHint": "Media ponderata delle funzioni di valutazione dei fattori (0–100, più alto = migliore).",
+    "overviewFitTitle": "Adatto alle tue preferenze",
+    "overviewHint": "Media ponderata delle funzioni di valutazione (0–100, più alto = meglio per la ricerca di casa).",
+    "dealbreaker": "Criterio esclusione (0 fuori intervallo)",
     "overviewLoading": "Caricamento mappa di sintesi…",
     "overviewMapScale": "Mappa: 0 – 100 (peggiore – migliore)",
     "layersTitle": "Fattori e preferenze",
@@ -41,8 +43,8 @@
     "amenityCategoryCulture": "Cultura",
     "amenityCategoryHospital": "Ospedale",
     "deselectAll": "Deseleziona tutto",
-    "showAdvanced": "Mostra funzione avanzata",
-    "hideAdvanced": "Nascondi funzione avanzata"
+    "showLayerAdvanced": "Impostazioni avanzate",
+    "hideLayerAdvanced": "Nascondi impostazioni avanzate"
   },
   "tinder": {
     "title": "Onboarding preferenze",
@@ -75,6 +77,33 @@
       "finish": "Applica preferenze"
     },
     "autoAdvance": "La selezione passa automaticamente al luogo successivo."
+  },
+  "presets": {
+    "label": "Profilo di vita",
+    "balanced": {
+      "label": "Equilibrato",
+      "description": "Curve morbide per una mappa di sintesi esplorabile."
+    },
+    "urbanTransit": {
+      "label": "Urbano & TP",
+      "description": "Trasporto pubblico, tempi di viaggio e accessibilità urbana."
+    },
+    "quietGreen": {
+      "label": "Tranquillo & verde",
+      "description": "Tranquillità, verde e basso carico di traffico."
+    },
+    "carOriented": {
+      "label": "Orientato all'auto",
+      "description": "Accessibilità stradale e brevi tempi in auto."
+    },
+    "family": {
+      "label": "Famiglia",
+      "description": "Densità, TP, tranquillità e servizi locali equilibrati."
+    }
+  },
+  "breakdown": {
+    "title": "Perché questo punteggio?",
+    "hint": "Contributo di ogni fattore attivo al punteggio complessivo della regione attiva."
   },
   "layers": {
     "tranquillity": {

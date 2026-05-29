@@ -78,7 +78,7 @@
             />
 
             <div class="region-score-row">
-              <span class="field-label">{{ 'sidebar.overviewTitle' | translate }}</span>
+              <span class="field-label">{{ 'sidebar.overviewFitTitle' | translate }}</span>
               @if (locationService.regionMetricsLoading()) {
                 <span class="region-score-value muted">{{ 'sidebar.calculating' | translate }}</span>
               } @else {
@@ -91,6 +91,11 @@
                 </span>
               }
             </div>
+
+            <app-factor-score-breakdown
+              [regionId]="region.id"
+              (click)="$event.stopPropagation()"
+            />
 
             <div class="region-row">
               <label class="field-label" [for]="'region-color-' + region.id">Farbe</label>

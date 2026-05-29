@@ -1,0 +1,1286 @@
+{
+  "cities": {
+    "zurich": {
+      "name": "Z\u00fcrich",
+      "archetype": "urban",
+      "layers": {
+        "tranquillity": {
+          "raw": 0.0,
+          "t": 0.0
+        },
+        "population-density": {
+          "raw": null,
+          "t": null
+        },
+        "pt-accessibility": {
+          "raw": 836.0,
+          "t": 0.923
+        },
+        "miv-accessibility": {
+          "raw": 522.0,
+          "t": 0.959
+        },
+        "pt-quality": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "pt-travel-time": {
+          "raw": 6.0,
+          "t": 1.0
+        },
+        "miv-travel-time": {
+          "raw": 5.0,
+          "t": 1.0
+        },
+        "rail-traffic": {
+          "raw": 71328.0,
+          "t": 0.0
+        },
+        "road-traffic": {
+          "raw": 7351.0,
+          "t": 0.365
+        },
+        "secondary-homes": {
+          "raw": 90.96,
+          "t": 0.031
+        },
+        "landscape-type": {
+          "raw": 33.0,
+          "t": 0.912
+        },
+        "solar-potential": {
+          "raw": 5.0,
+          "t": 1.0
+        },
+        "tlm-green-trees": {
+          "raw": 0.10000000149011612,
+          "t": 0.177
+        }
+      }
+    },
+    "geneve": {
+      "name": "Gen\u00e8ve",
+      "archetype": "urban",
+      "layers": {
+        "tranquillity": {
+          "raw": 0.0,
+          "t": 0.0
+        },
+        "population-density": {
+          "raw": 800.0,
+          "t": 0.948
+        },
+        "pt-accessibility": {
+          "raw": 3358.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 2890.0,
+          "t": 0.755
+        },
+        "pt-quality": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "pt-travel-time": {
+          "raw": 10.0,
+          "t": 1.0
+        },
+        "miv-travel-time": {
+          "raw": 8.0,
+          "t": 1.0
+        },
+        "rail-traffic": {
+          "raw": 17059.0,
+          "t": 0.681
+        },
+        "road-traffic": {
+          "raw": 2657.0,
+          "t": 0.771
+        },
+        "secondary-homes": {
+          "raw": 83.15,
+          "t": 0.146
+        },
+        "landscape-type": {
+          "raw": 33.0,
+          "t": 0.912
+        },
+        "solar-potential": {
+          "raw": 3.0,
+          "t": 0.5
+        },
+        "tlm-green-trees": {
+          "raw": 0.0,
+          "t": 0.0
+        }
+      }
+    },
+    "basel": {
+      "name": "Basel",
+      "archetype": "urban",
+      "layers": {
+        "tranquillity": {
+          "raw": 0.0,
+          "t": 0.0
+        },
+        "population-density": {
+          "raw": 5400.0,
+          "t": 0.469
+        },
+        "pt-accessibility": {
+          "raw": 13958.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 32243.0,
+          "t": 0.0
+        },
+        "pt-quality": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "pt-travel-time": {
+          "raw": 14.0,
+          "t": 1.0
+        },
+        "miv-travel-time": {
+          "raw": 8.0,
+          "t": 1.0
+        },
+        "rail-traffic": {
+          "raw": 35814.0,
+          "t": 0.318
+        },
+        "road-traffic": {
+          "raw": null,
+          "t": null
+        },
+        "secondary-homes": {
+          "raw": 89.24,
+          "t": 0.056
+        },
+        "landscape-type": {
+          "raw": 33.0,
+          "t": 0.912
+        },
+        "solar-potential": {
+          "raw": 5.0,
+          "t": 1.0
+        },
+        "tlm-green-trees": {
+          "raw": 0.1599999964237213,
+          "t": 0.283
+        }
+      }
+    },
+    "bern": {
+      "name": "Bern",
+      "archetype": "urban",
+      "layers": {
+        "tranquillity": {
+          "raw": 0.0,
+          "t": 0.0
+        },
+        "population-density": {
+          "raw": 3700.0,
+          "t": 0.646
+        },
+        "pt-accessibility": {
+          "raw": 1592.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 1321.0,
+          "t": 0.89
+        },
+        "pt-quality": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "pt-travel-time": {
+          "raw": 8.0,
+          "t": 1.0
+        },
+        "miv-travel-time": {
+          "raw": 8.0,
+          "t": 1.0
+        },
+        "rail-traffic": {
+          "raw": 19093.0,
+          "t": 0.641
+        },
+        "road-traffic": {
+          "raw": 648.0,
+          "t": 0.945
+        },
+        "secondary-homes": {
+          "raw": 86.57,
+          "t": 0.096
+        },
+        "landscape-type": {
+          "raw": 33.0,
+          "t": 0.912
+        },
+        "solar-potential": {
+          "raw": 2.0,
+          "t": 0.25
+        },
+        "tlm-green-trees": {
+          "raw": 0.0,
+          "t": 0.0
+        }
+      }
+    },
+    "lausanne": {
+      "name": "Lausanne",
+      "archetype": "urban",
+      "layers": {
+        "tranquillity": {
+          "raw": 0.0,
+          "t": 0.0
+        },
+        "population-density": {
+          "raw": 600.0,
+          "t": 0.969
+        },
+        "pt-accessibility": {
+          "raw": 890.0,
+          "t": 0.982
+        },
+        "miv-accessibility": {
+          "raw": 1080.0,
+          "t": 0.911
+        },
+        "pt-quality": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "pt-travel-time": {
+          "raw": 12.0,
+          "t": 1.0
+        },
+        "miv-travel-time": {
+          "raw": 10.0,
+          "t": 1.0
+        },
+        "rail-traffic": {
+          "raw": 51908.0,
+          "t": 0.007
+        },
+        "road-traffic": {
+          "raw": 1875.0,
+          "t": 0.839
+        },
+        "secondary-homes": {
+          "raw": 87.72,
+          "t": 0.079
+        },
+        "landscape-type": {
+          "raw": 33.0,
+          "t": 0.912
+        },
+        "solar-potential": {
+          "raw": 2.0,
+          "t": 0.25
+        },
+        "tlm-green-trees": {
+          "raw": 0.11999999731779099,
+          "t": 0.212
+        }
+      }
+    },
+    "lugano": {
+      "name": "Lugano",
+      "archetype": "urban",
+      "layers": {
+        "tranquillity": {
+          "raw": null,
+          "t": null
+        },
+        "population-density": {
+          "raw": 1100.0,
+          "t": 0.917
+        },
+        "pt-accessibility": {
+          "raw": 1801.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 1358.0,
+          "t": 0.887
+        },
+        "pt-quality": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "pt-travel-time": {
+          "raw": 9.0,
+          "t": 1.0
+        },
+        "miv-travel-time": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "rail-traffic": {
+          "raw": null,
+          "t": null
+        },
+        "road-traffic": {
+          "raw": 1761.0,
+          "t": 0.849
+        },
+        "secondary-homes": {
+          "raw": 84.77,
+          "t": 0.122
+        },
+        "landscape-type": {
+          "raw": 33.0,
+          "t": 0.912
+        },
+        "solar-potential": {
+          "raw": 2.0,
+          "t": 0.25
+        },
+        "tlm-green-trees": {
+          "raw": 0.03999999910593033,
+          "t": 0.071
+        }
+      }
+    },
+    "st-gallen": {
+      "name": "St. Gallen",
+      "archetype": "mid",
+      "layers": {
+        "tranquillity": {
+          "raw": 0.005716773485349019,
+          "t": 0.006
+        },
+        "population-density": {
+          "raw": 9500.0,
+          "t": 0.042
+        },
+        "pt-accessibility": {
+          "raw": 3464.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 6113.0,
+          "t": 0.477
+        },
+        "pt-quality": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "pt-travel-time": {
+          "raw": 93.0,
+          "t": 0.552
+        },
+        "miv-travel-time": {
+          "raw": 70.0,
+          "t": 0.489
+        },
+        "rail-traffic": {
+          "raw": 3259.0,
+          "t": 0.948
+        },
+        "road-traffic": {
+          "raw": 2056.0,
+          "t": 0.823
+        },
+        "secondary-homes": {
+          "raw": 85.29,
+          "t": 0.115
+        },
+        "landscape-type": {
+          "raw": 33.0,
+          "t": 0.912
+        },
+        "solar-potential": {
+          "raw": 5.0,
+          "t": 1.0
+        },
+        "tlm-green-trees": {
+          "raw": 0.019999999552965164,
+          "t": 0.035
+        }
+      }
+    },
+    "thun": {
+      "name": "Thun",
+      "archetype": "suburban",
+      "layers": {
+        "tranquillity": {
+          "raw": null,
+          "t": null
+        },
+        "population-density": {
+          "raw": 8100.0,
+          "t": 0.188
+        },
+        "pt-accessibility": {
+          "raw": 1962.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 2586.0,
+          "t": 0.781
+        },
+        "pt-quality": {
+          "raw": 4.0,
+          "t": 1.0
+        },
+        "pt-travel-time": {
+          "raw": 43.0,
+          "t": 0.952
+        },
+        "miv-travel-time": {
+          "raw": 33.0,
+          "t": 0.9
+        },
+        "rail-traffic": {
+          "raw": 50945.0,
+          "t": 0.026
+        },
+        "road-traffic": {
+          "raw": 1717.0,
+          "t": 0.853
+        },
+        "secondary-homes": {
+          "raw": 89.8,
+          "t": 0.048
+        },
+        "landscape-type": {
+          "raw": 34.0,
+          "t": 0.941
+        },
+        "solar-potential": {
+          "raw": 2.0,
+          "t": 0.25
+        },
+        "tlm-green-trees": {
+          "raw": 0.2199999988079071,
+          "t": 0.389
+        }
+      }
+    },
+    "murten": {
+      "name": "Murten",
+      "archetype": "small",
+      "layers": {
+        "tranquillity": {
+          "raw": 0.38121484920051896,
+          "t": 0.381
+        },
+        "population-density": {
+          "raw": 13000.0,
+          "t": 0.0
+        },
+        "pt-accessibility": {
+          "raw": 1560.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 4555.0,
+          "t": 0.612
+        },
+        "pt-quality": {
+          "raw": 3.0,
+          "t": 0.667
+        },
+        "pt-travel-time": {
+          "raw": 52.0,
+          "t": 0.88
+        },
+        "miv-travel-time": {
+          "raw": 29.0,
+          "t": 0.944
+        },
+        "rail-traffic": {
+          "raw": null,
+          "t": null
+        },
+        "road-traffic": {
+          "raw": 718.0,
+          "t": 0.939
+        },
+        "secondary-homes": {
+          "raw": 86.71,
+          "t": 0.094
+        },
+        "landscape-type": {
+          "raw": 12.0,
+          "t": 0.294
+        },
+        "solar-potential": {
+          "raw": 3.0,
+          "t": 0.5
+        },
+        "tlm-green-trees": {
+          "raw": 0.019999999552965164,
+          "t": 0.035
+        }
+      }
+    },
+    "scuol": {
+      "name": "Scuol",
+      "archetype": "alpine",
+      "layers": {
+        "tranquillity": {
+          "raw": null,
+          "t": null
+        },
+        "population-density": {
+          "raw": 3000.0,
+          "t": 0.719
+        },
+        "pt-accessibility": {
+          "raw": 859.0,
+          "t": 0.948
+        },
+        "miv-accessibility": {
+          "raw": 634.0,
+          "t": 0.949
+        },
+        "pt-quality": {
+          "raw": 3.0,
+          "t": 0.667
+        },
+        "pt-travel-time": {
+          "raw": 180.0,
+          "t": 0.0
+        },
+        "miv-travel-time": {
+          "raw": 155.0,
+          "t": 0.0
+        },
+        "rail-traffic": {
+          "raw": null,
+          "t": null
+        },
+        "road-traffic": {
+          "raw": 176.0,
+          "t": 0.986
+        },
+        "secondary-homes": {
+          "raw": 40.33,
+          "t": 0.781
+        },
+        "landscape-type": {
+          "raw": 25.0,
+          "t": 0.676
+        },
+        "solar-potential": {
+          "raw": 1.0,
+          "t": 0.0
+        },
+        "tlm-green-trees": {
+          "raw": 0.23999999463558197,
+          "t": 0.424
+        }
+      }
+    },
+    "glarus": {
+      "name": "Glarus",
+      "archetype": "small",
+      "layers": {
+        "tranquillity": {
+          "raw": null,
+          "t": null
+        },
+        "population-density": {
+          "raw": 8700.0,
+          "t": 0.125
+        },
+        "pt-accessibility": {
+          "raw": 1561.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 2105.0,
+          "t": 0.823
+        },
+        "pt-quality": {
+          "raw": 2.0,
+          "t": 0.333
+        },
+        "pt-travel-time": {
+          "raw": 85.0,
+          "t": 0.616
+        },
+        "miv-travel-time": {
+          "raw": 64.0,
+          "t": 0.556
+        },
+        "rail-traffic": {
+          "raw": null,
+          "t": null
+        },
+        "road-traffic": {
+          "raw": 193.0,
+          "t": 0.985
+        },
+        "secondary-homes": {
+          "raw": 85.95,
+          "t": 0.105
+        },
+        "landscape-type": {
+          "raw": 16.0,
+          "t": 0.412
+        },
+        "solar-potential": {
+          "raw": 5.0,
+          "t": 1.0
+        },
+        "tlm-green-trees": {
+          "raw": 0.10000000149011612,
+          "t": 0.177
+        }
+      }
+    },
+    "adelboden": {
+      "name": "Adelboden",
+      "archetype": "alpine",
+      "layers": {
+        "tranquillity": {
+          "raw": null,
+          "t": null
+        },
+        "population-density": {
+          "raw": 1000.0,
+          "t": 0.927
+        },
+        "pt-accessibility": {
+          "raw": 28.0,
+          "t": 0.031
+        },
+        "miv-accessibility": {
+          "raw": 218.0,
+          "t": 0.985
+        },
+        "pt-quality": {
+          "raw": 2.0,
+          "t": 0.333
+        },
+        "pt-travel-time": {
+          "raw": 106.0,
+          "t": 0.448
+        },
+        "miv-travel-time": {
+          "raw": 68.0,
+          "t": 0.511
+        },
+        "rail-traffic": {
+          "raw": null,
+          "t": null
+        },
+        "road-traffic": {
+          "raw": 184.0,
+          "t": 0.985
+        },
+        "secondary-homes": {
+          "raw": 33.74,
+          "t": 0.879
+        },
+        "landscape-type": {
+          "raw": 20.0,
+          "t": 0.529
+        },
+        "solar-potential": {
+          "raw": 1.0,
+          "t": 0.0
+        },
+        "tlm-green-trees": {
+          "raw": 0.03999999910593033,
+          "t": 0.071
+        }
+      }
+    },
+    "appenzell": {
+      "name": "Appenzell",
+      "archetype": "rural",
+      "layers": {
+        "tranquillity": {
+          "raw": null,
+          "t": null
+        },
+        "population-density": {
+          "raw": 1900.0,
+          "t": 0.833
+        },
+        "pt-accessibility": {
+          "raw": 1001.0,
+          "t": 1.0
+        },
+        "miv-accessibility": {
+          "raw": 1736.0,
+          "t": 0.854
+        },
+        "pt-quality": {
+          "raw": 3.0,
+          "t": 0.667
+        },
+        "pt-travel-time": {
+          "raw": 129.0,
+          "t": 0.264
+        },
+        "miv-travel-time": {
+          "raw": 89.0,
+          "t": 0.278
+        },
+        "rail-traffic": {
+          "raw": null,
+          "t": null
+        },
+        "road-traffic": {
+          "raw": 1405.0,
+          "t": 0.88
+        },
+        "secondary-homes": {
+          "raw": 91.29,
+          "t": 0.026
+        },
+        "landscape-type": {
+          "raw": 15.0,
+          "t": 0.382
+        },
+        "solar-potential": {
+          "raw": 5.0,
+          "t": 1.0
+        },
+        "tlm-green-trees": {
+          "raw": 0.36000001430511475,
+          "t": 0.636
+        }
+      }
+    }
+  },
+  "layer_stats": {
+    "tranquillity": {
+      "higherIsBetter": true,
+      "p5": 6.417635725676707e-07,
+      "p95": 0.9999995768591826,
+      "national_t_p25": 0.0,
+      "national_t_p75": 0.006,
+      "urban_mean_t": 0.0,
+      "rural_mean_t": NaN,
+      "suggested_plateau": [
+        0.05,
+        0.09
+      ],
+      "by_archetype": {
+        "urban": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "suburban": [
+          0.01
+        ],
+        "small": [
+          0.38
+        ],
+        "rural": [],
+        "alpine": [],
+        "mid": [
+          0.01
+        ]
+      }
+    },
+    "population-density": {
+      "higherIsBetter": false,
+      "p5": 300.0,
+      "p95": 9900.0,
+      "national_t_p25": 0.14075,
+      "national_t_p75": 0.917,
+      "urban_mean_t": 0.7898,
+      "rural_mean_t": 0.8263333333333334,
+      "suggested_plateau": [
+        0.06,
+        0.85
+      ],
+      "by_archetype": {
+        "urban": [
+          0.95,
+          0.47,
+          0.65,
+          0.97,
+          0.92
+        ],
+        "suburban": [
+          0.19,
+          0.04
+        ],
+        "small": [
+          0.0,
+          0.12
+        ],
+        "rural": [
+          0.83
+        ],
+        "alpine": [
+          0.72,
+          0.93
+        ],
+        "mid": [
+          0.04,
+          0.92
+        ]
+      }
+    },
+    "pt-accessibility": {
+      "higherIsBetter": true,
+      "p5": 0.0,
+      "p95": 906.0,
+      "national_t_p25": 0.991,
+      "national_t_p75": 1.0,
+      "urban_mean_t": 0.9841666666666667,
+      "rural_mean_t": 0.6596666666666666,
+      "suggested_plateau": [
+        0.94,
+        0.92
+      ],
+      "by_archetype": {
+        "urban": [
+          0.92,
+          1.0,
+          1.0,
+          1.0,
+          0.98,
+          1.0
+        ],
+        "suburban": [
+          1.0,
+          1.0
+        ],
+        "small": [
+          1.0,
+          1.0
+        ],
+        "rural": [
+          1.0
+        ],
+        "alpine": [
+          0.95,
+          0.03
+        ],
+        "mid": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "miv-accessibility": {
+      "higherIsBetter": false,
+      "p5": 45.0,
+      "p95": 11657.0,
+      "national_t_p25": 0.6835,
+      "national_t_p75": 0.9005000000000001,
+      "urban_mean_t": 0.7336666666666667,
+      "rural_mean_t": 0.9293333333333332,
+      "suggested_plateau": [
+        0.6,
+        0.85
+      ],
+      "by_archetype": {
+        "urban": [
+          0.96,
+          0.76,
+          0.0,
+          0.89,
+          0.91,
+          0.89
+        ],
+        "suburban": [
+          0.78,
+          0.48
+        ],
+        "small": [
+          0.61,
+          0.82
+        ],
+        "rural": [
+          0.85
+        ],
+        "alpine": [
+          0.95,
+          0.98
+        ],
+        "mid": [
+          0.48,
+          0.89
+        ]
+      }
+    },
+    "pt-quality": {
+      "higherIsBetter": true,
+      "p5": 1.0,
+      "p95": 4.0,
+      "national_t_p25": 0.667,
+      "national_t_p75": 1.0,
+      "urban_mean_t": 1.0,
+      "rural_mean_t": 0.5556666666666666,
+      "suggested_plateau": [
+        0.62,
+        0.92
+      ],
+      "by_archetype": {
+        "urban": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "suburban": [
+          1.0,
+          1.0
+        ],
+        "small": [
+          0.67,
+          0.33
+        ],
+        "rural": [
+          0.67
+        ],
+        "alpine": [
+          0.67,
+          0.33
+        ],
+        "mid": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "pt-travel-time": {
+      "higherIsBetter": false,
+      "p5": 37.0,
+      "p95": 162.0,
+      "national_t_p25": 0.552,
+      "national_t_p75": 1.0,
+      "urban_mean_t": 1.0,
+      "rural_mean_t": 0.2373333333333333,
+      "suggested_plateau": [
+        0.47,
+        0.85
+      ],
+      "by_archetype": {
+        "urban": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "suburban": [
+          0.95,
+          0.55
+        ],
+        "small": [
+          0.88,
+          0.62
+        ],
+        "rural": [
+          0.26
+        ],
+        "alpine": [
+          0.0,
+          0.45
+        ],
+        "mid": [
+          0.55,
+          1.0
+        ]
+      }
+    },
+    "miv-travel-time": {
+      "higherIsBetter": false,
+      "p5": 24.0,
+      "p95": 114.0,
+      "national_t_p25": 0.5,
+      "national_t_p75": 1.0,
+      "urban_mean_t": 1.0,
+      "rural_mean_t": 0.263,
+      "suggested_plateau": [
+        0.42,
+        0.85
+      ],
+      "by_archetype": {
+        "urban": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "suburban": [
+          0.9,
+          0.49
+        ],
+        "small": [
+          0.94,
+          0.56
+        ],
+        "rural": [
+          0.28
+        ],
+        "alpine": [
+          0.0,
+          0.51
+        ],
+        "mid": [
+          0.49,
+          1.0
+        ]
+      }
+    },
+    "rail-traffic": {
+      "higherIsBetter": false,
+      "p5": 550.0,
+      "p95": 52264.0,
+      "national_t_p25": 0.021249999999999998,
+      "national_t_p75": 0.74775,
+      "urban_mean_t": 0.3294,
+      "rural_mean_t": NaN,
+      "suggested_plateau": [
+        0.05,
+        0.8
+      ],
+      "by_archetype": {
+        "urban": [
+          0.0,
+          0.68,
+          0.32,
+          0.64,
+          0.01
+        ],
+        "suburban": [
+          0.03,
+          0.95
+        ],
+        "small": [],
+        "rural": [],
+        "alpine": [],
+        "mid": [
+          0.95
+        ]
+      }
+    },
+    "road-traffic": {
+      "higherIsBetter": false,
+      "p5": 14.0,
+      "p95": 11574.0,
+      "national_t_p25": 0.827,
+      "national_t_p75": 0.9435,
+      "urban_mean_t": 0.7538,
+      "rural_mean_t": 0.9503333333333334,
+      "suggested_plateau": [
+        0.75,
+        0.85
+      ],
+      "by_archetype": {
+        "urban": [
+          0.36,
+          0.77,
+          0.94,
+          0.84,
+          0.85
+        ],
+        "suburban": [
+          0.85,
+          0.82
+        ],
+        "small": [
+          0.94,
+          0.98
+        ],
+        "rural": [
+          0.88
+        ],
+        "alpine": [
+          0.99,
+          0.98
+        ],
+        "mid": [
+          0.82,
+          0.85
+        ]
+      }
+    },
+    "secondary-homes": {
+      "higherIsBetter": false,
+      "p5": 25.54,
+      "p95": 93.03,
+      "national_t_p25": 0.0675,
+      "national_t_p75": 0.122,
+      "urban_mean_t": 0.08833333333333333,
+      "rural_mean_t": 0.5619999999999999,
+      "suggested_plateau": [
+        0.05,
+        0.17
+      ],
+      "by_archetype": {
+        "urban": [
+          0.03,
+          0.15,
+          0.06,
+          0.1,
+          0.08,
+          0.12
+        ],
+        "suburban": [
+          0.05,
+          0.12
+        ],
+        "small": [
+          0.09,
+          0.1
+        ],
+        "rural": [
+          0.03
+        ],
+        "alpine": [
+          0.78,
+          0.88
+        ],
+        "mid": [
+          0.12,
+          0.12
+        ]
+      }
+    },
+    "landscape-type": {
+      "higherIsBetter": true,
+      "p5": 2.0,
+      "p95": 36.0,
+      "national_t_p25": 0.6025,
+      "national_t_p75": 0.912,
+      "urban_mean_t": 0.912,
+      "rural_mean_t": 0.529,
+      "suggested_plateau": [
+        0.55,
+        0.92
+      ],
+      "by_archetype": {
+        "urban": [
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91
+        ],
+        "suburban": [
+          0.94,
+          0.91
+        ],
+        "small": [
+          0.29,
+          0.41
+        ],
+        "rural": [
+          0.38
+        ],
+        "alpine": [
+          0.68,
+          0.53
+        ],
+        "mid": [
+          0.91,
+          0.91
+        ]
+      }
+    },
+    "solar-potential": {
+      "higherIsBetter": true,
+      "p5": 1.0,
+      "p95": 5.0,
+      "national_t_p25": 0.25,
+      "national_t_p75": 1.0,
+      "urban_mean_t": 0.5416666666666666,
+      "rural_mean_t": 0.3333333333333333,
+      "suggested_plateau": [
+        0.2,
+        0.92
+      ],
+      "by_archetype": {
+        "urban": [
+          1.0,
+          0.5,
+          1.0,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "suburban": [
+          0.25,
+          1.0
+        ],
+        "small": [
+          0.5,
+          1.0
+        ],
+        "rural": [
+          1.0
+        ],
+        "alpine": [
+          0.0,
+          0.0
+        ],
+        "mid": [
+          1.0,
+          0.25
+        ]
+      }
+    },
+    "tlm-green-trees": {
+      "higherIsBetter": true,
+      "p5": 0.0,
+      "p95": 0.5661879360675778,
+      "national_t_p25": 0.035,
+      "national_t_p75": 0.2475,
+      "urban_mean_t": 0.12383333333333331,
+      "rural_mean_t": 0.377,
+      "suggested_plateau": [
+        0.05,
+        0.33
+      ],
+      "by_archetype": {
+        "urban": [
+          0.18,
+          0.0,
+          0.28,
+          0.0,
+          0.21,
+          0.07
+        ],
+        "suburban": [
+          0.39,
+          0.04
+        ],
+        "small": [
+          0.04,
+          0.18
+        ],
+        "rural": [
+          0.64
+        ],
+        "alpine": [
+          0.42,
+          0.07
+        ],
+        "mid": [
+          0.04,
+          0.07
+        ]
+      }
+    }
+  },
+  "generated_by": "analyze_settlement_profiles.py"
+}

@@ -35,17 +35,18 @@ We use Angular Signals for lightweight, granular state management:
 
 ---
 
-## 3. Scoring Logic: Trapezoid Preferences
+## 3. Scoring Logic: Preference Curves
 
 For a full list of indicators (sources, raw values, pipeline steps, units), see **[INDICATORS.md](./INDICATORS.md)**.
 
-Instead of fixed weights, every indicator (e.g., noise, density) uses a Trapezoid Preference Function to calculate a score between 0 and 100.
+Instead of fixed weights, every indicator (e.g., noise, density) uses a **piecewise-linear preference curve** on normalized scale `t ∈ [0, 1]` to calculate a factor score between 0 and 100.
 
 ### How it works:
-1. **User Input**: The user defines four points (x1, x2, x3, x4) using the trapezoid editor.
-2. **Plateau**: Any value between x2 and x3 receives a perfect score of 100.
-3. **Linear Falloff**: Scores drop linearly from 100 to 0 as values move from x2 to x1 or x3 to x4.
-4. **Zero Score**: Values outside the range [x1, x4] receive a score of 0.
+1. **User Input**: The user defines plateau bounds, falloff widths, and optional floor/plateau heights via the curve editor (or lifestyle presets).
+2. **Plateau**: Values between `rangeMin` and `rangeMax` receive `plateauFactor` (default 1 → 100 points).
+3. **Linear Falloff**: Scores interpolate linearly from the plateau to `floorLeft` / `floorRight` outside the plateau (defaults 0.2 for exploratory home-search defaults).
+4. **Extremes**: Values at or beyond the falloff anchors keep the floor factor (soft minimum, not always zero). **Dealbreaker** mode sets floors to 0.
+5. **Lifestyle presets**: Curated shapes per use case (balanced, urban transit, quiet/green, car-oriented, family) stored in `lifestyle-presets.config.ts`.
 
 ### Weighted Overview Score:
 The total quality score is a weighted average of all active indicator scores:

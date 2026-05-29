@@ -15,7 +15,9 @@
     "location": "Localisation",
     "radius": "Rayon de recherche",
     "overviewTitle": "Vue d'ensemble",
-    "overviewHint": "Moyenne pondérée des fonctions de notation des facteurs (0–100, plus élevé = meilleur).",
+    "overviewFitTitle": "Adéquation à vos préférences",
+    "overviewHint": "Moyenne pondérée des fonctions de notation (0–100, plus élevé = mieux pour votre recherche de logement).",
+    "dealbreaker": "Critère d'exclusion (0 hors plage)",
     "overviewLoading": "Chargement de la carte de synthèse…",
     "overviewMapScale": "Carte : 0 – 100 (moins bon – meilleur)",
     "layersTitle": "Facteurs & préférences",
@@ -42,8 +44,8 @@
     "amenityCategoryHospital": "Hôpital",
     "deselectAll": "Tout désélectionner",
     "deactivated": "Désactivé",
-    "showAdvanced": "Afficher la fonction avancée",
-    "hideAdvanced": "Masquer la fonction avancée"
+    "showLayerAdvanced": "Paramètres avancés",
+    "hideLayerAdvanced": "Masquer les paramètres avancés"
   },
   "tinder": {
     "title": "Onboarding des préférences",
@@ -76,6 +78,33 @@
       "finish": "Appliquer les préférences"
     },
     "autoAdvance": "La sélection passe automatiquement au lieu suivant."
+  },
+  "presets": {
+    "label": "Profil de vie",
+    "balanced": {
+      "label": "Équilibré",
+      "description": "Courbes douces pour une carte d'ensemble exploratoire."
+    },
+    "urbanTransit": {
+      "label": "Urbain & TC",
+      "description": "Transports publics, temps de trajet et accessibilité urbaine."
+    },
+    "quietGreen": {
+      "label": "Calme & vert",
+      "description": "Tranquillité, espaces verts et faible charge de trafic."
+    },
+    "carOriented": {
+      "label": "Orienté voiture",
+      "description": "Accessibilité routière et courts temps de trajet en voiture."
+    },
+    "family": {
+      "label": "Famille",
+      "description": "Densité, TC, tranquillité et services locaux équilibrés."
+    }
+  },
+  "breakdown": {
+    "title": "Pourquoi ce score ?",
+    "hint": "Contribution de chaque facteur actif au score global de la région active."
   },
   "layers": {
     "tranquillity": {

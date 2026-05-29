@@ -4,13 +4,24 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
 import {
+  LIFESTYLE_PRESETS,
+  loadStoredLifestylePresetId,
+  type LifestylePresetId,
+} from '../../config/lifestyle-presets.config';
+import {
   OVERVIEW_COLORMAP,
   ZARR_LAYER_DEFINITIONS,
   type ZarrLayerDefinition,
 } from '../../config/zarr-layers.config';
 import type { LayerPreference } from '../../models/layer-preference.model';
 import { LocationService } from '../../services/location.service';
-import { normalizationBoundsForLayer } from '../../utils/preference-scoring.util';
+import {
+  importanceFromStars,
+  isDealbreakerPreference,
+  normalizationBoundsForLayer,
+  setDealbreakerFloors,
+  starsFromImportance,
+} from '../../utils/preference-scoring.util';
 import { TrapezoidPreferenceEditorComponent } from '../trapezoid-preference-editor/trapezoid-preference-editor.component';
 
 @Component({
@@ -30,8 +41,11 @@ export class SidebarComponent {
   protected readonly locationService = inject(LocationService);
   private readonly translate = inject(TranslateService);
   protected isCollapsed = false;
-  protected readonly showAdvanced = signal(false);
+  /** Per-layer advanced panel (curve editor + dealbreaker). */
+  protected readonly advancedOpenByLayerId = signal<Record<string, boolean>>({});
   protected readonly metricDefinitions = ZARR_LAYER_DEFINITIONS;
+  protected readonly lifestylePresets = LIFESTYLE_PRESETS;
+  protected readonly activePresetId = signal<LifestylePresetId>(loadStoredLifestylePresetId());
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
@@ -66,20 +80,49 @@ export class SidebarComponent {
     this.locationService.setZarrLayerPreference(layerId, preference);
   }
 
-  onImportanceChange(layerId: string, importance: number): void {
+  importanceStars(layerId: string): number {
+    const layer = this.locationService.zarrLayers().find((l) => l.id === layerId);
+    return layer ? starsFromImportance(layer.preference.importance) : 0;
+  }
+
+  onImportanceStarsChange(layerId: string, stars: number): void {
     const layer = this.locationService.zarrLayers().find((l) => l.id === layerId);
     if (!layer) {
       return;
     }
     this.locationService.setZarrLayerPreference(layerId, {
       ...layer.preference,
-      importance,
+      importance: importanceFromStars(stars),
     });
+  }
+
+  isDealbreaker(layerId: string): boolean {
+    const layer = this.locationService.zarrLayers().find((l) => l.id === layerId);
+    return layer ? isDealbreakerPreference(layer.preference) : false;
+  }
+
+  onDealbreakerChange(layerId: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const layer = this.locationService.zarrLayers().find((l) => l.id === layerId);
+    if (!layer) {
+      return;
+    }
+    this.locationService.setZarrLayerPreference(
+      layerId,
+      setDealbreakerFloors(layer.preference, input.checked),
+    );
   }
 
   onLayerEnabledChange(layerId: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     this.locationService.setZarrLayerEnabled(layerId, input.checked);
+  }
+
+  onPresetChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const presetId = select.value as LifestylePresetId;
+    this.activePresetId.set(presetId);
+    this.locationService.applyLifestylePreset(presetId);
   }
 
   resetLayerPreference(layerId: string): void {
@@ -88,6 +131,7 @@ export class SidebarComponent {
 
   resetAllPreferences(): void {
     this.locationService.resetAllZarrPreferences();
+    this.activePresetId.set(loadStoredLifestylePresetId());
   }
 
   deselectAllLayers(): void {
@@ -98,7 +142,15 @@ export class SidebarComponent {
     return this.locationService.zarrLayers().some((layer) => layer.enabled);
   }
 
-  toggleAdvanced(): void {
-    this.showAdvanced.update((current) => !current);
+  isLayerAdvancedOpen(layerId: string): boolean {
+    return this.advancedOpenByLayerId()[layerId] === true;
+  }
+
+  toggleLayerAdvanced(layerId: string, event: Event): void {
+    event.stopPropagation();
+    this.advancedOpenByLayerId.update((current) => ({
+      ...current,
+      [layerId]: !current[layerId],
+    }));
   }
 }

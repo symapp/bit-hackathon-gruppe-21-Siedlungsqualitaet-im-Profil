@@ -20,8 +20,13 @@
   stroke-width: 1;
 }
 
+.fill {
+  fill: rgba(35, 139, 69, 0.14);
+  stroke: none;
+}
+
 .curve {
-  fill: rgba(35, 139, 69, 0.12);
+  fill: none;
   stroke: #238b45;
   stroke-width: 2;
 }
@@ -44,6 +49,11 @@
   &:active {
     cursor: grabbing;
   }
+}
+
+.handle-plateau {
+  fill: #f0fdf4;
+  stroke: #166534;
 }
 
 .chart-hint {
