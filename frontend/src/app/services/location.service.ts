@@ -72,6 +72,20 @@ export class LocationService {
     const activeRegionId = this._activeRegionId();
     return this._amenitiesByRegion()[activeRegionId] ?? [];
   });
+  readonly allAmenities = computed(() => {
+    const byRegion = this._amenitiesByRegion();
+    const seen = new Set<string>();
+    const result: NearbyAmenity[] = [];
+    for (const region of this._regions()) {
+      for (const amenity of byRegion[region.id] ?? []) {
+        if (!seen.has(amenity.id)) {
+          seen.add(amenity.id);
+          result.push(amenity);
+        }
+      }
+    }
+    return result;
+  });
   readonly amenityCount = computed(() => this.amenities().length);
   readonly amenityCountLoading = computed(() => {
     const activeRegionId = this._activeRegionId();

@@ -39,7 +39,7 @@ export class MapComponent implements OnInit, OnDestroy {
     effect(() => {
       const regions = this.locationService.regions();
       const activeRegion = this.locationService.activeRegion();
-      const amenities = this.locationService.amenities();
+      const amenities = this.locationService.allAmenities();
 
       if (this.map && this.marker && this.deckOverlay) {
         this.updateDeckLayers(regions, activeRegion?.id ?? '', amenities);
