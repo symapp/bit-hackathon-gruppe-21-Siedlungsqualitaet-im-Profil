@@ -1,43 +1,44 @@
 <div class="regions-sidebar" [class.collapsed]="isCollapsed">
-  <button
-    type="button"
-    class="toggle-btn"
-    [attr.aria-expanded]="!isCollapsed"
-    [attr.aria-label]="(isCollapsed ? 'sidebar.open' : 'sidebar.close') | translate"
-    (click)="toggleSidebar()"
-  >
-    @if (isCollapsed) {
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
-        <path d="M10.05127,21.37516l-1.29883-.75,4.97949-8.625L8.75244,3.37516l1.29883-.75,5.41309,9.375-5.41309,9.375Z"/>
-      </svg>
-    } @else {
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
-        <path d="M13.94873,21.37516l-5.41309-9.375L13.94873,2.62516l1.29883.75-4.97949,8.625,4.97949,8.625-1.29883.75Z"/>
-      </svg>
+  <div class="regions-sidebar-header">
+    <button
+      type="button"
+      class="toggle-btn"
+      [attr.aria-expanded]="!isCollapsed"
+      [attr.aria-label]="(isCollapsed ? 'sidebar.open' : 'sidebar.close') | translate"
+      (click)="toggleSidebar()"
+    >
+      @if (isCollapsed) {
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path d="M10.05127,21.37516l-1.29883-.75,4.97949-8.625L8.75244,3.37516l1.29883-.75,5.41309,9.375-5.41309,9.375Z"/>
+        </svg>
+      } @else {
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path d="M13.94873,21.37516l-5.41309-9.375L13.94873,2.62516l1.29883.75-4.97949,8.625,4.97949,8.625-1.29883.75Z"/>
+        </svg>
+      }
+    </button>
+    @if (!isCollapsed) {
+      <h2 class="regions-sidebar-title">{{ 'regions.title' | translate }}</h2>
+      <button type="button" class="add-btn" (click)="addRegion()">
+        {{ 'regions.add' | translate }}
+      </button>
     }
-  </button>
+  </div>
 
   @if (!isCollapsed) {
     <div class="regions-content">
-      <div class="regions-header">
-        <h2>{{ 'regions.title' | translate }}</h2>
-        <button type="button" class="add-btn" (click)="addRegion()">
-          {{ 'regions.add' | translate }}
-        </button>
-      </div>
-
       <app-region-factors-chart />
 
       <div class="regions-list">
