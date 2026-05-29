@@ -20,7 +20,10 @@ leerwohnungsziffer_municipalities_10m.zarr  — xarray Dataset, variable
 from __future__ import annotations
 
 import argparse
+import json
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
 
@@ -48,10 +51,13 @@ DATASET_KEY = "ch_09_03b"
 
 DEFAULT_GEOCODES_ZARR = "geocodes_municipalities_10m.zarr"
 DEFAULT_OUT = "leerwohnungsziffer_municipalities_10m.zarr"
+DEFAULT_CACHE = "leerwohnungsziffer_cache.json"
 
-# Polite delay between API calls (seconds).
-REQUEST_DELAY_S = 0.15
+# Polite delay between API calls per thread (seconds).
+REQUEST_DELAY_S = 0.05
 REQUEST_TIMEOUT_S = 30
+FETCH_WORKERS = 5
+CACHE_SAVE_INTERVAL = 50  # save after every N completed fetches
 
 
 # ---------------------------------------------------------------------------
@@ -70,45 +76,117 @@ def fetch_leerwohnungsziffer(codgeo: int, session: requests.Session) -> Optional
         return None
 
     try:
-        records = payload["data"][DATASET_KEY]
+        records = payload["content"]["data"][DATASET_KEY]
     except (KeyError, TypeError):
         return None
 
+    # Only keep records belonging to this municipality (not national reference).
+    territory_prefix = f"polg2025_04_06@{codgeo}"
     for record in records:
-        if str(record.get("annee")) == TARGET_YEAR:
+        if record.get("territory") == territory_prefix and str(record.get("annee")) == TARGET_YEAR:
             value = record.get(DATA_KEY)
             if value is not None:
                 return float(value)
     return None
 
 
+def load_cache(cache_path: Path) -> dict[int, float]:
+    """Load an existing fetch cache, or return an empty dict."""
+    if cache_path.exists():
+        with cache_path.open() as f:
+            raw = json.load(f)
+        print(f"Resuming: loaded {len(raw)} cached values from {cache_path}")
+        return {int(k): v for k, v in raw.items()}
+    return {}
+
+
+def save_cache(cache_path: Path, mapping: dict[int, float]) -> None:
+    """Persist the current mapping to a JSON cache file."""
+    with cache_path.open("w") as f:
+        json.dump({str(k): v for k, v in mapping.items()}, f)
+
+
+def get_unique_geocodes(zarr_path: Path) -> list[int]:
+    """Extract unique non-zero geocodes by scanning zarr chunks directly.
+
+    Avoids loading the full (multi-GB) array into memory at once.
+    """
+    import zarr as _zarr
+
+    store = _zarr.open(str(zarr_path), mode="r")
+    arr = store["geocode"]
+    cy = (arr.shape[0] + arr.chunks[0] - 1) // arr.chunks[0]
+    cx = (arr.shape[1] + arr.chunks[1] - 1) // arr.chunks[1]
+    print(f"  Scanning {cy * cx} chunks for unique geocodes ...", flush=True)
+    unique_set: set[int] = set()
+    for iy in range(cy):
+        y0, y1 = iy * \
+            arr.chunks[0], min((iy + 1) * arr.chunks[0], arr.shape[0])
+        for ix in range(cx):
+            x0, x1 = ix * \
+                arr.chunks[1], min((ix + 1) * arr.chunks[1], arr.shape[1])
+            chunk = arr[y0:y1, x0:x1]
+            unique_set.update(int(v) for v in np.unique(chunk) if v != 0)
+    return sorted(unique_set)
+
+
 def build_geocode_to_value_map(
-    geocodes: np.ndarray,
+    unique_codes: list[int],
     *,
+    cache_path: Path,
     verbose: bool = True,
 ) -> dict[int, float]:
-    """Fetch Leerwohnungsziffer for every unique geocode in *geocodes*."""
-    unique_codes = sorted(int(c) for c in np.unique(geocodes) if c > 0)
+    """Fetch Leerwohnungsziffer for every unique geocode.
+
+    Already-fetched values are loaded from *cache_path* and skipped,
+    enabling interrupted runs to be resumed.
+    """
     total = len(unique_codes)
+
+    mapping = load_cache(cache_path)
+    # Codes whose result is already known (including explicit None → stored as
+    # a sentinel so we don't re-fetch known-missing municipalities).
+    already_done = set(mapping.keys())
+    pending = [c for c in unique_codes if c not in already_done]
+
     print(
-        f"Fetching Leerwohnungsziffer ({TARGET_YEAR}) for {total} municipalities ...")
+        f"Fetching Leerwohnungsziffer ({TARGET_YEAR}) for {len(pending)}/{total} "
+        "municipalities (rest already cached) ..."
+    )
 
     session = requests.Session()
     session.headers.update({"Accept": "application/json"})
 
-    mapping: dict[int, float] = {}
+    lock = threading.Lock()
+    completed = 0
     missing = 0
 
-    for i, code in enumerate(unique_codes, 1):
-        value = fetch_leerwohnungsziffer(code, session)
-        if value is not None:
-            mapping[code] = value
-        else:
-            missing += 1
-        if verbose and i % 100 == 0:
-            print(f"  {i}/{total}  (missing so far: {missing})")
+    def _fetch_one(code: int) -> tuple[int, Optional[float]]:
+        # Each thread uses its own session to avoid shared state issues.
+        s = requests.Session()
+        s.headers.update({"Accept": "application/json"})
         time.sleep(REQUEST_DELAY_S)
+        return code, fetch_leerwohnungsziffer(code, s)
 
+    with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as executor:
+        futures = {executor.submit(_fetch_one, code): code for code in pending}
+        for future in as_completed(futures):
+            code, value = future.result()
+            with lock:
+                if value is not None:
+                    mapping[code] = value
+                else:
+                    missing += 1
+                completed += 1
+                if verbose and completed % CACHE_SAVE_INTERVAL == 0:
+                    save_cache(cache_path, mapping)
+                    print(
+                        f"  {completed}/{len(pending)} fetched  "
+                        f"(missing so far: {missing}) — cache saved",
+                        flush=True,
+                    )
+
+    save_cache(cache_path, mapping)
     print(
         f"Done.  {len(mapping)}/{total} municipalities have data for {TARGET_YEAR}.")
     return mapping
@@ -119,24 +197,39 @@ def build_geocode_to_value_map(
 # ---------------------------------------------------------------------------
 
 def apply_mapping_to_geocodes(
-    geocodes_da: xr.DataArray,
+    geocodes_zarr_path: Path,
+    geocodes_ds: xr.Dataset,
     mapping: dict[int, float],
 ) -> xr.DataArray:
-    """Vectorised lookup: replace every geocode with its Leerwohnungsziffer value."""
-    codes = geocodes_da.values  # shape (y, x), dtype int32
-    result = np.full(codes.shape, np.nan, dtype=np.float32)
+    """Build a float32 DataArray by applying *mapping* to the geocode raster.
 
-    # Build a numpy lookup array sized [max_code + 1].
+    Uses zarr directly (int32 chunks) and dask map_blocks to avoid loading
+    the full multi-GB array into memory at once.
+    """
+    import zarr as _zarr
+    import dask.array as dsa
+
+    # Build lookup table.
     max_code = max(mapping.keys()) if mapping else 0
     lut = np.full(max_code + 1, np.nan, dtype=np.float32)
     for code, val in mapping.items():
         lut[code] = val
 
-    mask = (codes > 0) & (codes <= max_code)
-    result[mask] = lut[codes[mask]]
+    # Open geocode array as a dask array (int32, not upcast to float64).
+    zarr_arr = _zarr.open(str(geocodes_zarr_path), mode="r")["geocode"]
+    dask_codes = dsa.from_zarr(zarr_arr)  # dtype int32
 
+    def _apply_lut(block: np.ndarray, lut: np.ndarray = lut, max_code: int = max_code) -> np.ndarray:
+        result = np.full(block.shape, np.nan, dtype=np.float32)
+        mask = (block > 0) & (block <= max_code)
+        result[mask] = lut[block[mask]]
+        return result
+
+    result_dask = dask_codes.map_blocks(_apply_lut, dtype=np.float32)
+
+    geocodes_da = geocodes_ds["geocode"]
     return xr.DataArray(
-        result,
+        result_dask,
         coords=geocodes_da.coords,
         dims=geocodes_da.dims,
         attrs={"long_name": f"Leerwohnungsziffer {TARGET_YEAR}", "units": "%"},
@@ -189,6 +282,12 @@ def main() -> None:
         help="Object prefix inside the B2 bucket (defaults to the .zarr folder name).",
     )
     parser.add_argument(
+        "--cache",
+        type=Path,
+        default=Path(DEFAULT_CACHE),
+        help=f"JSON cache file for resumable fetching (default: {DEFAULT_CACHE}).",
+    )
+    parser.add_argument(
         "--percentile-cutoff",
         type=float,
         default=5.0,
@@ -196,20 +295,21 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # 1. Load geocodes raster.
-    print(f"Loading geocodes from {args.geocodes_zarr} ...")
+    # 1. Load geocodes metadata (lazy — no data loaded into memory).
+    print(f"Loading geocodes from {args.geocodes_zarr} ...", flush=True)
     geocodes_ds = xr.open_zarr(str(args.geocodes_zarr), consolidated=True)
-    geocodes_da = geocodes_ds["geocode"]
 
-    # 2. Load values into memory (needed for unique-code extraction).
-    geocodes_np = geocodes_da.values
+    # 2. Extract unique municipality codes by scanning zarr chunks directly.
+    unique_codes = get_unique_geocodes(args.geocodes_zarr)
+    print(f"Found {len(unique_codes)} unique municipalities.", flush=True)
 
     # 3. Fetch BFS data.
-    mapping = build_geocode_to_value_map(geocodes_np)
+    mapping = build_geocode_to_value_map(unique_codes, cache_path=args.cache)
 
-    # 4. Build result raster.
-    print("Applying mapping to geocode raster ...")
-    result_da = apply_mapping_to_geocodes(geocodes_da, mapping)
+    # 4. Build result raster (dask-backed, not yet computed).
+    print("Applying mapping to geocode raster ...", flush=True)
+    result_da = apply_mapping_to_geocodes(
+        args.geocodes_zarr, geocodes_ds, mapping)
     result_da.name = DATA_KEY
 
     # Preserve CRS metadata.

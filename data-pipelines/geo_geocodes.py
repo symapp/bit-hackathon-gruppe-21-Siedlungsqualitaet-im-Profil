@@ -54,7 +54,6 @@ MUNICIPALITY_LAYER_CANDIDATES = [
 
 # Column in swissBOUNDARIES3D that holds the official BFS Gemeinde-Nummer.
 BFS_COLUMN_CANDIDATES = ["BFS_NUMMER", "GMDE_NR", "OBJECTVAL", "BFS_NR"]
-DEFAULT_BFS_COLUMN = "BFS_NUMMER"
 
 RESOLUTION_M = 10
 DEFAULT_OUT = "geocodes_municipalities_10m.zarr"
@@ -130,10 +129,9 @@ def _detect_layer(gpkg_path: Path) -> str:
 
 
 def _detect_bfs_column(gdf: gpd.GeoDataFrame) -> str:
-    col_map = {c.upper(): c for c in gdf.columns}
     for candidate in BFS_COLUMN_CANDIDATES:
-        if candidate.upper() in col_map:
-            return col_map[candidate.upper()]
+        if candidate in gdf.columns:
+            return candidate
     raise ValueError(
         f"Cannot find BFS number column.  Available columns: {list(gdf.columns)}. "
         "Pass --bfs-column explicitly."
@@ -177,16 +175,7 @@ def load_municipalities(
     elif "OBJEKTART_CH" in gdf.columns:
         gdf = gdf[gdf["OBJEKTART_CH"] == "Gemeindegebiet"].copy()
 
-    col_map = {c.upper(): c for c in gdf.columns}
-    if bfs_column and bfs_column.upper() in col_map:
-        bfs_col = col_map[bfs_column.upper()]
-    elif bfs_column:
-        print(
-            f"  BFS column '{bfs_column}' not found, auto-detecting from candidates ..."
-        )
-        bfs_col = _detect_bfs_column(gdf)
-    else:
-        bfs_col = _detect_bfs_column(gdf)
+    bfs_col = bfs_column or _detect_bfs_column(gdf)
     print(
         f"  Using BFS column '{bfs_col}' ({gdf[bfs_col].nunique()} municipalities).")
 
@@ -213,15 +202,11 @@ def load_municipalities(
         if bfs_xlsx_col:
             valid_codes = set(xlsx[bfs_xlsx_col].dropna().astype(int))
             before = len(gdf)
-            removed_codes = sorted(set(gdf["geocode"]) - valid_codes)
             gdf = gdf[gdf["geocode"].isin(valid_codes)]
             print(
                 f"  Filtered from {before} to {len(gdf)} municipalities "
                 f"using Gemeindestand.xlsx (column '{bfs_xlsx_col}')."
             )
-            if removed_codes:
-                print(
-                    f"  Codes in GPKG but not in Gemeindestand.xlsx ({len(removed_codes)}): {removed_codes}")
 
     gdf = gdf.to_crs(OUTPUT_CRS)
     return gdf
@@ -230,11 +215,13 @@ def load_municipalities(
 def rasterize_geocodes(gdf: gpd.GeoDataFrame) -> xr.Dataset:
     """Rasterize municipality polygons at 10 m resolution over Switzerland."""
     print(f"Rasterizing {len(gdf)} municipalities at {RESOLUTION_M} m ...")
+    xmin, ymin, xmax, ymax = _swiss_10m_bounds()
 
     geocube = make_geocube(
         vector_data=gdf,
         measurements=["geocode"],
         resolution=(-RESOLUTION_M, RESOLUTION_M),
+        geom=f"POLYGON(({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))",
         output_crs=OUTPUT_CRS,
         fill=0,
     )
@@ -289,11 +276,8 @@ def main() -> None:
     parser.add_argument(
         "--bfs-column",
         type=str,
-        default=DEFAULT_BFS_COLUMN,
-        help=(
-            "Column name for the BFS Gde-nummer in the GPKG "
-            f"(default: {DEFAULT_BFS_COLUMN}; falls back to auto-detection if missing)."
-        ),
+        default=None,
+        help="Column name for the BFS Gde-nummer in the GPKG (auto-detected if omitted).",
     )
     parser.add_argument(
         "--gemeindestand",
