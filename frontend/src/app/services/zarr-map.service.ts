@@ -126,7 +126,7 @@ export class ZarrMapService {
   readonly metricsLoading = signal(false);
   readonly metricsError = signal<string | null>(null);
   readonly layerStates = signal<ZarrLayerState[]>([]);
-  readonly overviewOpacity = signal<number>(88);
+  readonly overviewOpacity = signal<number>(60);
   readonly overviewLoading = signal(false);
   readonly overviewCacheStats = signal(this.rawCache.stats());
   readonly overviewScore = computed(() =>
