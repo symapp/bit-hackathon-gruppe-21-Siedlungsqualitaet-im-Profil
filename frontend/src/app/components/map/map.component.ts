@@ -5,7 +5,10 @@ import { ZarrMapService } from '../../services/zarr-map.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
+import { ScatterplotLayer, PolygonLayer, IconLayer } from '@deck.gl/layers';
+
+const GROCERY_ICON =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iOSIgY3k9IjIxIiByPSIxIj48L2NpcmNsZT48Y2lyY2xlIGN4PSIyMCIgY3k9IjIxIiByPSIxIj48L2NpcmNsZT48cGF0aCBkPSJNMSAxaDRsMi42OCAxMy4zOWEyIDIgMCAwIDAgMiAxLjYxaDkuNzJhMiAyIDAgMCAwIDItMS42MUwyMyA2SDYiPjwvcGF0aD48L3N2Zz4=';
 import { clampToSwitzerland, SWITZERLAND_MAX_BOUNDS } from '../../config/map-bounds.config';
 
 @Component({
@@ -189,18 +192,19 @@ export class MapComponent implements OnInit, OnDestroy {
         filled: true,
         pickable: false,
       }),
-      new ScatterplotLayer<GroceryStore>({
-        id: 'grocery-store-points',
+      new IconLayer<GroceryStore>({
+        id: 'grocery-store-icons',
         data: groceryStores,
         getPosition: (store) => [store.lng, store.lat],
-        getFillColor: [16, 185, 129, 220],
-        getLineColor: [4, 120, 87, 255],
-        getLineWidth: 2,
-        getRadius: 7,
-        lineWidthUnits: 'pixels',
-        radiusUnits: 'pixels',
-        filled: true,
-        stroked: true,
+        getIcon: () => ({
+          url: GROCERY_ICON,
+          width: 24,
+          height: 24,
+          mask: true,
+        }),
+        getSize: 22,
+        getColor: [216, 35, 42, 255],
+        sizeUnits: 'pixels',
         pickable: false,
       }),
     ];
