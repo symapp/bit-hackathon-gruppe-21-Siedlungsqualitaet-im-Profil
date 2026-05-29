@@ -33,12 +33,23 @@ interface RadarAxis {
   labelY: number;
   textAnchor: 'start' | 'middle' | 'end';
   labelKey: string;
+  layer: ZarrLayerDefinition;
+  percent: number;
 }
 
-const RADAR_SIZE = 320;
-const RADAR_CENTER = RADAR_SIZE / 2;
-const RADAR_RADIUS = 116;
+const RADAR_PADDING = 52;
+const RADAR_DRAW_SIZE = 280;
+const RADAR_VIEW_SIZE = RADAR_DRAW_SIZE + RADAR_PADDING * 2;
+const RADAR_CENTER = RADAR_PADDING + RADAR_DRAW_SIZE / 2;
+const RADAR_RADIUS = 100;
 const RADAR_RINGS = [20, 40, 60, 80, 100];
+
+interface TinderRadarTooltip {
+  title: string;
+  percent: string;
+  leftPct: number;
+  topPct: number;
+}
 
 @Component({
   selector: 'app-tinder-preferences-page',
@@ -65,6 +76,7 @@ export class TinderPreferencesPage {
   protected readonly loadError = signal<string | null>(null);
   protected readonly autoAdvancing = signal(false);
   protected readonly animateStage = signal<'idle' | 'out' | 'in'>('idle');
+  protected readonly radarTooltip = signal<TinderRadarTooltip | null>(null);
   private autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly ratingOptions: readonly RatingOption[] = [
@@ -97,7 +109,7 @@ export class TinderPreferencesPage {
       percent: this.normalizedFactorPercent(factor.layer, factor.value),
     })),
   );
-  protected readonly radarViewSize = RADAR_SIZE;
+  protected readonly radarViewSize = RADAR_VIEW_SIZE;
   protected readonly radarCenter = RADAR_CENTER;
   protected readonly radarRings = RADAR_RINGS;
   protected readonly radarAxes = computed(() => {
@@ -108,7 +120,7 @@ export class TinderPreferencesPage {
     }
     return factors.map((factor, index) => {
       const endpoint = this.polarToCartesian(RADAR_RADIUS, index, count);
-      const labelPoint = this.polarToCartesian(RADAR_RADIUS + 18, index, count);
+      const labelPoint = this.polarToCartesian(RADAR_RADIUS + 22, index, count);
       return {
         id: factor.layer.id,
         x2: endpoint.x,
@@ -118,6 +130,8 @@ export class TinderPreferencesPage {
         textAnchor:
           labelPoint.x < RADAR_CENTER - 6 ? 'end' : labelPoint.x > RADAR_CENTER + 6 ? 'start' : 'middle',
         labelKey: factor.layer.labelKey,
+        layer: factor.layer,
+        percent: factor.percent,
       };
     });
   });
@@ -195,6 +209,7 @@ export class TinderPreferencesPage {
     if (this.currentIndex() <= 0) {
       return;
     }
+    this.hideRadarTooltip();
     this.currentIndex.update((index) => index - 1);
   }
 
@@ -226,6 +241,33 @@ export class TinderPreferencesPage {
 
   protected formatFactorPercent(value: number): string {
     return `${Math.round(value)}%`;
+  }
+
+  protected showRadarTooltip(
+    layer: ZarrLayerDefinition,
+    percent: number,
+    event: MouseEvent,
+  ): void {
+    this.radarTooltip.set({
+      title: this.translate.instant(layer.labelKey),
+      percent: this.formatFactorPercent(percent),
+      ...this.radarTooltipPositionFromEvent(event),
+    });
+  }
+
+  protected moveRadarTooltip(event: MouseEvent): void {
+    const current = this.radarTooltip();
+    if (!current) {
+      return;
+    }
+    this.radarTooltip.set({
+      ...current,
+      ...this.radarTooltipPositionFromEvent(event),
+    });
+  }
+
+  protected hideRadarTooltip(): void {
+    this.radarTooltip.set(null);
   }
 
   ngOnDestroy(): void {
@@ -261,6 +303,7 @@ export class TinderPreferencesPage {
     }
     this.autoAdvancing.set(true);
     this.animateStage.set('out');
+    this.hideRadarTooltip();
     this.autoAdvanceTimer = setTimeout(() => {
       this.currentIndex.update((index) => Math.min(index + 1, this.places.length - 1));
       this.animateStage.set('in');
@@ -293,6 +336,21 @@ export class TinderPreferencesPage {
     return {
       x: RADAR_CENTER + radius * Math.cos(angle),
       y: RADAR_CENTER + radius * Math.sin(angle),
+    };
+  }
+
+  private radarTooltipPositionFromEvent(event: MouseEvent): { leftPct: number; topPct: number } {
+    const target = event.currentTarget as SVGGraphicsElement | null;
+    const svg = target?.ownerSVGElement;
+    if (!svg) {
+      return { leftPct: 50, topPct: 50 };
+    }
+    const rect = svg.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    return {
+      leftPct: Math.min(92, Math.max(8, x)),
+      topPct: Math.min(92, Math.max(8, y)),
     };
   }
 }
