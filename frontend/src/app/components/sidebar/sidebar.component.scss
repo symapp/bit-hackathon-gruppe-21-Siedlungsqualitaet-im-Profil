@@ -208,6 +208,9 @@
 }
 
 .overview-opacity-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   margin-top: 12px;
   gap: 8px;
 }
