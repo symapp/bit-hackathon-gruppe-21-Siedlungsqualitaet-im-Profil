@@ -128,9 +128,9 @@
 }
 
 .layers-header-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .meta-warning {
@@ -155,26 +155,33 @@
 
 .layers-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px;
   min-width: 0;
+  margin-bottom: 4px;
 
   .metrics-title {
     margin-bottom: 0;
     min-width: 0;
+    text-wrap: balance;
   }
 }
 
 .layers-reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
   border: 1px solid var(--ch-border);
   border-radius: 2px;
   background: #fff;
   color: var(--ch-text-secondary);
   font-size: 0.72rem;
   font-weight: 600;
-  line-height: 1;
-  padding: 6px 10px;
+  line-height: 1.25;
+  text-align: center;
+  padding: 6px 8px;
   cursor: pointer;
   transition:
     background-color 0.15s,
@@ -202,6 +209,7 @@
 
 .overview-opacity-row {
   margin-top: 12px;
+  gap: 8px;
 }
 
 .map-layer-list {
