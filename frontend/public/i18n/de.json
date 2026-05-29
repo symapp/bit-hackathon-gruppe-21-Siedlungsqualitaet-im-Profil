@@ -130,6 +130,12 @@
       "metricLabel": "Bevölkerungsdichte",
       "metricUnit": "Einw./km²"
     },
+    "vacancyRates": {
+      "label": "Leerwohnungsziffer",
+      "description": "BFS Leerwohnungsziffer nach Gemeinde (2025, 100 m Raster)",
+      "metricLabel": "Leerwohnungsziffer",
+      "metricUnit": "%"
+    },
     "ptAccessibility": {
       "label": "ÖV-Erreichbarkeit",
       "description": "ARE Erreichbarkeitswert ÖV (EW, höher = besser erschlossen)",

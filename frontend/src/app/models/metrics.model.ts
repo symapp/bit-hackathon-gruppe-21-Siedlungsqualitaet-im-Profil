@@ -1,6 +1,7 @@
 export interface LocationMetrics {
   tranquillityIndex: number | null;
   populationDensityPerKm2: number | null;
+  vacancyRatePercent: number | null;
   publicTransportAccessibility: number | null;
   roadAccessibility: number | null;
   publicTransportQuality: number | null;
@@ -16,6 +17,7 @@ export interface LocationMetrics {
 export const EMPTY_LOCATION_METRICS: LocationMetrics = {
   tranquillityIndex: null,
   populationDensityPerKm2: null,
+  vacancyRatePercent: null,
   publicTransportAccessibility: null,
   roadAccessibility: null,
   publicTransportQuality: null,

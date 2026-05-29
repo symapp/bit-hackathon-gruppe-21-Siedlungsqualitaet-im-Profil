@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch Leerwohnungsziffer 2025 from BFS mapexplorer and write a 10 m GeoZarr.
+"""Fetch Leerwohnungsziffer 2025 from BFS mapexplorer and write a 100 m GeoZarr.
 
 For each municipality geocode (BFS Gde-nummer) found in the geocodes raster,
 the script fetches the vacancy-rate time series from the BFS mapexplorer API
@@ -9,11 +9,11 @@ Municipalities with no data receive NaN.
 
 Input
 -----
-geocodes_municipalities_10m.zarr  — produced by geo_geocodes.py
+geocodes_municipalities_100m.zarr  — produced by geo_geocodes.py
 
 Output
 ------
-leerwohnungsziffer_municipalities_10m.zarr  — xarray Dataset, variable
+leerwohnungsziffer_municipalities_100m.zarr  — xarray Dataset, variable
 "leerwohnungsziffer" (float32).
 """
 
@@ -49,8 +49,8 @@ TARGET_YEAR = "2025"
 DATA_KEY = "leerwohnungsziffer"
 DATASET_KEY = "ch_09_03b"
 
-DEFAULT_GEOCODES_ZARR = "geocodes_municipalities_10m.zarr"
-DEFAULT_OUT = "leerwohnungsziffer_municipalities_10m.zarr"
+DEFAULT_GEOCODES_ZARR = "geocodes_municipalities_100m.zarr"
+DEFAULT_OUT = "leerwohnungsziffer_municipalities_100m.zarr"
 DEFAULT_CACHE = "leerwohnungsziffer_cache.json"
 
 # Polite delay between API calls per thread (seconds).
@@ -254,7 +254,7 @@ def write_zarr(dataset: xr.Dataset, out: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            f"Build a 10 m GeoZarr of Leerwohnungsziffer {TARGET_YEAR} by municipality, "
+            f"Build a 100 m GeoZarr of Leerwohnungsziffer {TARGET_YEAR} by municipality, "
             "fetched from the BFS mapexplorer API."
         )
     )

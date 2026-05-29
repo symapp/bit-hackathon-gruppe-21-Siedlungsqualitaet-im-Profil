@@ -40,6 +40,8 @@ export interface ZarrLayerDefinition {
   formatValue: (value: number) => string;
   /** Used for the aggregated overview score (0–100). */
   higherIsBetter: boolean;
+  /** Set false for layers that are not compatible with overview grid/L0D yet. */
+  includeInOverview?: boolean;
   /** Coarse GeoZarr stores for national overview (from coarsen_settlement_layers.py). */
   overviewCoarse?: {
     storePath500: string;
@@ -73,6 +75,7 @@ const CLIM = {
   tranquillity: [0, 1] as [number, number],
   /** Raw Einw./km² from STATPOP (see settlement-layer-meta p5/p95 ≈ 300–9900). */
   populationDensity: [300, 9_900] as [number, number],
+  vacancyRates: [0.5, 2.5] as [number, number],
   /** ARE ÖV EW (populated cells; see settlement-layer-meta p5/p95). */
   ptAccessibility: [4, 2_533] as [number, number],
   /** ARE MIV EW (populated cells; see settlement-layer-meta p5/p95). */
@@ -124,6 +127,24 @@ const ZARR_LAYER_DEFINITIONS_BASE: Omit<ZarrLayerDefinition, 'overviewCoarse'>[]
     metricUnitKey: 'layers.populationDensity.metricUnit',
     formatValue: (v) => Math.round(v).toLocaleString('de-CH'),
     higherIsBetter: false,
+  },
+  {
+    id: 'vacancy-rates',
+    labelKey: 'layers.vacancyRates.label',
+    descriptionKey: 'layers.vacancyRates.description',
+    storePath: `${base}/leerwohnungsziffer_municipalities_100m.zarr`,
+    variable: 'leerwohnungsziffer',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#f7fcf0', '#ccebc5', '#7bccc4', '#2b8cbe', '#084081'],
+    clim: CLIM.vacancyRates,
+    metricKey: 'vacancyRatePercent',
+    metricLabelKey: 'layers.vacancyRates.metricLabel',
+    metricUnitKey: 'layers.vacancyRates.metricUnit',
+    formatValue: (v) => `${v.toFixed(2)} %`,
+    higherIsBetter: false,
+    includeInOverview: false,
   },
   {
     id: 'pt-accessibility',

@@ -1,13 +1,13 @@
 Settlement quality
 #!/usr/bin/env python3
-"""Rasterize swissBOUNDARIES3D municipality polygons to a 10 m GeoZarr with BFS geocodes.
+"""Rasterize swissBOUNDARIES3D municipality polygons to a 100 m GeoZarr with BFS geocodes.
 
 Each pixel receives the BFS Gemeinde-Nummer (BFS_NUMMER) of the municipality it falls
 within.  Pixels outside any municipality boundary are set to 0.
 
 Output
 ------
-geocodes_municipalities_10m.zarr  — xarray Dataset with variable "geocode" (int32).
+geocodes_municipalities_100m.zarr  — xarray Dataset with variable "geocode" (int32).
 """
 
 from __future__ import annotations
@@ -55,16 +55,16 @@ MUNICIPALITY_LAYER_CANDIDATES = [
 # Column in swissBOUNDARIES3D that holds the official BFS Gemeinde-Nummer.
 BFS_COLUMN_CANDIDATES = ["BFS_NUMMER", "GMDE_NR", "OBJECTVAL", "BFS_NR"]
 
-RESOLUTION_M = 10
-DEFAULT_OUT = "geocodes_municipalities_10m.zarr"
+RESOLUTION_M = 100
+DEFAULT_OUT = "geocodes_municipalities_100m.zarr"
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _swiss_10m_bounds() -> tuple[float, float, float, float]:
-    """Return (xmin, ymin, xmax, ymax) snapped to 10 m edges."""
+def _swiss_100m_bounds() -> tuple[float, float, float, float]:
+    """Return (xmin, ymin, xmax, ymax) snapped to 100 m edges."""
     xmin, ymin, xmax, ymax = SWISS_GRID_100M_EDGE_BOUNDS
     snap = RESOLUTION_M
     xmin = snap * np.floor(xmin / snap)
@@ -74,8 +74,8 @@ def _swiss_10m_bounds() -> tuple[float, float, float, float]:
     return xmin, ymin, xmax, ymax
 
 
-def _build_10m_target_grid() -> xr.DataArray:
-    xmin, ymin, xmax, ymax = _swiss_10m_bounds()
+def _build_100m_target_grid() -> xr.DataArray:
+    xmin, ymin, xmax, ymax = _swiss_100m_bounds()
     half = RESOLUTION_M / 2.0
     x = np.arange(xmin + half, xmax, RESOLUTION_M, dtype=np.float64)
     y = np.arange(ymax - half, ymin, -RESOLUTION_M, dtype=np.float64)
@@ -129,9 +129,17 @@ def _detect_layer(gpkg_path: Path) -> str:
 
 
 def _detect_bfs_column(gdf: gpd.GeoDataFrame) -> str:
+    columns_by_lower = {str(col).lower(): col for col in gdf.columns}
     for candidate in BFS_COLUMN_CANDIDATES:
-        if candidate in gdf.columns:
-            return candidate
+        exact = columns_by_lower.get(candidate.lower())
+        if exact is not None:
+            return exact
+
+    # Fall back to a generic fuzzy match such as bfs_nummer / bfs_nr variants.
+    for lower_name, original_name in columns_by_lower.items():
+        if "bfs" in lower_name and ("nummer" in lower_name or lower_name.endswith("_nr") or lower_name == "nr"):
+            return original_name
+
     raise ValueError(
         f"Cannot find BFS number column.  Available columns: {list(gdf.columns)}. "
         "Pass --bfs-column explicitly."
@@ -170,10 +178,12 @@ def load_municipalities(
     gdf = gpd.read_file(gpkg_path, layer=layer)
 
     # Keep only actual municipalities (filter out districts / cantons if present).
-    if "OBJEKTART" in gdf.columns:
-        gdf = gdf[gdf["OBJEKTART"] == "Gemeindegebiet"].copy()
-    elif "OBJEKTART_CH" in gdf.columns:
-        gdf = gdf[gdf["OBJEKTART_CH"] == "Gemeindegebiet"].copy()
+    columns_by_lower = {str(col).lower(): col for col in gdf.columns}
+    objektart_col = columns_by_lower.get(
+        "objektart") or columns_by_lower.get("objektart_ch")
+    if objektart_col is not None:
+        gdf = gdf[gdf[objektart_col].astype(
+            str).str.lower() == "gemeindegebiet"].copy()
 
     bfs_col = bfs_column or _detect_bfs_column(gdf)
     print(
@@ -213,16 +223,14 @@ def load_municipalities(
 
 
 def rasterize_geocodes(gdf: gpd.GeoDataFrame) -> xr.Dataset:
-    """Rasterize municipality polygons at 10 m resolution over Switzerland."""
+    """Rasterize municipality polygons at 100 m resolution over Switzerland."""
     print(f"Rasterizing {len(gdf)} municipalities at {RESOLUTION_M} m ...")
-    xmin, ymin, xmax, ymax = _swiss_10m_bounds()
+    target_grid = _build_100m_target_grid()
 
     geocube = make_geocube(
         vector_data=gdf,
         measurements=["geocode"],
-        resolution=(-RESOLUTION_M, RESOLUTION_M),
-        geom=f"POLYGON(({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))",
-        output_crs=OUTPUT_CRS,
+        like=target_grid,
         fill=0,
     )
     geocube["geocode"] = geocube["geocode"].astype(np.int32)
@@ -251,7 +259,7 @@ def write_zarr(dataset: xr.Dataset, out: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Rasterize swissBOUNDARIES3D municipality polygons to a 10 m GeoZarr "
+            "Rasterize swissBOUNDARIES3D municipality polygons to a 100 m GeoZarr "
             "where each pixel carries the BFS Gemeinde-Nummer (geocode)."
         )
     )

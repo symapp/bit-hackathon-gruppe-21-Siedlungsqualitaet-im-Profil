@@ -32,9 +32,7 @@ import type { ViewportCellExtent } from '../utils/swiss-grid.util';
 /** Country zoom: overview uses the full settlement grid clip, not just map corner cells. */
 const COUNTRY_OVERVIEW_MAX_ZOOM = 9;
 
-function overviewExtentForMap(
-  map: MaplibreMap,
-): ViewportCellExtent | null {
+function overviewExtentForMap(map: MaplibreMap): ViewportCellExtent | null {
   const bounds = map.getBounds();
   const west = bounds.getWest();
   const east = bounds.getEast();
@@ -71,6 +69,10 @@ interface ManagedZarrLayer {
   loading: boolean;
 }
 
+function isOverviewEligible(definition: ZarrLayerDefinition): boolean {
+  return definition.includeInOverview !== false;
+}
+
 export interface ZarrLayerState {
   id: string;
   labelKey: string;
@@ -87,6 +89,10 @@ export interface ZarrLayerState {
 
 const OVERVIEW_SOURCE_ID = 'settlement-overview-image';
 const SINGLE_LAYER_OPACITY = 0.82;
+
+function opacityFraction(percent: number): number {
+  return Math.min(1, Math.max(0, percent / 100));
+}
 
 @Injectable({
   providedIn: 'root',
@@ -191,7 +197,10 @@ export class ZarrMapService {
 
     this.syncLayerStateSignal();
     this.installLayersOnMap(map);
-    exposeOverviewForE2e(() => this.getOverviewE2eState(), () => this.syncOverviewToViewport());
+    exposeOverviewForE2e(
+      () => this.getOverviewE2eState(),
+      () => this.syncOverviewToViewport(),
+    );
     exposeZarrSampleForE2e((lng, lat, layerId) => this.sampleLayerAt(lng, lat, layerId));
   }
 
@@ -451,9 +460,14 @@ export class ZarrMapService {
     }
 
     const preferences = this.layerPreferences();
-    const hasOverview = Object.entries(preferences).some(
-      ([id, pref]) => pref.enabled && pref.importance > 0 && this.managedLayers.get(id)?.ready,
-    );
+    const hasOverview = [...this.managedLayers.values()].some(({ definition, ready }) => {
+      if (!ready || !isOverviewEligible(definition)) {
+        return false;
+      }
+      const pref = preferences[definition.id];
+      return !!pref?.enabled && pref.importance > 0;
+    });
+    const overlayOpacity = opacityFraction(this.overviewOpacity());
 
     for (const { definition, layer } of this.managedLayers.values()) {
       if (!this.map.getLayer(layer.id)) {
@@ -461,7 +475,7 @@ export class ZarrMapService {
       }
       const pref = preferences[definition.id];
       const showSingle = pref?.enabled && pref.importance > 0 && !hasOverview;
-      layer.setOpacity(showSingle ? SINGLE_LAYER_OPACITY : 0);
+      layer.setOpacity(showSingle ? SINGLE_LAYER_OPACITY * overlayOpacity : 0);
     }
 
     if (this.map.getLayer(OVERVIEW_MAP_LAYER_ID)) {
@@ -473,7 +487,7 @@ export class ZarrMapService {
       this.map.setPaintProperty(
         OVERVIEW_MAP_LAYER_ID,
         'raster-opacity',
-        hasOverview ? this.overviewOpacity() / 100 : 0,
+        hasOverview ? overlayOpacity : 0,
       );
     }
 
@@ -486,10 +500,8 @@ export class ZarrMapService {
   }
 
   setOverviewOpacity(value: number): void {
-    this.overviewOpacity.set(value);
-    if (this.map?.getLayer(OVERVIEW_MAP_LAYER_ID)) {
-      this.map.setPaintProperty(OVERVIEW_MAP_LAYER_ID, 'raster-opacity', value / 100);
-    }
+    this.overviewOpacity.set(Math.min(100, Math.max(0, Math.round(value))));
+    this.applyLayerDisplay({ rescoreOnly: true });
   }
 
   private scheduleOverviewRescore(): void {
@@ -506,10 +518,7 @@ export class ZarrMapService {
 
     if (this.map && this.overviewLoading()) {
       const requested = overviewExtentForMap(this.map);
-      if (
-        requested &&
-        this.pendingOverviewFullCells > requested.fullNx * requested.fullNy * 4
-      ) {
+      if (requested && this.pendingOverviewFullCells > requested.fullNx * requested.fullNy * 4) {
         return;
       }
     }
@@ -526,11 +535,13 @@ export class ZarrMapService {
   }
 
   private buildSources(plan: ReturnType<typeof resolveOverviewLod>) {
-    return [...this.managedLayers.values()].map(({ definition, layer, ready }) => ({
-      definition,
-      ready,
-      queryContext: { definition, layer, plan },
-    }));
+    return [...this.managedLayers.values()]
+      .filter(({ definition }) => isOverviewEligible(definition))
+      .map(({ definition, layer, ready }) => ({
+        definition,
+        ready,
+        queryContext: { definition, layer, plan },
+      }));
   }
 
   private async runOverviewRescore(): Promise<void> {
@@ -571,7 +582,12 @@ export class ZarrMapService {
 
     const missing = sources.filter((s) => {
       const pref = preferences[s.definition.id];
-      return s.ready && pref?.enabled && pref.importance > 0 && !this.lastRawByLayerId.has(s.definition.id);
+      return (
+        s.ready &&
+        pref?.enabled &&
+        pref.importance > 0 &&
+        !this.lastRawByLayerId.has(s.definition.id)
+      );
     });
 
     if (missing.length > 0) {

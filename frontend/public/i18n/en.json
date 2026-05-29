@@ -130,6 +130,12 @@
       "metricLabel": "Population density",
       "metricUnit": "inh./km²"
     },
+    "vacancyRates": {
+      "label": "Vacancy rates",
+      "description": "FSO vacancy-rate indicator by municipality (2025, 100 m grid)",
+      "metricLabel": "Vacancy rate",
+      "metricUnit": "%"
+    },
     "ptAccessibility": {
       "label": "PT accessibility",
       "description": "ARE public transport accessibility score (EW, higher = better connected)",
