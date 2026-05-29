@@ -7,7 +7,7 @@ import { GeocodingService } from '../../services/geocoding.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker, Popup, type MapMouseEvent } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
+import { PolygonLayer } from '@deck.gl/layers';
 import {
   amenityMarkerDisplayForZoom,
   createAmenityMarkerElement,
@@ -151,7 +151,7 @@ export class MapComponent implements OnInit, OnDestroy {
     });
 
     this.deckOverlay = new MapboxOverlay({
-      interleaved: true,
+      interleaved: false,
       layers: [],
     });
 
@@ -393,32 +393,33 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   private updateDeckLayers(regions: RegionOfInterest[], activeRegionId: string): void {
-    const circleData = regions.map((region) => {
+    const sortedRegions = [...regions].sort((a, b) => {
+      const aActive = a.id === activeRegionId;
+      const bActive = b.id === activeRegionId;
+      if (aActive !== bActive) {
+        return aActive ? 1 : -1;
+      }
+      return b.radius - a.radius;
+    });
+
+    const circleData = sortedRegions.map((region) => {
       const baseColor = this.hexToRgb(region.color);
       const isActive = region.id === activeRegionId;
 
       return {
         polygon: this.createCirclePolygon(region.lng, region.lat, region.radius),
-        center: [region.lng, region.lat] as [number, number],
-        fillColor: [baseColor[0], baseColor[1], baseColor[2], isActive ? 46 : 24] as [
+        fillColor: [baseColor[0], baseColor[1], baseColor[2], isActive ? 56 : 32] as [
           number,
           number,
           number,
           number,
         ],
-        lineColor: [baseColor[0], baseColor[1], baseColor[2], isActive ? 220 : 140] as [
+        lineColor: [baseColor[0], baseColor[1], baseColor[2], isActive ? 230 : 160] as [
           number,
           number,
           number,
           number,
         ],
-        pointColor: [baseColor[0], baseColor[1], baseColor[2], isActive ? 240 : 190] as [
-          number,
-          number,
-          number,
-          number,
-        ],
-        pointRadius: isActive ? 8 : 6,
       };
     });
 
@@ -434,16 +435,9 @@ export class MapComponent implements OnInit, OnDestroy {
         filled: true,
         stroked: true,
         pickable: false,
-      }),
-      new ScatterplotLayer({
-        id: 'region-center-points',
-        data: circleData,
-        getPosition: (d: { center: [number, number] }) => d.center,
-        getFillColor: (d: { pointColor: [number, number, number, number] }) => d.pointColor,
-        getRadius: (d: { pointRadius: number }) => d.pointRadius,
-        radiusUnits: 'pixels',
-        filled: true,
-        pickable: false,
+        parameters: {
+          depthTest: false,
+        },
       }),
     ];
 
