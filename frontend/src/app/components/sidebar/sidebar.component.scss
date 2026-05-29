@@ -72,6 +72,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
+  box-sizing: border-box;
 }
 
 .sidebar-title {
@@ -237,6 +238,7 @@
   border: 1px solid var(--ch-border);
   border-radius: 2px;
   background: #fff;
+  box-sizing: border-box;
   transition:
     border-color 0.15s,
     opacity 0.15s;
@@ -546,11 +548,26 @@
   }
 }
 
+@keyframes amenitySubEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+    padding-top: 0;
+    border-top-width: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    padding-top: 8px;
+    border-top-width: 1px;
+  }
+}
+
 .amenity-sub-rows {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--ch-border);
+  border-top-style: solid;
+  border-top-color: var(--ch-border);
+  animation: amenitySubEnter 0.3s ease forwards;
 }
