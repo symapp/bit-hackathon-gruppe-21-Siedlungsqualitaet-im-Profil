@@ -204,9 +204,6 @@
 .factor-list {
   display: grid;
   gap: 8px;
-  max-height: 360px;
-  overflow: auto;
-  padding-right: 4px;
 }
 
 .factor-row {
@@ -345,10 +342,6 @@
     height: 200px;
   }
 
-  .factor-list {
-    max-height: 220px;
-  }
-
   .actions-spacer {
     display: none;
   }
@@ -412,9 +405,5 @@
 
   .radar-label {
     font-size: 8px;
-  }
-
-  .factor-list {
-    max-height: 180px;
   }
 }
