@@ -135,6 +135,7 @@ export class MapComponent implements OnInit, OnDestroy {
     this.marker = new Marker({
       draggable: true,
       color: '#6366f1',
+      className: 'region-map-marker',
     })
       .setLngLat([lng, lat])
       .addTo(this.map);
@@ -365,6 +366,7 @@ export class MapComponent implements OnInit, OnDestroy {
         .setHTML(this.amenityPopupHtml(amenity))
         .addTo(this.map);
       this.amenityHoverPopupAmenityId = amenity.id;
+      this.elevateAmenityPopup();
       this.attachAmenityPopupHoverHandlers();
     };
 
@@ -372,6 +374,17 @@ export class MapComponent implements OnInit, OnDestroy {
     element.addEventListener('mouseleave', () => this.scheduleAmenityPopupHide());
     element.addEventListener('focus', showPopup);
     element.addEventListener('blur', () => this.scheduleAmenityPopupHide());
+  }
+
+  /** Keep hover popups above deck.gl layers, markers, and map controls. */
+  private elevateAmenityPopup(): void {
+    const popupElement = this.amenityHoverPopup?.getElement();
+    if (!popupElement || !this.map) {
+      return;
+    }
+
+    popupElement.style.zIndex = '10';
+    this.map.getContainer().appendChild(popupElement);
   }
 
   private attachAmenityPopupHoverHandlers(): void {

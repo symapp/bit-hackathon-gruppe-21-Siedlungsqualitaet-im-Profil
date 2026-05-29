@@ -17,8 +17,15 @@
   pointer-events: none;
 }
 
-:host ::ng-deep .maplibregl-marker {
+// Stack: deck (1) → amenity dots (2) → location/amenity pins (4) → popovers (10).
+:host ::ng-deep .amenity-map-marker.maplibregl-marker[data-display='dot'] {
   z-index: 2;
+  pointer-events: auto;
+}
+
+:host ::ng-deep .region-map-marker,
+:host ::ng-deep .amenity-map-marker.maplibregl-marker[data-display='pin'] {
+  z-index: 4;
   pointer-events: auto;
 }
 
@@ -106,7 +113,8 @@
   will-change: transform;
 }
 
-:host ::ng-deep .amenity-map-popup {
+:host ::ng-deep .amenity-map-popup.maplibregl-popup {
+  z-index: 10;
   pointer-events: auto;
 }
 
