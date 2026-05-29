@@ -17,7 +17,7 @@ export const LANGUAGES: Language[] = [
 ];
 
 const STORAGE_KEY = 'app-locale';
-const DEFAULT_LOCALE: Locale = 'de';
+const DEFAULT_LOCALE: Locale = 'en';
 
 @Injectable({
   providedIn: 'root',

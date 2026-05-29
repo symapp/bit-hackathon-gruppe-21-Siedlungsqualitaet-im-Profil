@@ -53,7 +53,7 @@ export class GeocodingService {
       signal,
       headers: {
         Accept: 'application/json',
-        'Accept-Language': this.translate.currentLang ?? 'de',
+        'Accept-Language': this.translate.currentLang ?? 'en',
       },
     });
 
@@ -98,7 +98,7 @@ export class GeocodingService {
       signal,
       headers: {
         Accept: 'application/json',
-        'Accept-Language': this.translate.currentLang ?? 'de',
+        'Accept-Language': this.translate.currentLang ?? 'en',
       },
     });
 

@@ -31,7 +31,6 @@
     "resetLayer": "Reset factor",
     "metaFallback": "Metadata not loaded — scale from preset.",
     "weight": "Weight",
-    "coordinates": "Coordinates",
     "calculating": "Calculating values…",
     "scoreUnit": "/ 100",
     "layerLoading": "loading…",

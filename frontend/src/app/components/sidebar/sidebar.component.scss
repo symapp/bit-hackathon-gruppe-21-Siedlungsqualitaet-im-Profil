@@ -364,32 +364,6 @@
   margin: 0 0 12px 0;
 }
 
-.coordinates-section {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
-  margin-bottom: 16px;
-  background: var(--ch-bg-light);
-  border-radius: 2px;
-  border: 1px solid var(--ch-border);
-}
-
-.coord-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ch-text-secondary);
-}
-
-.coord-value {
-  font-size: 0.75rem;
-  color: var(--ch-text-secondary);
-  font-family: 'JetBrains Mono', monospace;
-  overflow-wrap: anywhere;
-}
-
 .preset-section {
   margin-bottom: 1rem;
 }
@@ -520,7 +494,6 @@
   .overview-section,
   .layers-section,
   .map-layer-card,
-  .coordinates-section,
   .address-display {
     width: 100%;
     max-width: 100%;
