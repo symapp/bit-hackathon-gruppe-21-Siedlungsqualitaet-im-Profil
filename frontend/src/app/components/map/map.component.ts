@@ -296,8 +296,8 @@ export class MapComponent implements OnInit, OnDestroy {
         getPosition: (amenity) => [amenity.lng, amenity.lat],
         getIcon: (amenity) => ({
           url: getAmenityIcon(amenity.type),
-          width: 64,
-          height: 64,
+          width: 128,
+          height: 128,
           mask: true,
         }),
         getSize: 50,

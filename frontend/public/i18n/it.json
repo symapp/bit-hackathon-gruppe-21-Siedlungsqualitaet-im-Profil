@@ -35,6 +35,11 @@
     "amenityTitle": "Servizi e Negozi",
     "amenityLoading": "Caricamento…",
     "amenityAway": "di distanza",
+    "amenityCategoryShopping": "Shopping",
+    "amenityCategoryHealth": "Salute",
+    "amenityCategoryPharmacy": "Farmacia",
+    "amenityCategoryCulture": "Cultura",
+    "amenityCategoryHospital": "Ospedale",
     "deselectAll": "Deseleziona tutto",
     "showAdvanced": "Mostra funzione avanzata",
     "hideAdvanced": "Nascondi funzione avanzata"

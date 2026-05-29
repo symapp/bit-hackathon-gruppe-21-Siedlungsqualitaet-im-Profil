@@ -125,72 +125,66 @@
             </div>
 
             @if (locationService.amenitiesEnabled()) {
-              <div
-                class="region-amenity-row"
-                [class.expanded]="expandedRegionId === region.id"
-                (click)="toggleRegionAmenities(region.id, $event)"
-              >
-                <div class="region-amenity-label-group">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="amenity-icon"
+              @for (category of categories; track category.key) {
+                @let count = locationService.amenityCountByCategoryForRegion(region.id, category.key);
+                @if (count > 0) {
+                  <div
+                    class="region-amenity-row"
+                    [class.expanded]="expandedRegionId === region.id && expandedCategoryKey === category.key"
+                    (click)="toggleCategory(region.id, category.key, $event)"
                   >
-                    <path d="M11.99973,5.7762c-1.74805,0-3.1709,1.42285-3.1709,3.17139s1.42285,3.1709,3.1709,3.1709c1.74902,0,3.17185-1.42236,3.17185-3.1709s-1.42283-3.17139-3.17185-3.17139ZM11.99973,10.61849c-.9209,0-1.6709-.74951-1.6709-1.6709s.75-1.67139,1.6709-1.67139c.92185,0,1.67185.75,1.67185,1.67139s-.75,1.6709-1.67185,1.6709ZM11.99973,1.24984c-4.24414,0-7.69629,3.45312-7.69629,7.69727,0,1.18799.2627,2.32666.81836,3.4502l6.87793,11.01904,6.91602-11.08643c.51855-1.05859.78125-2.19678.78125-3.38281,0-4.24414-3.45312-7.69727-7.69727-7.69727ZM17.60617,11.60335l-5.60645,8.98047-5.56836-8.91406c-.41699-.84961-.62793-1.76562-.62793-2.72266,0-3.41699,2.7793-6.19727,6.19629-6.19727s6.19727,2.78027,6.19727,6.19727c0,.95508-.21191,1.87158-.59082,2.65625Z"/>
-                  </svg>
-                  <span class="region-amenity-label">{{ 'sidebar.amenityLabel' | translate }}</span>
-                </div>
-                <div class="region-amenity-value-group">
-                  @if (locationService.amenityCountLoadingForRegion(region.id)) {
-                    <span class="region-amenity-value muted">{{
-                      'sidebar.amenityLoading' | translate
-                    }}</span>
-                  } @else if (locationService.amenityCountErrorForRegion(region.id)) {
-                    <span class="region-amenity-value error">
-                      {{ locationService.amenityCountErrorForRegion(region.id) }}
-                    </span>
-                  } @else {
-                    <span class="region-amenity-value">
-                      {{ locationService.amenityCountForRegion(region.id) }}
-                    </span>
-                  }
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="chevron-icon"
-                  >
-                    <path d="M12,15.46403L2.625,10.05095l.75-1.29883,8.625,4.97949,8.625-4.97949.75,1.29883-9.375,5.41309Z"/>
-                  </svg>
-                </div>
-              </div>
-
-              @if (expandedRegionId === region.id && !locationService.amenityCountLoadingForRegion(region.id)) {
-                <div class="amenity-details-list" (click)="$event.stopPropagation()">
-                  @for (amenity of locationService.amenitiesForRegion(region.id); track amenity.id) {
-                    <div class="amenity-item">
-                      <div class="amenity-item-icon-wrapper">
-                        <div
-                          class="amenity-item-icon"
-                          [style.mask-image]="'url(' + getAmenityIcon(amenity.type) + ')'"
-                          [style.-webkit-mask-image]="'url(' + getAmenityIcon(amenity.type) + ')'"
-                        ></div>
-                      </div>
-                      <div class="amenity-item-info">
-                        <span class="amenity-item-name">{{ amenity.name }}</span>
-                        <span class="amenity-item-address">{{ amenity.address || 'Keine Adresse' }}</span>
-                      </div>
-                      <span class="amenity-item-distance">{{ Math.round(amenity.distanceMeters) }}m</span>
+                    <div class="region-amenity-label-group">
+                      <div
+                        class="amenity-icon category-icon"
+                        [style.mask-image]="'url(icons/' + category.icon + '.svg)'"
+                        [style.-webkit-mask-image]="'url(icons/' + category.icon + '.svg)'"
+                      ></div>
+                      <span class="region-amenity-label">{{ category.label | translate }}</span>
                     </div>
-                  } @empty {
-                    <div class="amenity-empty">Keine Angebote in diesem Radius gefunden.</div>
+                    <div class="region-amenity-value-group">
+                      @if (locationService.amenityCountLoadingForRegion(region.id)) {
+                        <span class="region-amenity-value muted">{{
+                          'sidebar.amenityLoading' | translate
+                        }}</span>
+                      } @else {
+                        <span class="region-amenity-value">{{ count }}</span>
+                      }
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="chevron-icon"
+                      >
+                        <path d="M12,15.46403L2.625,10.05095l.75-1.29883,8.625,4.97949,8.625-4.97949.75,1.29883-9.375,5.41309Z"/>
+                      </svg>
+                    </div>
+                  </div>
+
+                  @if (expandedRegionId === region.id && expandedCategoryKey === category.key && !locationService.amenityCountLoadingForRegion(region.id)) {
+                    <div class="amenity-details-list" (click)="$event.stopPropagation()">
+                      @for (amenity of locationService.amenitiesForRegion(region.id); track amenity.id) {
+                        @if (getAmenityCategory(amenity.type) === category.key) {
+                          <div class="amenity-item">
+                            <div class="amenity-item-icon-wrapper">
+                              <div
+                                class="amenity-item-icon"
+                                [style.mask-image]="'url(' + getAmenityIcon(amenity.type) + ')'"
+                                [style.-webkit-mask-image]="'url(' + getAmenityIcon(amenity.type) + ')'"
+                              ></div>
+                            </div>
+                            <div class="amenity-item-info">
+                              <span class="amenity-item-name">{{ amenity.name }}</span>
+                              <span class="amenity-item-address">{{ amenity.address || 'Keine Adresse' }}</span>
+                            </div>
+                            <span class="amenity-item-distance">{{ Math.round(amenity.distanceMeters) }}m</span>
+                          </div>
+                        }
+                      }
+                    </div>
                   }
-                </div>
+                }
               }
             }
           </div>

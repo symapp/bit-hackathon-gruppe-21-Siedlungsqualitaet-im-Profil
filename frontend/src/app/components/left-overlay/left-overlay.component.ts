@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { RegionFactorsChartComponent } from '../region-factors-chart/region-factors-chart.component';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
-import { getAmenityIcon } from '../../services/overpass.service';
+import { getAmenityCategory, getAmenityIcon } from '../../services/overpass.service';
 
 @Component({
   selector: 'app-left-overlay',
@@ -16,19 +16,30 @@ export class LeftOverlayComponent {
   protected readonly locationService = inject(LocationService);
   protected readonly Math = Math;
   protected readonly getAmenityIcon = getAmenityIcon;
+  protected readonly getAmenityCategory = getAmenityCategory;
+  protected readonly categories = [
+    { key: 'shopping', icon: 'shopping-cart', label: 'sidebar.amenityCategoryShopping' },
+    { key: 'health', icon: 'heart', label: 'sidebar.amenityCategoryHealth' },
+    { key: 'pharmacy', icon: 'plus', label: 'sidebar.amenityCategoryPharmacy' },
+    { key: 'culture', icon: 'theater_masks', label: 'sidebar.amenityCategoryCulture' },
+    { key: 'hospital', icon: 'hospital', label: 'sidebar.amenityCategoryHospital' },
+  ] as const;
   protected isCollapsed = false;
   protected expandedRegionId: string | null = null;
+  protected expandedCategoryKey: string | null = null;
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
   }
 
-  toggleRegionAmenities(regionId: string, event: Event): void {
+  toggleCategory(regionId: string, categoryKey: string, event: Event): void {
     event.stopPropagation();
-    if (this.expandedRegionId === regionId) {
+    if (this.expandedRegionId === regionId && this.expandedCategoryKey === categoryKey) {
       this.expandedRegionId = null;
+      this.expandedCategoryKey = null;
     } else {
       this.expandedRegionId = regionId;
+      this.expandedCategoryKey = categoryKey;
       this.locationService.setActiveRegion(regionId);
     }
   }

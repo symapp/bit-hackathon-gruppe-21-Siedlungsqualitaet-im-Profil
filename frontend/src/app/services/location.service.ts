@@ -1,6 +1,6 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { clampToSwitzerland } from '../config/map-bounds.config';
-import { OverpassService, type NearbyAmenity } from './overpass.service';
+import { getAmenityCategory, OverpassService, type NearbyAmenity } from './overpass.service';
 import { ZARR_LAYER_DEFINITIONS } from '../config/zarr-layers.config';
 import type { LayerPreference } from '../models/layer-preference.model';
 import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.model';
@@ -415,6 +415,12 @@ export class LocationService {
 
   amenityCountForRegion(regionId: string): number {
     return this.amenitiesForRegion(regionId).length;
+  }
+
+  amenityCountByCategoryForRegion(regionId: string, category: string): number {
+    return this.amenitiesForRegion(regionId).filter(
+      (a) => getAmenityCategory(a.type) === category,
+    ).length;
   }
 
   amenityCountLoadingForRegion(regionId: string): boolean {

@@ -311,6 +311,18 @@
   opacity: 0.8;
 }
 
+.category-icon {
+  width: 14px;
+  height: 14px;
+  background-color: var(--ch-red);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
 .chevron-icon {
   color: var(--ch-text-secondary);
   transition: transform 0.2s ease;
@@ -509,4 +521,6 @@
 .amenity-count-section .amenity-count-status.error {
   color: var(--ch-red);
 }
+
+
 

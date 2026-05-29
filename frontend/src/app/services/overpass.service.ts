@@ -4,7 +4,8 @@ export const AMENITY_ICONS: Record<string, string> = {
   shopping: 'icons/shopping-cart.svg',
   health: 'icons/heart.svg',
   pharmacy: 'icons/plus.svg',
-  entertainment: 'icons/grid.svg',
+  entertainment: 'icons/theater_masks.svg',
+  culture: 'icons/theater_masks.svg',
   hospital: 'icons/hospital.svg',
   default: 'icons/location.svg',
 };
@@ -16,6 +17,15 @@ export function getAmenityIcon(type: string): string {
   if (['theatre', 'cinema'].includes(type)) return AMENITY_ICONS['entertainment'];
   if (type === 'hospital') return AMENITY_ICONS['hospital'];
   return AMENITY_ICONS['default'];
+}
+
+export function getAmenityCategory(type: string): string {
+  if (['supermarket', 'grocery', 'convenience', 'greengrocer'].includes(type)) return 'shopping';
+  if (['doctors', 'dentist'].includes(type)) return 'health';
+  if (type === 'pharmacy') return 'pharmacy';
+  if (['theatre', 'cinema'].includes(type)) return 'culture';
+  if (type === 'hospital') return 'hospital';
+  return 'default';
 }
 
 export interface NearbyAmenity {
