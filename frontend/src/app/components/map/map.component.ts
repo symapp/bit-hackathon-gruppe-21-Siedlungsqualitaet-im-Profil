@@ -1,18 +1,14 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
-import { getAmenityIcon, type NearbyAmenity } from '../../services/overpass.service';
+import type { NearbyAmenity } from '../../services/overpass.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
 import { GeocodingService } from '../../services/geocoding.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker, Popup, type MapMouseEvent } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
-import {
-  amenityMarkerDisplayForZoom,
-  createAmenityMarkerElement,
-  setAmenityMarkerDisplay,
-} from '../../utils/amenity-map-pin.util';
+import { createAmenityMarkerElement } from '../../utils/amenity-map-pin.util';
 
 import { clampToSwitzerland, SWITZERLAND_MAX_BOUNDS } from '../../config/map-bounds.config';
 import { mapUiPaddingEquals, readMapUiPadding } from '../../utils/map-ui-insets.util';
@@ -36,9 +32,6 @@ export class MapComponent implements OnInit, OnDestroy {
   private amenityPopupHideTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly amenityPopupOffset: [number, number] = [0, -58];
   private readonly amenityPopupHideDelayMs = 180;
-  private readonly onMapZoomChange = (): void => {
-    this.applyAmenityMarkerZoomMode();
-  };
   private deckOverlay!: MapboxOverlay;
   private locationService = inject(LocationService);
   private zarrMapService = inject(ZarrMapService);
@@ -100,8 +93,6 @@ export class MapComponent implements OnInit, OnDestroy {
       this.deckOverlay.finalize();
     }
     if (this.map) {
-      this.map.off('zoom', this.onMapZoomChange);
-      this.map.off('zoomend', this.onMapZoomChange);
       this.map.remove();
     }
   }
@@ -162,9 +153,6 @@ export class MapComponent implements OnInit, OnDestroy {
       const center = this.map.getCenter();
       this.locationService.setViewCenter(center.lat, center.lng);
     });
-
-    this.map.on('zoom', this.onMapZoomChange);
-    this.map.on('zoomend', this.onMapZoomChange);
 
     this.map.on('load', () => {
       this.applyUiPadding();
@@ -254,17 +242,16 @@ export class MapComponent implements OnInit, OnDestroy {
     }
 
     for (const amenity of amenities) {
-      const element = createAmenityMarkerElement(getAmenityIcon(amenity.type), amenity.name);
+      const element = createAmenityMarkerElement(amenity.name);
+      element.tabIndex = 0;
       this.bindAmenityMarkerHover(element, amenity);
 
-      const marker = new Marker({ element, anchor: 'bottom' })
+      const marker = new Marker({ element, anchor: 'center' })
         .setLngLat([amenity.lng, amenity.lat])
         .addTo(this.map);
 
       this.amenityMarkerEntries.push({ marker, element, amenity });
     }
-
-    this.applyAmenityMarkerZoomMode();
   }
 
   private clearAmenityMarkers(): void {
@@ -276,28 +263,8 @@ export class MapComponent implements OnInit, OnDestroy {
     this.amenityMarkerEntries = [];
   }
 
-  private applyAmenityMarkerZoomMode(): void {
-    if (!this.map || this.amenityMarkerEntries.length === 0) {
-      return;
-    }
-
-    const display = amenityMarkerDisplayForZoom(this.map.getZoom());
-    if (display !== 'pin') {
-      this.hideAmenityPopupImmediate();
-    }
-
-    for (const entry of this.amenityMarkerEntries) {
-      setAmenityMarkerDisplay(entry.element, display);
-      entry.marker.getElement().style.pointerEvents = display === 'hidden' ? 'none' : '';
-      entry.element.tabIndex = display === 'pin' ? 0 : -1;
-    }
-  }
-
   private bindAmenityMarkerHover(element: HTMLDivElement, amenity: NearbyAmenity): void {
     const showPopup = (): void => {
-      if (element.dataset['display'] !== 'pin') {
-        return;
-      }
       this.cancelAmenityPopupHide();
 
       if (this.amenityHoverPopup && this.amenityHoverPopupAmenityId === amenity.id) {
