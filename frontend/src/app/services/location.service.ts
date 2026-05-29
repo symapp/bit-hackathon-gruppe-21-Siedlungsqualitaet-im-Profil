@@ -13,6 +13,8 @@ export interface RegionOfInterest {
   lng: number;
 }
 
+type GroceryRegionMap<T> = Record<string, T>;
+
 const DEFAULT_REGION_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7'];
 
 function createDefaultRegion(): RegionOfInterest {
@@ -36,13 +38,13 @@ export class LocationService {
   private readonly _regions = signal<RegionOfInterest[]>([createDefaultRegion()]);
   private readonly _activeRegionId = signal(this._regions()[0]?.id ?? '');
   private readonly _viewCenter = signal({ lat: 47.3769, lng: 8.5417 });
-  private readonly _groceryCount = signal(0);
-  private readonly _groceryStores = signal<GroceryStore[]>([]);
-  private readonly _groceryCountLoading = signal(false);
-  private readonly _groceryCountError = signal<string | null>(null);
+  private readonly _groceryStoresByRegion = signal<GroceryRegionMap<GroceryStore[]>>({});
+  private readonly _groceryCountLoadingByRegion = signal<GroceryRegionMap<boolean>>({});
+  private readonly _groceryCountErrorByRegion = signal<GroceryRegionMap<string | null>>({});
   private readonly _groceryStoresEnabled = signal(false);
-  private groceryFetchGeneration = 0;
-  private groceryAbort: AbortController | null = null;
+  private readonly groceryFetchGenerations = new Map<string, number>();
+  private readonly groceryAborts = new Map<string, AbortController>();
+  private readonly groceryQueryKeys = new Map<string, string>();
   private readonly _address = signal('');
 
   readonly regions = this._regions.asReadonly();
@@ -53,10 +55,19 @@ export class LocationService {
   readonly lat = computed(() => this.activeRegion()?.lat ?? 47.3769);
   readonly lng = computed(() => this.activeRegion()?.lng ?? 8.5417);
   readonly radius = computed(() => this.activeRegion()?.radius ?? 500);
-  readonly groceryCount = this._groceryCount.asReadonly();
-  readonly groceryStores = this._groceryStores.asReadonly();
-  readonly groceryCountLoading = this._groceryCountLoading.asReadonly();
-  readonly groceryCountError = this._groceryCountError.asReadonly();
+  readonly groceryStores = computed(() => {
+    const activeRegionId = this._activeRegionId();
+    return this._groceryStoresByRegion()[activeRegionId] ?? [];
+  });
+  readonly groceryCount = computed(() => this.groceryStores().length);
+  readonly groceryCountLoading = computed(() => {
+    const activeRegionId = this._activeRegionId();
+    return this._groceryCountLoadingByRegion()[activeRegionId] ?? false;
+  });
+  readonly groceryCountError = computed(() => {
+    const activeRegionId = this._activeRegionId();
+    return this._groceryCountErrorByRegion()[activeRegionId] ?? null;
+  });
   readonly groceryStoresEnabled = this._groceryStoresEnabled.asReadonly();
   readonly address = this._address.asReadonly();
 
@@ -70,23 +81,28 @@ export class LocationService {
   constructor() {
     effect((onCleanup) => {
       const activeRegion = this.activeRegion();
+      const regions = this._regions();
       const groceryStoresEnabled = this._groceryStoresEnabled();
 
       if (!activeRegion) {
-        this.clearGroceryStores();
+        this.clearAllGroceryStores();
         return;
       }
 
       const { lat, lng, radius } = activeRegion;
 
       if (!groceryStoresEnabled) {
-        this.clearGroceryStores();
+        this.clearAllGroceryStores();
+      } else {
+        this.clearRemovedRegionGroceryStores(regions);
       }
 
       const timer = setTimeout(() => {
         void this.zarrMap.sampleLocation(lng, lat);
         if (groceryStoresEnabled) {
-          void this.fetchGroceryStores(lat, lng, radius);
+          for (const region of regions) {
+            void this.fetchGroceryStores(region);
+          }
         }
       }, 300);
 
@@ -212,45 +228,118 @@ export class LocationService {
     this._groceryStoresEnabled.set(enabled);
   }
 
-  private clearGroceryStores(): void {
-    this.groceryFetchGeneration++;
-    this.groceryAbort?.abort();
-    this.groceryAbort = null;
-    this._groceryStores.set([]);
-    this._groceryCount.set(0);
-    this._groceryCountLoading.set(false);
-    this._groceryCountError.set(null);
+  groceryStoresForRegion(regionId: string): GroceryStore[] {
+    return this._groceryStoresByRegion()[regionId] ?? [];
   }
 
-  private async fetchGroceryStores(lat: number, lng: number, radius: number): Promise<void> {
-    const generation = ++this.groceryFetchGeneration;
-    this.groceryAbort?.abort();
-    this.groceryAbort = new AbortController();
-    this._groceryCountLoading.set(true);
-    this._groceryCountError.set(null);
+  groceryCountForRegion(regionId: string): number {
+    return this.groceryStoresForRegion(regionId).length;
+  }
+
+  groceryCountLoadingForRegion(regionId: string): boolean {
+    return this._groceryCountLoadingByRegion()[regionId] ?? false;
+  }
+
+  groceryCountErrorForRegion(regionId: string): string | null {
+    return this._groceryCountErrorByRegion()[regionId] ?? null;
+  }
+
+  private clearAllGroceryStores(): void {
+    for (const [regionId, abort] of this.groceryAborts) {
+      this.groceryFetchGenerations.set(regionId, (this.groceryFetchGenerations.get(regionId) ?? 0) + 1);
+      abort.abort();
+    }
+    this.groceryAborts.clear();
+    this.groceryQueryKeys.clear();
+    this._groceryStoresByRegion.set({});
+    this._groceryCountLoadingByRegion.set({});
+    this._groceryCountErrorByRegion.set({});
+  }
+
+  private clearRemovedRegionGroceryStores(regions: RegionOfInterest[]): void {
+    const regionIds = new Set(regions.map((region) => region.id));
+
+    for (const regionId of this.groceryAborts.keys()) {
+      if (!regionIds.has(regionId)) {
+        this.clearGroceryStoresForRegion(regionId);
+      }
+    }
+  }
+
+  private clearGroceryStoresForRegion(regionId: string): void {
+    this.groceryFetchGenerations.set(regionId, (this.groceryFetchGenerations.get(regionId) ?? 0) + 1);
+    this.groceryAborts.get(regionId)?.abort();
+    this.groceryAborts.delete(regionId);
+    this.groceryQueryKeys.delete(regionId);
+    this._groceryStoresByRegion.update(({ [regionId]: _removed, ...stores }) => stores);
+    this._groceryCountLoadingByRegion.update(({ [regionId]: _removed, ...loading }) => loading);
+    this._groceryCountErrorByRegion.update(({ [regionId]: _removed, ...errors }) => errors);
+  }
+
+  private async fetchGroceryStores(region: RegionOfInterest): Promise<void> {
+    const queryKey = `${region.lat.toFixed(6)}:${region.lng.toFixed(6)}:${region.radius}`;
+    const regionId = region.id;
+    const existingStores = this._groceryStoresByRegion();
+    const existingError = this._groceryCountErrorByRegion()[regionId] ?? null;
+    const isLoading = this._groceryCountLoadingByRegion()[regionId] ?? false;
+
+    if (
+      this.groceryQueryKeys.get(regionId) === queryKey &&
+      (isLoading || (Object.prototype.hasOwnProperty.call(existingStores, regionId) && existingError === null))
+    ) {
+      return;
+    }
+
+    const generation = (this.groceryFetchGenerations.get(regionId) ?? 0) + 1;
+    this.groceryFetchGenerations.set(regionId, generation);
+    this.groceryAborts.get(regionId)?.abort();
+
+    const abort = new AbortController();
+    this.groceryAborts.set(regionId, abort);
+    this.groceryQueryKeys.set(regionId, queryKey);
+    this._groceryStoresByRegion.update((stores) => ({ ...stores, [regionId]: [] }));
+    this._groceryCountLoadingByRegion.update((loading) => ({ ...loading, [regionId]: true }));
+    this._groceryCountErrorByRegion.update((errors) => ({ ...errors, [regionId]: null }));
 
     try {
       const stores = await this.overpass.getGroceryStores(
-        lat,
-        lng,
-        radius,
-        this.groceryAbort.signal,
+        region.lat,
+        region.lng,
+        region.radius,
+        abort.signal,
       );
-      if (generation === this.groceryFetchGeneration) {
-        this._groceryStores.set(stores);
-        this._groceryCount.set(stores.length);
-        this._groceryCountLoading.set(false);
+      if (generation === this.groceryFetchGenerations.get(regionId)) {
+        this._groceryStoresByRegion.update((storesByRegion) => ({
+          ...storesByRegion,
+          [regionId]: stores,
+        }));
+        this._groceryCountLoadingByRegion.update((loading) => ({
+          ...loading,
+          [regionId]: false,
+        }));
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         return;
       }
-      if (generation === this.groceryFetchGeneration) {
+      if (generation === this.groceryFetchGenerations.get(regionId)) {
         console.warn('Failed to fetch grocery store count:', error);
-        this._groceryStores.set([]);
-        this._groceryCount.set(0);
-        this._groceryCountError.set('Unable to load');
-        this._groceryCountLoading.set(false);
+        this._groceryStoresByRegion.update((storesByRegion) => ({
+          ...storesByRegion,
+          [regionId]: [],
+        }));
+        this._groceryCountErrorByRegion.update((errors) => ({
+          ...errors,
+          [regionId]: 'Unable to load',
+        }));
+        this._groceryCountLoadingByRegion.update((loading) => ({
+          ...loading,
+          [regionId]: false,
+        }));
+      }
+    } finally {
+      if (generation === this.groceryFetchGenerations.get(regionId)) {
+        this.groceryAborts.delete(regionId);
       }
     }
   }

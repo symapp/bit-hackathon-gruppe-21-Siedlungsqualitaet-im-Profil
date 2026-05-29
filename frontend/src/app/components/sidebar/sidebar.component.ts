@@ -10,14 +10,21 @@ import {
 import type { LayerPreference } from '../../models/layer-preference.model';
 import type { LocationMetrics } from '../../models/metrics.model';
 import { LocationService } from '../../services/location.service';
-import type { GroceryStore } from '../../services/overpass.service';
-import { climToNormalizationBounds, metaToNormalizationBounds } from '../../utils/preference-scoring.util';
+import {
+  climToNormalizationBounds,
+  metaToNormalizationBounds,
+} from '../../utils/preference-scoring.util';
 import { TrapezoidPreferenceEditorComponent } from '../trapezoid-preference-editor/trapezoid-preference-editor.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, LanguageSelectorComponent, TrapezoidPreferenceEditorComponent],
+  imports: [
+    FormsModule,
+    TranslatePipe,
+    LanguageSelectorComponent,
+    TrapezoidPreferenceEditorComponent,
+  ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
@@ -29,17 +36,6 @@ export class SidebarComponent {
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
-  }
-
-  formatStoreDistance(store: GroceryStore): string {
-    if (store.distanceMeters >= 1000) {
-      return `${(store.distanceMeters / 1000).toFixed(1)} km`;
-    }
-    return `${Math.round(store.distanceMeters)} m`;
-  }
-
-  formatStoreLocation(store: GroceryStore): string {
-    return store.address || `${store.lat.toFixed(5)}, ${store.lng.toFixed(5)}`;
   }
 
   formatMetricValue(key: keyof LocationMetrics): string {
@@ -105,11 +101,6 @@ export class SidebarComponent {
   onLayerEnabledChange(layerId: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     this.locationService.setZarrLayerEnabled(layerId, input.checked);
-  }
-
-  onGroceryStoresEnabledChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.locationService.setGroceryStoresEnabled(input.checked);
   }
 
   resetLayerPreference(layerId: string): void {

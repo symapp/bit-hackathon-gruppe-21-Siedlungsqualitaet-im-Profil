@@ -8,11 +8,31 @@
       (click)="toggleSidebar()"
     >
       @if (isCollapsed) {
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
       } @else {
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
       }
@@ -32,28 +52,6 @@
           <span class="address-value">{{ locationService.address() }}</span>
         </div>
       }
-
-      <div class="grocery-count-section">
-        <h3 class="metrics-title">{{ 'sidebar.groceryTitle' | translate }}</h3>
-        @if (locationService.groceryCountLoading()) {
-          <p class="store-count-status">{{ 'sidebar.groceryLoading' | translate }}</p>
-        } @else if (locationService.groceryCountError()) {
-          <p class="store-count-status error">{{ locationService.groceryCountError() }}</p>
-        } @else {
-          <p class="store-count-value">{{ locationService.groceryCount() }}</p>
-          @if (locationService.groceryStores().length > 0) {
-            <div class="store-location-list">
-              @for (store of locationService.groceryStores(); track store.id) {
-                <div class="store-location-item">
-                  <span class="store-location-name">{{ store.name }}</span>
-                  <span class="store-location-meta">{{ formatStoreDistance(store) }} {{ 'sidebar.groceryAway' | translate }}</span>
-                  <span class="store-location-address">{{ formatStoreLocation(store) }}</span>
-                </div>
-              }
-            </div>
-          }
-        }
-      </div>
 
       <div class="overview-section">
         <h3 class="metrics-title">{{ 'sidebar.overviewTitle' | translate }}</h3>
@@ -194,41 +192,9 @@
 
       <div class="coordinates-section">
         <span class="coord-label">{{ 'sidebar.coordinates' | translate }}</span>
-        <span class="coord-value">{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span>
-      </div>
-
-      <div class="grocery-count-section" [class.disabled]="!locationService.groceryStoresEnabled()">
-        <label class="grocery-toggle">
-          <input
-            type="checkbox"
-            [checked]="locationService.groceryStoresEnabled()"
-            (change)="onGroceryStoresEnabledChange($event)"
-          />
-          <span class="metrics-title">Lädeli in der Region</span>
-        </label>
-
-        @if (locationService.groceryStoresEnabled()) {
-          @if (locationService.groceryCountLoading()) {
-            <p class="store-count-status">Loading...</p>
-          } @else if (locationService.groceryCountError()) {
-            <p class="store-count-status error">{{ locationService.groceryCountError() }}</p>
-          } @else {
-            <p class="store-count-value">{{ locationService.groceryCount() }}</p>
-            @if (locationService.groceryStores().length > 0) {
-              <div class="store-location-list">
-                @for (store of locationService.groceryStores(); track store.id) {
-                  <div class="store-location-item">
-                    <span class="store-location-name">{{ store.name }}</span>
-                    <span class="store-location-meta">{{ formatStoreDistance(store) }} away</span>
-                    <span class="store-location-address">{{ formatStoreLocation(store) }}</span>
-                  </div>
-                }
-              </div>
-            }
-          }
-        } @else {
-          <p class="store-count-status">Deaktiviert</p>
-        }
+        <span class="coord-value"
+          >{{ locationService.lat().toFixed(5) }}, {{ locationService.lng().toFixed(5) }}</span
+        >
       </div>
     </div>
   }

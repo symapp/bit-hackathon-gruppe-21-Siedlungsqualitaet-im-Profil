@@ -120,7 +120,41 @@
                 <span>3 km</span>
               </div>
             </div>
+
+            @if (locationService.groceryStoresEnabled()) {
+              <div class="region-grocery-row">
+                <span class="region-grocery-label">Lädeli</span>
+                @if (locationService.groceryCountLoadingForRegion(region.id)) {
+                  <span class="region-grocery-value muted">Loading...</span>
+                } @else if (locationService.groceryCountErrorForRegion(region.id)) {
+                  <span class="region-grocery-value error">
+                    {{ locationService.groceryCountErrorForRegion(region.id) }}
+                  </span>
+                } @else {
+                  <span class="region-grocery-value">
+                    {{ locationService.groceryCountForRegion(region.id) }}
+                  </span>
+                }
+              </div>
+            }
           </div>
+        }
+      </div>
+
+      <div class="grocery-count-section" [class.disabled]="!locationService.groceryStoresEnabled()">
+        <label class="grocery-toggle">
+          <input
+            type="checkbox"
+            [checked]="locationService.groceryStoresEnabled()"
+            (change)="onGroceryStoresEnabledChange($event)"
+          />
+          <span class="grocery-title">Lädeli in der Region</span>
+        </label>
+
+        @if (locationService.groceryStoresEnabled()) {
+          <p class="store-count-status">Pro Region aktiviert</p>
+        } @else {
+          <p class="store-count-status">Deaktiviert</p>
         }
       </div>
     </div>

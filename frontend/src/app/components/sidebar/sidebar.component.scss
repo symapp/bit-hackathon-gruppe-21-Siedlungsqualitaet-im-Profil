@@ -67,8 +67,6 @@
 }
 
 .sidebar-content {
-  display: flex;
-  flex-direction: column;
   padding: 48px 20px 20px;
   padding: 16px 20px 20px;
   overflow-y: auto;
@@ -99,100 +97,6 @@
   color: var(--ch-text-primary);
   font-weight: 500;
   overflow-wrap: anywhere;
-}
-
-.grocery-count-section {
-  margin-top: auto;
-  padding: 14px;
-  background: #f0fdf4;
-  border-radius: 12px;
-  border: 1px solid #bbf7d0;
-
-  &.disabled {
-    background: var(--ch-bg-light);
-    border-color: var(--ch-border);
-  }
-}
-
-.grocery-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  min-width: 0;
-
-  input {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--ch-red);
-    flex: 0 0 auto;
-  }
-
-  .metrics-title {
-    margin: 0;
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-}
-
-.grocery-count-section .store-count-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #065f46;
-  text-align: center;
-  margin-top: 4px;
-}
-
-.grocery-count-section .store-count-status {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #047857;
-  text-align: center;
-  margin: 8px 0 0;
-}
-
-.grocery-count-section .store-count-status.error {
-  color: #b45309;
-}
-
-.store-location-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 220px;
-  margin-top: 12px;
-  overflow-y: auto;
-}
-
-.store-location-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 2px 8px;
-  padding: 8px 0;
-  border-top: 1px solid #bbf7d0;
-}
-
-.store-location-name {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #064e3b;
-}
-
-.store-location-meta {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #047857;
-  white-space: nowrap;
-}
-
-.store-location-address {
-  grid-column: 1 / -1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  font-size: 0.72rem;
-  color: #64748b;
 }
 
 .overview-section {
