@@ -52,6 +52,10 @@ After the 100 m layer is built:
 uv run python coarsen_settlement_layers.py --fine-dir . --layer-id tlm-green-trees
 ```
 
+## 📖 Indicator documentation
+
+Per-factor sources, formulas, and scoring semantics: **[../INDICATORS.md](../INDICATORS.md)**.
+
 ## 🏗 Key Components
 
 - **`are_rasterize_lib.py`**: Shared utility functions for rasterizing ARE datasets to the standard 100m grid.

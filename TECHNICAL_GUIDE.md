@@ -37,6 +37,8 @@ We use Angular Signals for lightweight, granular state management:
 
 ## 3. Scoring Logic: Trapezoid Preferences
 
+For a full list of indicators (sources, raw values, pipeline steps, units), see **[INDICATORS.md](./INDICATORS.md)**.
+
 Instead of fixed weights, every indicator (e.g., noise, density) uses a Trapezoid Preference Function to calculate a score between 0 and 100.
 
 ### How it works:
