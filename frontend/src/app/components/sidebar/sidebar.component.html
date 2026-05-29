@@ -62,31 +62,6 @@
           {{ 'sidebar.overviewHint' | translate: { count: metricDefinitions.length } }}
         </p>
 
-        @if (locationService.metricsLoading()) {
-          <p class="metrics-hint">{{ 'sidebar.calculating' | translate }}</p>
-        } @else if (locationService.metricsError()) {
-          <p class="metrics-error">{{ locationService.metricsError() }}</p>
-        } @else {
-          @let score = locationService.overviewScore();
-          <div class="overview-score-card">
-            <span class="overview-score-value">
-              {{ score === null ? '—' : score.toFixed(0) }}
-            </span>
-            <span class="overview-score-unit">{{ 'sidebar.scoreUnit' | translate }}</span>
-            @if (score !== null) {
-              <div
-                class="overview-score-bar"
-                role="meter"
-                [attr.aria-valuenow]="score"
-                aria-valuemin="0"
-                aria-valuemax="100"
-              >
-                <div class="overview-score-fill" [style.width.%]="score"></div>
-              </div>
-            }
-          </div>
-        }
-
         @if (locationService.overviewLoading()) {
           <p class="metrics-hint" data-testid="overview-loading">
             {{ 'sidebar.overviewLoading' | translate }}

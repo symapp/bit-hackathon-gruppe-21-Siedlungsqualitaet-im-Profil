@@ -59,4 +59,8 @@ export class LeftOverlayComponent {
   isActive(regionId: string): boolean {
     return this.locationService.activeRegionId() === regionId;
   }
+
+  overviewScoreForRegion(regionId: string): number | null {
+    return this.locationService.overviewScoreForRegion(regionId);
+  }
 }

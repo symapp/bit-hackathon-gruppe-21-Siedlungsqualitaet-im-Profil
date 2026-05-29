@@ -93,6 +93,21 @@
               (click)="$event.stopPropagation()"
             />
 
+            <div class="region-score-row">
+              <span class="field-label">{{ 'sidebar.overviewTitle' | translate }}</span>
+              @if (locationService.regionMetricsLoading()) {
+                <span class="region-score-value muted">{{ 'sidebar.calculating' | translate }}</span>
+              } @else {
+                @let score = overviewScoreForRegion(region.id);
+                <span class="region-score-value">
+                  {{ score === null ? '—' : score.toFixed(0) }}
+                  @if (score !== null) {
+                    <span class="region-score-unit">{{ 'sidebar.scoreUnit' | translate }}</span>
+                  }
+                </span>
+              }
+            </div>
+
             <div class="region-row">
               <label class="field-label" [for]="'region-color-' + region.id">Farbe</label>
               <input

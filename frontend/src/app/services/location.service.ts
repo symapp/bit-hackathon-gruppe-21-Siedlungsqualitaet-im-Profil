@@ -1,9 +1,11 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { clampToSwitzerland } from '../config/map-bounds.config';
 import { OverpassService, type GroceryStore } from './overpass.service';
+import { ZARR_LAYER_DEFINITIONS } from '../config/zarr-layers.config';
 import type { LayerPreference } from '../models/layer-preference.model';
 import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.model';
 import { ZarrMapService } from './zarr-map.service';
+import { computePreferenceOverview } from '../utils/metrics-aggregate.util';
 
 export interface RegionOfInterest {
   id: string;
@@ -81,6 +83,23 @@ export class LocationService {
   readonly metricsError = this.zarrMap.metricsError;
   readonly regionMetrics = this._regionMetrics.asReadonly();
   readonly regionMetricsLoading = this._regionMetricsLoading.asReadonly();
+  readonly regionOverviewScores = computed<Record<string, number | null>>(() => {
+    const metricsByRegion = this._regionMetrics();
+    const preferences = this.zarrMap.layerPreferences();
+    const metaByLayerId = this.zarrMap.layerMeta();
+    const scores: Record<string, number | null> = {};
+    for (const region of this._regions()) {
+      scores[region.id] = computePreferenceOverview(
+        metricsByRegion[region.id] ?? { ...EMPTY_LOCATION_METRICS },
+        {
+          definitions: ZARR_LAYER_DEFINITIONS,
+          preferences,
+          metaByLayerId,
+        },
+      );
+    }
+    return scores;
+  });
   readonly overviewScore = this.zarrMap.overviewScore;
   readonly overviewLoading = this.zarrMap.overviewLoading;
   readonly zarrLayers = this.zarrMap.layerStates;
@@ -132,6 +151,27 @@ export class LocationService {
         this.zarrMap.setMetrics(cached);
       }
     });
+
+    effect((onCleanup) => {
+      const regions = this._regions();
+      const layerStates = this.zarrMap.layerStates();
+
+      if (regions.length === 0 || layerStates.length === 0) {
+        return;
+      }
+
+      // Initial region sampling can happen before Zarr layers are ready.
+      // Trigger another pass once layer loading has settled so sidebar scores are populated.
+      if (layerStates.some((layer) => layer.loading)) {
+        return;
+      }
+
+      const timer = setTimeout(() => {
+        void this.sampleAllRegions();
+      }, 150);
+
+      onCleanup(() => clearTimeout(timer));
+    });
   }
 
   private async sampleAllRegions(): Promise<void> {
@@ -152,7 +192,7 @@ export class LocationService {
     try {
       const entries = await Promise.all(
         regions.map(async (region) => {
-          const metrics = await this.zarrMap.queryMetricsAt(region.lng, region.lat, signal);
+          const metrics = await this.sampleRegionAverageMetrics(region, signal);
           return [region.id, metrics] as const;
         }),
       );
@@ -434,4 +474,71 @@ export class LocationService {
       }
     }
   }
+
+  overviewScoreForRegion(regionId: string): number | null {
+    return this.regionOverviewScores()[regionId] ?? null;
+  }
+
+  private async sampleRegionAverageMetrics(
+    region: RegionOfInterest,
+    signal?: AbortSignal,
+  ): Promise<LocationMetrics> {
+    const offsets = samplingOffsetsMeters(region.radius);
+    const samples = await Promise.all(
+      offsets.map(({ dx, dy }) => {
+        const sampleLng = region.lng + metersToLngDelta(dx, region.lat);
+        const sampleLat = region.lat + metersToLatDelta(dy);
+        return this.zarrMap.queryMetricsAt(sampleLng, sampleLat, signal);
+      }),
+    );
+    return averageMetrics(samples);
+  }
+}
+
+function samplingOffsetsMeters(radiusMeters: number): { dx: number; dy: number }[] {
+  const offsets: { dx: number; dy: number }[] = [{ dx: 0, dy: 0 }];
+  const rings = [
+    { radius: radiusMeters * 0.5, count: 8 },
+    { radius: radiusMeters, count: 12 },
+  ];
+  for (const ring of rings) {
+    for (let i = 0; i < ring.count; i += 1) {
+      const angle = (i / ring.count) * Math.PI * 2;
+      offsets.push({
+        dx: ring.radius * Math.cos(angle),
+        dy: ring.radius * Math.sin(angle),
+      });
+    }
+  }
+  return offsets;
+}
+
+function metersToLatDelta(meters: number): number {
+  return meters / 111_320;
+}
+
+function metersToLngDelta(meters: number, atLat: number): number {
+  const cosLat = Math.cos((atLat * Math.PI) / 180);
+  if (Math.abs(cosLat) < 1e-6) {
+    return 0;
+  }
+  return meters / (111_320 * cosLat);
+}
+
+function averageMetrics(samples: readonly LocationMetrics[]): LocationMetrics {
+  const keys = Object.keys(EMPTY_LOCATION_METRICS) as (keyof LocationMetrics)[];
+  const averaged: LocationMetrics = { ...EMPTY_LOCATION_METRICS };
+  for (const key of keys) {
+    let sum = 0;
+    let count = 0;
+    for (const sample of samples) {
+      const value = sample[key];
+      if (value !== null && Number.isFinite(value)) {
+        sum += value;
+        count += 1;
+      }
+    }
+    averaged[key] = count > 0 ? sum / count : null;
+  }
+  return averaged;
 }
