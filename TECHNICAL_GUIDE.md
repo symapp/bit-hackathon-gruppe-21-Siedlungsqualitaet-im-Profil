@@ -24,7 +24,7 @@ The frontend is built with Angular 21 using a Signals-based reactive architectur
 
 ### Map Stack
 - **MapLibre GL JS**: Handles the base map (Carto Positron) and vector interactions.
-- **Deck.gl**: A high-performance visualization framework that runs on top of MapLibre. It handles the rendering of Zarr raster layers and the "Lädeli" icon overlays.
+- **Deck.gl**: A high-performance visualization framework that runs on top of MapLibre. It handles the rendering of Zarr raster layers and the nearby amenity icon overlays.
 - **@carbonplan/zarr-layer**: A specialized Deck.gl layer that decodes and renders Zarr data on the GPU.
 
 ### State Management
@@ -53,12 +53,12 @@ Total Score = Σ (Indicator Score * Importance) / Σ Importance
 
 ---
 
-## 4. "Lädeli" (Grocery Stores) Integration
+## 4. Nearby Amenities Integration
 
-Grocery store locations are fetched dynamically using the Overpass API (OpenStreetMap data).
+Infrastructure locations are fetched dynamically using the Overpass API (OpenStreetMap data).
 
-- **Implementation**: When a region of interest is active, the LocationService queries Overpass for nodes tagged with shop=supermarket or shop=convenience within the user-defined radius.
-- **Visualization**: Stores are rendered as customized shopping cart icons using a Deck.gl IconLayer.
+- **Implementation**: When a region of interest is active, the `LocationService` queries Overpass for nodes tagged with `shop=supermarket`, `amenity=doctors`, `amenity=pharmacy`, etc., within the user-defined radius.
+- **Visualization**: Amenities are rendered as customized map pin icons using a Deck.gl `IconLayer`.
 - **Optimization**: Fetches are debounced and cached per region to minimize API calls.
 
 ---

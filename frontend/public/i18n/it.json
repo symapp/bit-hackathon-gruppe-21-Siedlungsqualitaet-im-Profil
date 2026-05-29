@@ -31,9 +31,10 @@
     "layerLoading": "caricamento…",
     "radiusMin": "100 m",
     "radiusMax": "3 km",
-    "groceryTitle": "Negozi in zona",
-    "groceryLoading": "Caricamento…",
-    "groceryAway": "di distanza",
+    "amenityLabel": "Infrastruttura",
+    "amenityTitle": "Servizi e Negozi",
+    "amenityLoading": "Caricamento…",
+    "amenityAway": "di distanza",
     "deselectAll": "Deseleziona tutto",
     "showAdvanced": "Mostra funzione avanzata",
     "hideAdvanced": "Nascondi funzione avanzata"

@@ -265,7 +265,7 @@
   color: var(--ch-text-secondary);
 }
 
-.region-grocery-row {
+.region-amenity-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -276,33 +276,54 @@
   border-radius: 2px;
   margin-top: 4px;
   transition: all 0.2s ease;
+  cursor: pointer;
 
   &:hover {
     background: var(--ch-bg-light);
   }
+
+  &.expanded {
+    border-color: var(--ch-red);
+    background: var(--ch-bg-light);
+
+    .chevron-icon {
+      transform: rotate(180deg);
+    }
+  }
 }
 
-.region-grocery-label-group {
+.region-amenity-label-group {
   display: flex;
   align-items: center;
   gap: 8px;
   color: var(--ch-text-secondary);
 }
 
-.grocery-icon {
+.region-amenity-value-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.amenity-icon {
   flex-shrink: 0;
   color: var(--ch-red);
   opacity: 0.8;
 }
 
-.region-grocery-label {
+.chevron-icon {
+  color: var(--ch-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.region-amenity-label {
   font-size: 0.73rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.region-grocery-value {
+.region-amenity-value {
   min-width: 0;
   font-size: 0.95rem;
   font-weight: 700;
@@ -323,7 +344,96 @@
   }
 }
 
-.grocery-count-section {
+.amenity-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--ch-border);
+  border: 1px solid var(--ch-border);
+  border-top: none;
+  border-radius: 0 0 2px 2px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.amenity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff;
+  gap: 12px;
+
+  &:hover {
+    background: #fdfdfd;
+  }
+}
+
+.amenity-item-icon-wrapper {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ch-bg-light);
+  border-radius: 4px;
+}
+
+.amenity-item-icon {
+  width: 18px;
+  height: 18px;
+  background-color: var(--ch-red);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.amenity-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.amenity-item-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ch-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.amenity-item-address {
+  font-size: 0.7rem;
+  color: var(--ch-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.amenity-item-distance {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ch-red);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.amenity-empty {
+  padding: 12px;
+  background: #fff;
+  font-size: 0.75rem;
+  color: var(--ch-text-secondary);
+  text-align: center;
+}
+
+.amenity-count-section {
   padding: 16px;
   background: var(--ch-bg-light);
   border-top: 1px solid var(--ch-border);
@@ -343,7 +453,7 @@
   }
 }
 
-.grocery-toggle {
+.amenity-toggle {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -359,7 +469,7 @@
   }
 }
 
-.grocery-title {
+.amenity-title {
   min-width: 0;
   overflow-wrap: anywhere;
   font-size: 0.85rem;
@@ -367,7 +477,7 @@
   color: var(--ch-text-primary);
 }
 
-.grocery-summary {
+.amenity-summary {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -375,20 +485,20 @@
   padding-left: 28px;
 }
 
-.grocery-summary-label {
+.amenity-summary-label {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--ch-text-secondary);
 }
 
-.grocery-summary-value {
+.amenity-summary-value {
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--ch-red);
   line-height: 1;
 }
 
-.grocery-count-section .store-count-status {
+.amenity-count-section .amenity-count-status {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--ch-text-secondary);
@@ -396,7 +506,7 @@
   padding-left: 28px;
 }
 
-.grocery-count-section .store-count-status.error {
+.amenity-count-section .amenity-count-status.error {
   color: var(--ch-red);
 }
 

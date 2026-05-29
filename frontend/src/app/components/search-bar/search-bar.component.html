@@ -1,9 +1,8 @@
 <div class="search-container">
   <div class="search-wrapper">
     <span class="search-icon" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M21.53,20.46981l-7.89716-7.89819c.99512-1.23242,1.53778-2.75488,1.53778-4.36157,0-1.8584-.72363-3.60645-2.03809-4.9209s-3.0625-2.03906-4.92188-2.03906-3.60742.72461-4.92188,2.03906-2.03906,3.0625-2.03906,4.9209c0,1.85938.72461,3.60742,2.03906,4.92188s3.0625,2.03906,4.92188,2.03906c1.60681,0,3.12903-.54346,4.36163-1.53882l7.89716,7.89819,1.06055-1.06055ZM4.34933,12.07137c-1.03125-1.03125-1.59961-2.40234-1.59961-3.86133,0-1.45801.56836-2.8291,1.59961-3.86035s2.40234-1.59961,3.86133-1.59961c1.45801,0,2.83008.56836,3.86133,1.59961,2.12891,2.12891,2.12891,5.59277,0,7.72168-1.03125,1.03125-2.40332,1.59961-3.86133,1.59961-1.45898,0-2.83008-.56836-3.86133-1.59961Z"/>
       </svg>
     </span>
 
@@ -28,9 +27,8 @@
 
     @if (showClear() && !loading()) {
       <button type="button" class="clear-btn" [title]="'search.clear' | translate" (mousedown)="$event.preventDefault()" (click)="clearQuery()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M13.06677,12.03272l6.52112,6.521-1.06055,1.06055-6.52112-6.521-6.52673,6.52686-1.06055-1.06055,6.52673-6.52686-6.55994-6.56006,1.06055-1.06055,6.55994,6.56006,6.55969-6.56006,1.06055,1.06055-6.55969,6.56006Z"/>
         </svg>
       </button>
     }
@@ -68,9 +66,8 @@
               (pointerdown)="onSuggestionPointerDown($event, i)"
               (mouseenter)="highlightedIndex.set(i)"
             >
-              <svg class="suggestion-pin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
+              <svg class="suggestion-pin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.99973,5.7762c-1.74805,0-3.1709,1.42285-3.1709,3.17139s1.42285,3.1709,3.1709,3.1709c1.74902,0,3.17185-1.42236,3.17185-3.1709s-1.42283-3.17139-3.17185-3.17139ZM11.99973,10.61849c-.9209,0-1.6709-.74951-1.6709-1.6709s.75-1.67139,1.6709-1.67139c.92185,0,1.67185.75,1.67185,1.67139s-.75,1.6709-1.67185,1.6709ZM11.99973,1.24984c-4.24414,0-7.69629,3.45312-7.69629,7.69727,0,1.18799.2627,2.32666.81836,3.4502l6.87793,11.01904,6.91602-11.08643c.51855-1.05859.78125-2.19678.78125-3.38281,0-4.24414-3.45312-7.69727-7.69727-7.69727ZM17.60617,11.60335l-5.60645,8.98047-5.56836-8.91406c-.41699-.84961-.62793-1.76562-.62793-2.72266,0-3.41699,2.7793-6.19727,6.19629-6.19727s6.19727,2.78027,6.19727,6.19727c0,.95508-.21191,1.87158-.59082,2.65625Z"/>
               </svg>
               <span class="suggestion-text">
                 <span class="suggestion-primary">{{ suggestion.primary }}</span>

@@ -1,6 +1,6 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { clampToSwitzerland } from '../config/map-bounds.config';
-import { OverpassService, type GroceryStore } from './overpass.service';
+import { OverpassService, type NearbyAmenity } from './overpass.service';
 import { ZARR_LAYER_DEFINITIONS } from '../config/zarr-layers.config';
 import type { LayerPreference } from '../models/layer-preference.model';
 import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.model';
@@ -17,7 +17,7 @@ export interface RegionOfInterest {
   lng: number;
 }
 
-type GroceryRegionMap<T> = Record<string, T>;
+type AmenityRegionMap<T> = Record<string, T>;
 
 const DEFAULT_REGION_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7'];
 
@@ -43,13 +43,13 @@ export class LocationService {
   private readonly _regions = signal<RegionOfInterest[]>([createDefaultRegion()]);
   private readonly _activeRegionId = signal(this._regions()[0]?.id ?? '');
   private readonly _viewCenter = signal({ lat: 46.99718, lng: 7.46274 });
-  private readonly _groceryStoresByRegion = signal<GroceryRegionMap<GroceryStore[]>>({});
-  private readonly _groceryCountLoadingByRegion = signal<GroceryRegionMap<boolean>>({});
-  private readonly _groceryCountErrorByRegion = signal<GroceryRegionMap<string | null>>({});
-  private readonly _groceryStoresEnabled = signal(false);
-  private readonly groceryFetchGenerations = new Map<string, number>();
-  private readonly groceryAborts = new Map<string, AbortController>();
-  private readonly groceryQueryKeys = new Map<string, string>();
+  private readonly _amenitiesByRegion = signal<AmenityRegionMap<NearbyAmenity[]>>({});
+  private readonly _amenityCountLoadingByRegion = signal<AmenityRegionMap<boolean>>({});
+  private readonly _amenityCountErrorByRegion = signal<AmenityRegionMap<string | null>>({});
+  private readonly _amenitiesEnabled = signal(false);
+  private readonly amenityFetchGenerations = new Map<string, number>();
+  private readonly amenityAborts = new Map<string, AbortController>();
+  private readonly amenityQueryKeys = new Map<string, string>();
   private regionsSampleGeneration = 0;
   private regionsSampleAbort: AbortController | null = null;
   private readonly _address = signal('');
@@ -67,20 +67,20 @@ export class LocationService {
   readonly lat = computed(() => this.activeRegion()?.lat ?? 46.99718);
   readonly lng = computed(() => this.activeRegion()?.lng ?? 7.46274);
   readonly radius = computed(() => this.activeRegion()?.radius ?? 500);
-  readonly groceryStores = computed(() => {
+  readonly amenities = computed(() => {
     const activeRegionId = this._activeRegionId();
-    return this._groceryStoresByRegion()[activeRegionId] ?? [];
+    return this._amenitiesByRegion()[activeRegionId] ?? [];
   });
-  readonly groceryCount = computed(() => this.groceryStores().length);
-  readonly groceryCountLoading = computed(() => {
+  readonly amenityCount = computed(() => this.amenities().length);
+  readonly amenityCountLoading = computed(() => {
     const activeRegionId = this._activeRegionId();
-    return this._groceryCountLoadingByRegion()[activeRegionId] ?? false;
+    return this._amenityCountLoadingByRegion()[activeRegionId] ?? false;
   });
-  readonly groceryCountError = computed(() => {
+  readonly amenityCountError = computed(() => {
     const activeRegionId = this._activeRegionId();
-    return this._groceryCountErrorByRegion()[activeRegionId] ?? null;
+    return this._amenityCountErrorByRegion()[activeRegionId] ?? null;
   });
-  readonly groceryStoresEnabled = this._groceryStoresEnabled.asReadonly();
+  readonly amenitiesEnabled = this._amenitiesEnabled.asReadonly();
   readonly address = this._address.asReadonly();
 
   readonly metrics = this.zarrMap.metrics;
@@ -112,11 +112,11 @@ export class LocationService {
   constructor() {
     effect((onCleanup) => {
       const regions = this._regions();
-      const groceryStoresEnabled = this._groceryStoresEnabled();
+      const amenitiesEnabled = this._amenitiesEnabled();
 
       if (regions.length === 0) {
         untracked(() => {
-          this.clearAllGroceryStores();
+          this.clearAllAmenities();
           this._regionMetrics.set({});
           this._regionMetricsLoading.set(false);
           this.zarrMap.setMetrics({ ...EMPTY_LOCATION_METRICS });
@@ -124,17 +124,17 @@ export class LocationService {
         return;
       }
 
-      if (!groceryStoresEnabled) {
-        untracked(() => this.clearAllGroceryStores());
+      if (!amenitiesEnabled) {
+        untracked(() => this.clearAllAmenities());
       } else {
-        untracked(() => this.clearRemovedRegionGroceryStores(regions));
+        untracked(() => this.clearRemovedRegionAmenities(regions));
       }
 
       const timer = setTimeout(() => {
         void this.sampleAllRegions();
-        if (groceryStoresEnabled) {
+        if (amenitiesEnabled) {
           for (const region of regions) {
-            void this.fetchGroceryStores(region);
+            void this.fetchAmenities(region);
           }
         }
       }, 300);
@@ -405,110 +405,110 @@ export class LocationService {
     this.zarrMap.setAllLayersEnabled(enabled);
   }
 
-  setGroceryStoresEnabled(enabled: boolean): void {
-    this._groceryStoresEnabled.set(enabled);
+  setAmenitiesEnabled(enabled: boolean): void {
+    this._amenitiesEnabled.set(enabled);
   }
 
-  groceryStoresForRegion(regionId: string): GroceryStore[] {
-    return this._groceryStoresByRegion()[regionId] ?? [];
+  amenitiesForRegion(regionId: string): NearbyAmenity[] {
+    return this._amenitiesByRegion()[regionId] ?? [];
   }
 
-  groceryCountForRegion(regionId: string): number {
-    return this.groceryStoresForRegion(regionId).length;
+  amenityCountForRegion(regionId: string): number {
+    return this.amenitiesForRegion(regionId).length;
   }
 
-  groceryCountLoadingForRegion(regionId: string): boolean {
-    return this._groceryCountLoadingByRegion()[regionId] ?? false;
+  amenityCountLoadingForRegion(regionId: string): boolean {
+    return this._amenityCountLoadingByRegion()[regionId] ?? false;
   }
 
-  groceryCountErrorForRegion(regionId: string): string | null {
-    return this._groceryCountErrorByRegion()[regionId] ?? null;
+  amenityCountErrorForRegion(regionId: string): string | null {
+    return this._amenityCountErrorByRegion()[regionId] ?? null;
   }
 
-  private clearAllGroceryStores(): void {
-    for (const [regionId, abort] of this.groceryAborts) {
-      this.groceryFetchGenerations.set(
+  private clearAllAmenities(): void {
+    for (const [regionId, abort] of this.amenityAborts) {
+      this.amenityFetchGenerations.set(
         regionId,
-        (this.groceryFetchGenerations.get(regionId) ?? 0) + 1,
+        (this.amenityFetchGenerations.get(regionId) ?? 0) + 1,
       );
       abort.abort();
     }
-    this.groceryAborts.clear();
-    this.groceryQueryKeys.clear();
-    this._groceryStoresByRegion.set({});
-    this._groceryCountLoadingByRegion.set({});
-    this._groceryCountErrorByRegion.set({});
+    this.amenityAborts.clear();
+    this.amenityQueryKeys.clear();
+    this._amenitiesByRegion.set({});
+    this._amenityCountLoadingByRegion.set({});
+    this._amenityCountErrorByRegion.set({});
   }
 
-  private clearRemovedRegionGroceryStores(regions: RegionOfInterest[]): void {
+  private clearRemovedRegionAmenities(regions: RegionOfInterest[]): void {
     const regionIds = new Set(regions.map((region) => region.id));
     const trackedRegionIds = new Set([
-      ...Object.keys(this._groceryStoresByRegion()),
-      ...Object.keys(this._groceryCountLoadingByRegion()),
-      ...Object.keys(this._groceryCountErrorByRegion()),
-      ...this.groceryAborts.keys(),
-      ...this.groceryQueryKeys.keys(),
+      ...Object.keys(this._amenitiesByRegion()),
+      ...Object.keys(this._amenityCountLoadingByRegion()),
+      ...Object.keys(this._amenityCountErrorByRegion()),
+      ...this.amenityAborts.keys(),
+      ...this.amenityQueryKeys.keys(),
     ]);
 
     for (const regionId of trackedRegionIds) {
       if (!regionIds.has(regionId)) {
-        this.clearGroceryStoresForRegion(regionId);
+        this.clearAmenitiesForRegion(regionId);
       }
     }
   }
 
-  private clearGroceryStoresForRegion(regionId: string): void {
-    this.groceryFetchGenerations.set(
+  private clearAmenitiesForRegion(regionId: string): void {
+    this.amenityFetchGenerations.set(
       regionId,
-      (this.groceryFetchGenerations.get(regionId) ?? 0) + 1,
+      (this.amenityFetchGenerations.get(regionId) ?? 0) + 1,
     );
-    this.groceryAborts.get(regionId)?.abort();
-    this.groceryAborts.delete(regionId);
-    this.groceryQueryKeys.delete(regionId);
-    this._groceryStoresByRegion.update(({ [regionId]: _removed, ...stores }) => stores);
-    this._groceryCountLoadingByRegion.update(({ [regionId]: _removed, ...loading }) => loading);
-    this._groceryCountErrorByRegion.update(({ [regionId]: _removed, ...errors }) => errors);
+    this.amenityAborts.get(regionId)?.abort();
+    this.amenityAborts.delete(regionId);
+    this.amenityQueryKeys.delete(regionId);
+    this._amenitiesByRegion.update(({ [regionId]: _removed, ...stores }) => stores);
+    this._amenityCountLoadingByRegion.update(({ [regionId]: _removed, ...loading }) => loading);
+    this._amenityCountErrorByRegion.update(({ [regionId]: _removed, ...errors }) => errors);
   }
 
-  private async fetchGroceryStores(region: RegionOfInterest): Promise<void> {
+  private async fetchAmenities(region: RegionOfInterest): Promise<void> {
     const queryKey = `${region.lat.toFixed(6)}:${region.lng.toFixed(6)}:${region.radius}`;
     const regionId = region.id;
-    const existingStores = this._groceryStoresByRegion();
-    const existingError = this._groceryCountErrorByRegion()[regionId] ?? null;
-    const isLoading = this._groceryCountLoadingByRegion()[regionId] ?? false;
+    const existingAmenities = this._amenitiesByRegion();
+    const existingError = this._amenityCountErrorByRegion()[regionId] ?? null;
+    const isLoading = this._amenityCountLoadingByRegion()[regionId] ?? false;
 
     if (
-      this.groceryQueryKeys.get(regionId) === queryKey &&
+      this.amenityQueryKeys.get(regionId) === queryKey &&
       (isLoading ||
-        (Object.prototype.hasOwnProperty.call(existingStores, regionId) && existingError === null))
+        (Object.prototype.hasOwnProperty.call(existingAmenities, regionId) && existingError === null))
     ) {
       return;
     }
 
-    const generation = (this.groceryFetchGenerations.get(regionId) ?? 0) + 1;
-    this.groceryFetchGenerations.set(regionId, generation);
-    this.groceryAborts.get(regionId)?.abort();
+    const generation = (this.amenityFetchGenerations.get(regionId) ?? 0) + 1;
+    this.amenityFetchGenerations.set(regionId, generation);
+    this.amenityAborts.get(regionId)?.abort();
 
     const abort = new AbortController();
-    this.groceryAborts.set(regionId, abort);
-    this.groceryQueryKeys.set(regionId, queryKey);
-    this._groceryStoresByRegion.update((stores) => ({ ...stores, [regionId]: [] }));
-    this._groceryCountLoadingByRegion.update((loading) => ({ ...loading, [regionId]: true }));
-    this._groceryCountErrorByRegion.update((errors) => ({ ...errors, [regionId]: null }));
+    this.amenityAborts.set(regionId, abort);
+    this.amenityQueryKeys.set(regionId, queryKey);
+    this._amenitiesByRegion.update((stores) => ({ ...stores, [regionId]: [] }));
+    this._amenityCountLoadingByRegion.update((loading) => ({ ...loading, [regionId]: true }));
+    this._amenityCountErrorByRegion.update((errors) => ({ ...errors, [regionId]: null }));
 
     try {
-      const stores = await this.overpass.getGroceryStores(
+      const amenities = await this.overpass.getNearbyAmenities(
         region.lat,
         region.lng,
         region.radius,
         abort.signal,
       );
-      if (generation === this.groceryFetchGenerations.get(regionId)) {
-        this._groceryStoresByRegion.update((storesByRegion) => ({
-          ...storesByRegion,
-          [regionId]: stores,
+      if (generation === this.amenityFetchGenerations.get(regionId)) {
+        this._amenitiesByRegion.update((amenitiesByRegion) => ({
+          ...amenitiesByRegion,
+          [regionId]: amenities,
         }));
-        this._groceryCountLoadingByRegion.update((loading) => ({
+        this._amenityCountLoadingByRegion.update((loading) => ({
           ...loading,
           [regionId]: false,
         }));
@@ -517,24 +517,24 @@ export class LocationService {
       if (error instanceof DOMException && error.name === 'AbortError') {
         return;
       }
-      if (generation === this.groceryFetchGenerations.get(regionId)) {
-        console.warn('Failed to fetch grocery store count:', error);
-        this._groceryStoresByRegion.update((storesByRegion) => ({
-          ...storesByRegion,
+      if (generation === this.amenityFetchGenerations.get(regionId)) {
+        console.warn('Failed to fetch amenity count:', error);
+        this._amenitiesByRegion.update((amenitiesByRegion) => ({
+          ...amenitiesByRegion,
           [regionId]: [],
         }));
-        this._groceryCountErrorByRegion.update((errors) => ({
+        this._amenityCountErrorByRegion.update((errors) => ({
           ...errors,
           [regionId]: 'Unable to load',
         }));
-        this._groceryCountLoadingByRegion.update((loading) => ({
+        this._amenityCountLoadingByRegion.update((loading) => ({
           ...loading,
           [regionId]: false,
         }));
       }
     } finally {
-      if (generation === this.groceryFetchGenerations.get(regionId)) {
-        this.groceryAborts.delete(regionId);
+      if (generation === this.amenityFetchGenerations.get(regionId)) {
+        this.amenityAborts.delete(regionId);
       }
     }
   }

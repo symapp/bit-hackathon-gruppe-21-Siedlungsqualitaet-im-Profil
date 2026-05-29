@@ -1,10 +1,28 @@
 import { Injectable } from '@angular/core';
 
-export interface GroceryStore {
+export const AMENITY_ICONS: Record<string, string> = {
+  shopping: 'icons/shopping-cart.svg',
+  health: 'icons/heart.svg',
+  pharmacy: 'icons/plus.svg',
+  entertainment: 'icons/grid.svg',
+  hospital: 'icons/hospital.svg',
+  default: 'icons/location.svg',
+};
+
+export function getAmenityIcon(type: string): string {
+  if (['supermarket', 'grocery', 'convenience', 'greengrocer'].includes(type)) return AMENITY_ICONS['shopping'];
+  if (['doctors', 'dentist'].includes(type)) return AMENITY_ICONS['health'];
+  if (type === 'pharmacy') return AMENITY_ICONS['pharmacy'];
+  if (['theatre', 'cinema'].includes(type)) return AMENITY_ICONS['entertainment'];
+  if (type === 'hospital') return AMENITY_ICONS['hospital'];
+  return AMENITY_ICONS['default'];
+}
+
+export interface NearbyAmenity {
   id: string;
   osmType: string;
   name: string;
-  shop: string;
+  type: string;
   lat: number;
   lng: number;
   distanceMeters: number;
@@ -24,7 +42,7 @@ interface OverpassElement {
 }
 
 /**
- * Simple service that queries the Overpass API for grocery stores within a radius.
+ * Simple service that queries the Overpass API for amenities within a radius.
  * It returns matching OSM elements. Errors are propagated to the caller
  * which can handle them (e.g., by logging a console warning).
  */
@@ -41,25 +59,28 @@ export class OverpassService {
   ];
 
   /**
-   * Fetches grocery stores within the given radius.
+   * Fetches amenities within the given radius.
    *
    * @param lat Latitude of the centre point (WGS84).
    * @param lng Longitude of the centre point (WGS84).
    * @param radiusMeters Search radius in metres.
    * @returns Promise that resolves to matching OSM elements with display coordinates.
    */
-  async getGroceryStores(
+  async getNearbyAmenities(
     lat: number,
     lng: number,
     radiusMeters: number,
     signal?: AbortSignal,
-  ): Promise<GroceryStore[]> {
+  ): Promise<NearbyAmenity[]> {
     const query = `
       [out:json][timeout:25];
       (
         node["shop"~"^(supermarket|grocery|convenience|greengrocer)$"](around:${radiusMeters},${lat},${lng});
         way["shop"~"^(supermarket|grocery|convenience|greengrocer)$"](around:${radiusMeters},${lat},${lng});
         relation["shop"~"^(supermarket|grocery|convenience|greengrocer)$"](around:${radiusMeters},${lat},${lng});
+        node["amenity"~"^(doctors|pharmacy|theatre|cinema|hospital|dentist)$"](around:${radiusMeters},${lat},${lng});
+        way["amenity"~"^(doctors|pharmacy|theatre|cinema|hospital|dentist)$"](around:${radiusMeters},${lat},${lng});
+        relation["amenity"~"^(doctors|pharmacy|theatre|cinema|hospital|dentist)$"](around:${radiusMeters},${lat},${lng});
       );
       out body center;
     `;
@@ -67,7 +88,7 @@ export class OverpassService {
 
     for (const endpoint of this.endpoints) {
       try {
-        return await this.fetchStores(endpoint, query, lat, lng, signal);
+        return await this.fetchAmenities(endpoint, query, lat, lng, signal);
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           throw error;
@@ -79,22 +100,22 @@ export class OverpassService {
     throw lastError ?? new Error('Overpass request failed');
   }
 
-  async getGroceryStoreCount(
+  async getNearbyAmenityCount(
     lat: number,
     lng: number,
     radiusMeters: number,
     signal?: AbortSignal,
   ): Promise<number> {
-    return (await this.getGroceryStores(lat, lng, radiusMeters, signal)).length;
+    return (await this.getNearbyAmenities(lat, lng, radiusMeters, signal)).length;
   }
 
-  private async fetchStores(
+  private async fetchAmenities(
     endpoint: string,
     query: string,
     lat: number,
     lng: number,
     signal?: AbortSignal,
-  ): Promise<GroceryStore[]> {
+  ): Promise<NearbyAmenity[]> {
     if (signal?.aborted) {
       throw new DOMException('Request aborted', 'AbortError');
     }
@@ -109,7 +130,7 @@ export class OverpassService {
     signal?.addEventListener('abort', abortRequest, { once: true });
 
     try {
-      return await this.fetchStoresWithSignal(endpoint, query, lat, lng, controller.signal);
+      return await this.fetchAmenitiesWithSignal(endpoint, query, lat, lng, controller.signal);
     } catch (error) {
       if (timedOut) {
         throw new Error(`Overpass request timed out for ${endpoint}`);
@@ -121,13 +142,13 @@ export class OverpassService {
     }
   }
 
-  private async fetchStoresWithSignal(
+  private async fetchAmenitiesWithSignal(
     endpoint: string,
     query: string,
     lat: number,
     lng: number,
     signal: AbortSignal,
-  ): Promise<GroceryStore[]> {
+  ): Promise<NearbyAmenity[]> {
     const response = await fetch(endpoint, {
       method: 'POST',
       body: new URLSearchParams({ data: query }),
@@ -141,16 +162,16 @@ export class OverpassService {
     const elements = Array.isArray(data.elements) ? (data.elements as OverpassElement[]) : [];
 
     return elements
-      .map((element) => this.toGroceryStore(element, lat, lng))
-      .filter((store): store is GroceryStore => store !== null)
+      .map((element) => this.toNearbyAmenity(element, lat, lng))
+      .filter((amenity): amenity is NearbyAmenity => amenity !== null)
       .sort((a, b) => a.distanceMeters - b.distanceMeters);
   }
 
-  private toGroceryStore(
+  private toNearbyAmenity(
     element: OverpassElement,
     originLat: number,
     originLng: number,
-  ): GroceryStore | null {
+  ): NearbyAmenity | null {
     const lat = element.lat ?? element.center?.lat;
     const lng = element.lon ?? element.center?.lon;
 
@@ -166,11 +187,13 @@ export class OverpassService {
       .filter(Boolean)
       .join(', ');
 
+    const amenityType = tags['amenity'] ?? tags['shop'] ?? 'amenity';
+
     return {
       id: `${element.type}/${element.id}`,
       osmType: element.type,
-      name: tags['name'] || this.labelForShop(tags['shop']),
-      shop: tags['shop'] ?? 'grocery',
+      name: tags['name'] || this.labelForElement(tags),
+      type: amenityType,
       lat,
       lng,
       distanceMeters: this.distanceMeters(originLat, originLng, lat, lng),
@@ -178,17 +201,42 @@ export class OverpassService {
     };
   }
 
-  private labelForShop(shop?: string): string {
-    switch (shop) {
-      case 'supermarket':
-        return 'Supermarket';
-      case 'convenience':
-        return 'Convenience store';
-      case 'greengrocer':
-        return 'Greengrocer';
-      default:
-        return 'Grocery store';
+  private labelForElement(tags: Record<string, string>): string {
+    const shop = tags['shop'];
+    if (shop) {
+      switch (shop) {
+        case 'supermarket':
+          return 'Supermarket';
+        case 'convenience':
+          return 'Convenience store';
+        case 'greengrocer':
+          return 'Greengrocer';
+        default:
+          return 'Grocery store';
+      }
     }
+
+    const amenity = tags['amenity'];
+    if (amenity) {
+      switch (amenity) {
+        case 'doctors':
+          return 'Doctor';
+        case 'pharmacy':
+          return 'Pharmacy';
+        case 'theatre':
+          return 'Theatre';
+        case 'cinema':
+          return 'Cinema';
+        case 'hospital':
+          return 'Hospital';
+        case 'dentist':
+          return 'Dentist';
+        default:
+          return 'Amenity';
+      }
+    }
+
+    return 'Nearby Place';
   }
 
   private distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {

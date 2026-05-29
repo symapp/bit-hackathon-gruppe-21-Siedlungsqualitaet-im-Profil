@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { RegionFactorsChartComponent } from '../region-factors-chart/region-factors-chart.component';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
+import { getAmenityIcon } from '../../services/overpass.service';
 
 @Component({
   selector: 'app-left-overlay',
@@ -13,10 +14,23 @@ import { LocationService, type RegionOfInterest } from '../../services/location.
 })
 export class LeftOverlayComponent {
   protected readonly locationService = inject(LocationService);
+  protected readonly Math = Math;
+  protected readonly getAmenityIcon = getAmenityIcon;
   protected isCollapsed = false;
+  protected expandedRegionId: string | null = null;
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  toggleRegionAmenities(regionId: string, event: Event): void {
+    event.stopPropagation();
+    if (this.expandedRegionId === regionId) {
+      this.expandedRegionId = null;
+    } else {
+      this.expandedRegionId = regionId;
+      this.locationService.setActiveRegion(regionId);
+    }
   }
 
   addRegion(): void {
@@ -45,9 +59,9 @@ export class LeftOverlayComponent {
     this.locationService.removeRegion(region.id);
   }
 
-  onGroceryStoresEnabledChange(event: Event): void {
+  onAmenitiesEnabledChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.locationService.setGroceryStoresEnabled(input.checked);
+    this.locationService.setAmenitiesEnabled(input.checked);
   }
 
   formatRadius(value: number): string {

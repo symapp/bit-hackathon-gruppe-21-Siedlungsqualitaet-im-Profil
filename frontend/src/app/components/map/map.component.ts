@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
-import type { GroceryStore } from '../../services/overpass.service';
+import { getAmenityIcon, type NearbyAmenity } from '../../services/overpass.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
 import { GeocodingService } from '../../services/geocoding.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
@@ -8,8 +8,6 @@ import { Map, NavigationControl, Marker } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer, IconLayer } from '@deck.gl/layers';
 
-const GROCERY_ICON =
-  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iOSIgY3k9IjIxIiByPSIxIj48L2NpcmNsZT48Y2lyY2xlIGN4PSIyMCIgY3k9IjIxIiByPSIxIj48L2NpcmNsZT48cGF0aCBkPSJNMSAxaDRsMi42OCAxMy4zOWEyIDIgMCAwIDAgMiAxLjYxaDkuNzJhMiAyIDAgMCAwIDItMS42MUwyMyA2SDYiPjwvcGF0aD48L3N2Zz4=';
 import { clampToSwitzerland, SWITZERLAND_MAX_BOUNDS } from '../../config/map-bounds.config';
 import { mapUiPaddingEquals, readMapUiPadding } from '../../utils/map-ui-insets.util';
 import type { PaddingOptions } from 'maplibre-gl';
@@ -41,10 +39,10 @@ export class MapComponent implements OnInit, OnDestroy {
     effect(() => {
       const regions = this.locationService.regions();
       const activeRegion = this.locationService.activeRegion();
-      const groceryStores = this.locationService.groceryStores();
+      const amenities = this.locationService.amenities();
 
       if (this.map && this.marker && this.deckOverlay) {
-        this.updateDeckLayers(regions, activeRegion?.id ?? '', groceryStores);
+        this.updateDeckLayers(regions, activeRegion?.id ?? '', amenities);
 
         if (!activeRegion) {
           this.marker.getElement().style.display = 'none';
@@ -125,6 +123,31 @@ export class MapComponent implements OnInit, OnDestroy {
     this.deckOverlay = new MapboxOverlay({
       interleaved: true,
       layers: [],
+      getTooltip: (info) => {
+        if (!info.object || !info.layer || info.layer.id !== 'amenity-icons') {
+          return null;
+        }
+        const amenity = info.object as NearbyAmenity;
+        return {
+          html: `
+            <div style="padding: 8px; font-family: sans-serif; font-size: 12px; line-height: 1.4;">
+              <div style="font-weight: 700; color: #111; margin-bottom: 2px;">${amenity.name}</div>
+              <div style="color: #666; margin-bottom: 4px;">${amenity.address || 'Keine Adresse'}</div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 4px; margin-top: 4px;">
+                <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 2px; text-transform: capitalize;">${amenity.type}</span>
+                <span style="font-weight: 600; color: #d8232a;">${Math.round(amenity.distanceMeters)}m entfernt</span>
+              </div>
+            </div>
+          `,
+          style: {
+            backgroundColor: '#fff',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            borderRadius: '4px',
+            color: '#000',
+            border: '1px solid #ddd'
+          }
+        };
+      }
     });
 
     this.map.addControl(this.deckOverlay as any);
@@ -144,7 +167,7 @@ export class MapComponent implements OnInit, OnDestroy {
       this.updateDeckLayers(
         regions,
         currentActiveRegion?.id ?? '',
-        this.locationService.groceryStores(),
+        this.locationService.amenities(),
       );
       const center = this.map.getCenter();
       this.locationService.setViewCenter(center.lat, center.lng);
@@ -206,7 +229,7 @@ export class MapComponent implements OnInit, OnDestroy {
   private updateDeckLayers(
     regions: RegionOfInterest[],
     activeRegionId: string,
-    groceryStores: GroceryStore[],
+    amenities: NearbyAmenity[],
   ): void {
     const circleData = regions.map((region) => {
       const baseColor = this.hexToRgb(region.color);
@@ -260,20 +283,20 @@ export class MapComponent implements OnInit, OnDestroy {
         filled: true,
         pickable: false,
       }),
-      new IconLayer<GroceryStore>({
-        id: 'grocery-store-icons',
-        data: groceryStores,
-        getPosition: (store) => [store.lng, store.lat],
-        getIcon: () => ({
-          url: GROCERY_ICON,
-          width: 24,
-          height: 24,
+      new IconLayer<NearbyAmenity>({
+        id: 'amenity-icons',
+        data: amenities,
+        getPosition: (amenity) => [amenity.lng, amenity.lat],
+        getIcon: (amenity) => ({
+          url: getAmenityIcon(amenity.type),
+          width: 64,
+          height: 64,
           mask: true,
         }),
-        getSize: 22,
+        getSize: 50,
         getColor: [216, 35, 42, 255],
         sizeUnits: 'pixels',
-        pickable: false,
+        pickable: true,
       }),
     ];
 

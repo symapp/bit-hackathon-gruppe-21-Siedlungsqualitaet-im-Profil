@@ -11,7 +11,7 @@ The project was developed as part of the BIT Hackathon.
 - **Interactive Map**: Visualize high-resolution spatial data layers using MapLibre and Deck.gl.
 - **Personalized Preferences**: Adjust scoring functions for each factor using an intuitive trapezoid editor.
 - **Dynamic Scoring**: See a real-time weighted "Overview Score" based on your custom importance settings.
-- **"Lädeli" (Grocery Stores) Integration**: Toggle grocery store locations nearby with personalized count tracking for regions of interest.
+- **Nearby Amenities Integration**: Toggle infrastructure locations (grocery stores, doctors, pharmacies, theaters) nearby with personalized count tracking for regions of interest.
 - **Multi-language Support**: Full support for German, French, Italian, and English.
 - **High-Performance Data**: Leverages GeoZarr for efficient streaming of massive raster datasets directly in the browser.
 
