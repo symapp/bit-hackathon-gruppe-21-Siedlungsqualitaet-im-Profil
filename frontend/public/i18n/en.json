@@ -26,6 +26,8 @@
     "overviewMapScale": "Map: 0 – 100 (worse – better)",
     "layersTitle": "Factors & preferences",
     "layersHint": "Trapezoid curve per factor: plateau = 100 points. Importance drives the overall score and overview map.",
+    "weatherTitle": "Meteo / Weather",
+    "weatherHint": "Temperature is shown in a separate section.",
     "importance": "Importance",
     "resetDefaults": "Sensible defaults",
     "resetLayer": "Reset factor",
@@ -211,6 +213,12 @@
         "label": "Nearby Hospital",
         "metricUnit": "count"
       }
+    },
+    "temperature": {
+      "label": "Temperature",
+      "description": "Current air temperature at 2 m",
+      "metricLabel": "Temperature",
+      "metricUnit": "°C"
     }
   },
   "languageSelector": {
@@ -246,6 +254,9 @@
     "factorsLoading": "Loading factor values…",
     "factorsEmpty": "No factors selected — enable factors in the right panel.",
     "factorsRadarMin": "Select at least three factors to show the radar chart.",
-    "factorsOverview": "Overall score"
+    "factorsOverview": "Overall score",
+    "temperatureLabel": "Average temperature",
+    "temperatureLoading": "Calculating…",
+    "temperatureUnavailable": "No data"
   }
 }

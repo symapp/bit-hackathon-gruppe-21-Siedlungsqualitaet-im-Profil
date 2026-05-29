@@ -32,6 +32,8 @@ export interface ZarrLayerDefinition {
   fillValue?: number;
   colormap: string[];
   clim: [number, number];
+  /** Optional single-layer map opacity (defaults to service constant). */
+  renderOpacity?: number;
   metricKey: ZarrMetricKey;
   /** i18n key for the metric label shown in the sidebar */
   metricLabelKey: string;
@@ -40,6 +42,10 @@ export interface ZarrLayerDefinition {
   formatValue: (value: number) => string;
   /** Used for the aggregated overview score (0–100). */
   higherIsBetter: boolean;
+  /** Set false for layers that are not compatible with overview grid/L0D yet. */
+  includeInOverview?: boolean;
+  /** Sidebar grouping for menu organization. Defaults to the main factors section. */
+  sidebarGroup?: 'general' | 'weather';
   /** Coarse GeoZarr stores for national overview (from coarsen_settlement_layers.py). */
   overviewCoarse?: {
     storePath500: string;
@@ -66,10 +72,32 @@ export const OVERVIEW_MAP_LAYER_ID = 'settlement-quality-overview';
 /** Colormap for the weighted composite overview layer (0 = low, 1 = high score). */
 export const OVERVIEW_COLORMAP = ['#f7fcf5', '#c2e699', '#74c476', '#238b45', '#00441b'] as const;
 
+export interface ZarrLayerGroup {
+  id: 'general' | 'weather';
+  titleKey?: string;
+  layers: ZarrLayerDefinition[];
+}
+
+export function groupZarrLayerDefinitions(
+  definitions: readonly ZarrLayerDefinition[] = ZARR_LAYER_DEFINITIONS,
+): ZarrLayerGroup[] {
+  const generalLayers = definitions.filter((definition) => definition.sidebarGroup !== 'weather');
+  const weatherLayers = definitions.filter((definition) => definition.sidebarGroup === 'weather');
+  const groups: ZarrLayerGroup[] = [{ id: 'general', layers: generalLayers }];
+
+  if (weatherLayers.length > 0) {
+    groups.push({ id: 'weather', titleKey: 'sidebar.weatherTitle', layers: weatherLayers });
+  }
+
+  return groups;
+}
+
 /**
  * Color scale limits (`clim`) — tune with `visualize-zarr.py` after uploading new layers.
  */
 const CLIM = {
+  // Emphasize user-facing weather bands: cold <15, mild 15-30, hot >30.
+  temperature: [0, 45] as [number, number],
   tranquillity: [0, 1] as [number, number],
   /** Raw Einw./km² from STATPOP (see settlement-layer-meta p5/p95 ≈ 300–9900). */
   populationDensity: [300, 9_900] as [number, number],
@@ -91,6 +119,42 @@ const CLIM = {
 const base = environment.zarrBaseUrl;
 
 const ZARR_LAYER_DEFINITIONS_BASE: Omit<ZarrLayerDefinition, 'overviewCoarse'>[] = [
+  {
+    id: 'temperature',
+    labelKey: 'layers.temperature.label',
+    descriptionKey: 'layers.temperature.description',
+    storePath: `${base}/meteo_temperature_100m.zarr`,
+    variable: 'temperature_celsius',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    // Hard thermal thresholds: blue <15 C, green 15-30 C, red >30 C.
+    colormap: [
+      '#08306b',
+      '#2171b5',
+      '#4292c6',
+      '#6baed6',
+      '#9ecae1',
+      '#238b45',
+      '#41ab5d',
+      '#74c476',
+      '#a1d99b',
+      '#c7e9c0',
+      '#cb181d',
+      '#ef3b2c',
+      '#fb6a4a',
+      '#fc9272',
+      '#fcbba1',
+    ],
+    clim: CLIM.temperature,
+    renderOpacity: 1,
+    metricKey: 'temperatureCelsius',
+    metricLabelKey: 'layers.temperature.metricLabel',
+    metricUnitKey: 'layers.temperature.metricUnit',
+    formatValue: (v) => v.toFixed(1),
+    higherIsBetter: false,
+    sidebarGroup: 'weather',
+  },
   {
     id: 'tranquillity',
     labelKey: 'layers.tranquillity.label',

@@ -70,6 +70,7 @@ const SENSIBLE_SHAPES: Record<string, GoodPlaceShape> = {
 
 const DEFAULT_ENABLED: Record<string, boolean> = {
   'landscape-type': false,
+  temperature: false,
 };
 
 const FALLBACK_SHAPE = shape(0.35, 0.65, 0.2, 0.78, 100);

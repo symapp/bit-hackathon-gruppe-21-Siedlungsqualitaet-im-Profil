@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -11,6 +11,7 @@ import {
 } from '../../config/lifestyle-presets.config';
 import {
   OVERVIEW_COLORMAP,
+  groupZarrLayerDefinitions,
   ZARR_LAYER_DEFINITIONS,
   type ZarrLayerDefinition,
 } from '../../config/zarr-layers.config';
@@ -54,6 +55,18 @@ export class SidebarComponent implements OnInit {
   protected readonly lifestylePresets = LIFESTYLE_PRESETS;
   protected readonly activePresetId = signal<LifestylePresetId>(loadStoredLifestylePresetId());
 
+  private readonly layerGroups = groupZarrLayerDefinitions();
+  private readonly weatherLayerIds = new Set(
+    this.layerGroups.find((group) => group.id === 'weather')?.layers.map((layer) => layer.id) ??
+      [],
+  );
+  protected readonly generalLayers = computed(() =>
+    this.locationService.zarrLayers().filter((layer) => !this.weatherLayerIds.has(layer.id)),
+  );
+  protected readonly weatherLayers = computed(() =>
+    this.locationService.zarrLayers().filter((layer) => this.weatherLayerIds.has(layer.id)),
+  );
+
   ngOnInit(): void {
     this.mapPanels.setRightOpen(!this.isCollapsed);
     this.mapPanels.closeRight$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -76,6 +89,10 @@ export class SidebarComponent implements OnInit {
 
   metricUnit(def: ZarrLayerDefinition): string {
     return this.translate.instant(def.metricUnitKey);
+  }
+
+  temperatureLegendAriaLabel(def: ZarrLayerDefinition): string {
+    return `${this.translate.instant(def.metricLabelKey)} gradient from ${def.formatValue(def.clim[0])} to ${def.formatValue(def.clim[1])} ${this.metricUnit(def)}`;
   }
 
   legendGradient(colors: readonly string[] | string[]): string {

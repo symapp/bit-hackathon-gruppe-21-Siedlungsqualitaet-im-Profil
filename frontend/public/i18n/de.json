@@ -26,6 +26,8 @@
     "overviewMapScale": "Karte: 0 – 100 (schlechter – besser)",
     "layersTitle": "Faktoren & Präferenzen",
     "layersHint": "Trapez-Kurve pro Faktor: Plateau = 100 Punkte. Wichtigkeit steuert den Gesamtscore und die Übersichtskarte.",
+    "weatherTitle": "Meteo / Wetter",
+    "weatherHint": "Die Temperatur wird in einem separaten Abschnitt angezeigt.",
     "importance": "Wichtigkeit",
     "resetDefaults": "Sinnvolle Defaults",
     "resetLayer": "Faktor zurücksetzen",
@@ -211,6 +213,12 @@
         "label": "Spital",
         "metricUnit": "Anzahl"
       }
+    },
+    "temperature": {
+      "label": "Temperatur",
+      "description": "Aktuelle Lufttemperatur auf 2 m",
+      "metricLabel": "Temperatur",
+      "metricUnit": "°C"
     }
   },
   "languageSelector": {
@@ -246,6 +254,9 @@
     "factorsLoading": "Faktorwerte werden geladen…",
     "factorsEmpty": "Keine Faktoren ausgewählt — aktivieren Sie Faktoren im rechten Panel.",
     "factorsRadarMin": "Mindestens drei Faktoren auswählen für das Radar-Diagramm.",
-    "factorsOverview": "Gesamtscore"
+    "factorsOverview": "Gesamtscore",
+    "temperatureLabel": "Durchschnittstemperatur",
+    "temperatureLoading": "Berechnung läuft…",
+    "temperatureUnavailable": "Keine Daten"
   }
 }

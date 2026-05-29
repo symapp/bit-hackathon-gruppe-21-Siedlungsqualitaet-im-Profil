@@ -156,7 +156,7 @@
         <p class="layers-hint">{{ 'sidebar.layersHint' | translate }}</p>
 
         <div class="map-layer-list">
-          @for (layer of locationService.zarrLayers(); track layer.id) {
+          @for (layer of generalLayers(); track layer.id) {
             @let def = layerDefinition(layer.id);
             <div
               class="map-layer-card"
@@ -245,6 +245,124 @@
             </div>
           }
         </div>
+
+        @if (weatherLayers().length > 0) {
+          <div class="weather-section">
+            <div class="weather-section-header">
+              <h3 class="metrics-title">{{ 'sidebar.weatherTitle' | translate }}</h3>
+              <p class="layers-hint">
+                {{ 'sidebar.weatherHint' | translate }}
+              </p>
+            </div>
+
+            <div class="map-layer-list weather-layer-list">
+              @for (layer of weatherLayers(); track layer.id) {
+                @let def = layerDefinition(layer.id);
+                <div
+                  class="map-layer-card weather-layer-card"
+                  [class.disabled]="!layer.enabled"
+                  [class.loading]="layer.loading"
+                >
+                  <label class="map-layer-toggle">
+                    <input
+                      type="checkbox"
+                      [checked]="layer.enabled"
+                      (change)="onLayerEnabledChange(layer.id, $event)"
+                    />
+                    <span class="map-layer-title">{{ layer.labelKey | translate }}</span>
+                  </label>
+
+                  <span class="map-layer-desc">{{ layer.descriptionKey | translate }}</span>
+
+                  @if (def && layer.id === 'temperature') {
+                    <div class="layer-color-code" data-testid="temperature-color-code">
+                      <span
+                        class="map-layer-legend"
+                        role="img"
+                        [attr.aria-label]="temperatureLegendAriaLabel(def)"
+                        [style.background]="legendGradient(def.colormap)"
+                      ></span>
+                      <span class="map-layer-scale"
+                        >{{ def.formatValue(def.clim[0]) }} {{ metricUnit(def) }} ->
+                        {{ def.formatValue(def.clim[1]) }} {{ metricUnit(def) }}</span
+                      >
+                    </div>
+                  }
+
+                  @if (layer.metaFromFallback) {
+                    <span class="meta-warning">{{ 'sidebar.metaFallback' | translate }}</span>
+                  }
+
+                  @if (def) {
+                    <div class="layer-weight-row">
+                      <span class="layer-weight-label">{{ 'sidebar.importance' | translate }}</span>
+                      <span class="layer-weight-value">{{ importanceStars(layer.id) }}/5</span>
+                    </div>
+                    <input
+                      type="range"
+                      class="layer-weight-slider"
+                      [min]="0"
+                      [max]="5"
+                      [step]="1"
+                      [disabled]="!layer.enabled"
+                      [ngModel]="importanceStars(layer.id)"
+                      (ngModelChange)="onImportanceStarsChange(layer.id, $event)"
+                    />
+
+                    <button
+                      type="button"
+                      class="layer-reset-pref-btn"
+                      [disabled]="!layer.enabled"
+                      (click)="resetLayerPreference(layer.id)"
+                    >
+                      {{ 'sidebar.resetLayer' | translate }}
+                    </button>
+
+                    <button
+                      type="button"
+                      class="layer-advanced-toggle"
+                      [disabled]="!layer.enabled"
+                      [attr.aria-expanded]="isLayerAdvancedOpen(layer.id)"
+                      (click)="toggleLayerAdvanced(layer.id, $event)"
+                    >
+                      {{
+                        isLayerAdvancedOpen(layer.id)
+                          ? ('sidebar.hideLayerAdvanced' | translate)
+                          : ('sidebar.showLayerAdvanced' | translate)
+                      }}
+                    </button>
+
+                    @if (isLayerAdvancedOpen(layer.id)) {
+                      <div class="layer-advanced-panel">
+                        <label class="dealbreaker-toggle">
+                          <input
+                            type="checkbox"
+                            [checked]="isDealbreaker(layer.id)"
+                            [disabled]="!layer.enabled"
+                            (change)="onDealbreakerChange(layer.id, $event)"
+                          />
+                          <span>{{ 'sidebar.dealbreaker' | translate }}</span>
+                        </label>
+                        <app-trapezoid-preference-editor
+                          [preference]="layer.preference"
+                          [bounds]="normalizationBounds(layer.id)"
+                          [disabled]="!layer.enabled"
+                          [formatRaw]="def.formatValue"
+                          [unit]="metricUnit(def)"
+                          (preferenceChange)="onPreferenceChange(layer.id, $event)"
+                        />
+                      </div>
+                    }
+                  }
+
+                  @if (layer.loading) {
+                    <span class="layer-status">{{ 'sidebar.layerLoading' | translate }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
     </div>
   }

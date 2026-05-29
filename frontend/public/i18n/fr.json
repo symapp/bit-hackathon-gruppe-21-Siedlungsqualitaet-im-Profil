@@ -26,6 +26,8 @@
     "overviewMapScale": "Carte : 0 – 100 (moins bon – meilleur)",
     "layersTitle": "Facteurs & préférences",
     "layersHint": "Courbe trapézoïdale par facteur : plateau = 100 points. L'importance pilote le score global et la carte de synthèse.",
+    "weatherTitle": "Météo / Weather",
+    "weatherHint": "La température est affichée dans une section séparée.",
     "importance": "Importance",
     "resetDefaults": "Valeurs par défaut",
     "resetLayer": "Réinitialiser le facteur",
@@ -211,6 +213,12 @@
         "label": "Hôpital",
         "metricUnit": "nombre"
       }
+    },
+    "temperature": {
+      "label": "Température",
+      "description": "Température actuelle de l'air à 2 m",
+      "metricLabel": "Température",
+      "metricUnit": "°C"
     }
   },
   "languageSelector": {
@@ -246,6 +254,9 @@
     "factorsLoading": "Chargement des valeurs…",
     "factorsEmpty": "Aucun facteur sélectionné — activez des facteurs dans le panneau de droite.",
     "factorsRadarMin": "Sélectionnez au moins trois facteurs pour le diagramme radar.",
-    "factorsOverview": "Score global"
+    "factorsOverview": "Score global",
+    "temperatureLabel": "Température moyenne",
+    "temperatureLoading": "Calcul en cours…",
+    "temperatureUnavailable": "Pas de données"
   }
 }
