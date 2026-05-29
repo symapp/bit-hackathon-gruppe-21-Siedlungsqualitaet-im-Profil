@@ -33,12 +33,6 @@ def _prepare_pt_quality(geodata: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return geodata
 
 
-def _prepare_agglomeration(geodata: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    swiss = geodata[geodata["Land"].astype(str).str.upper() == "CH"].copy()
-    swiss["in_agglomeration"] = 1
-    return swiss
-
-
 ARE_METRICS: dict[str, AreMetricSpec] = {
     # --- already used by dedicated scripts; listed for batch rasterize ---
     "pt-accessibility": AreMetricSpec(
@@ -129,15 +123,6 @@ ARE_METRICS: dict[str, AreMetricSpec] = {
         variable="solar_suitability",
         zarr_name="solar_nutzungsaspekte.zarr",
     ),
-    "agglomeration": AreMetricSpec(
-        id="agglomeration",
-        source_type=GPKG,
-        source_url="https://data.geo.admin.ch/ch.are.agglomerationsverkehr/agglomerationsverkehr_2023/agglomerationsverkehr_2023_2056.gpkg",
-        field="in_agglomeration",
-        variable="in_agglomeration",
-        zarr_name="agglomeration_swiss_grid_100m.zarr",
-        prepare=_prepare_agglomeration,
-    ),
 }
 
 NEW_METRIC_IDS: tuple[str, ...] = (
@@ -150,5 +135,4 @@ NEW_METRIC_IDS: tuple[str, ...] = (
     "secondary-homes",
     "landscape-type",
     "solar-potential",
-    "agglomeration",
 )

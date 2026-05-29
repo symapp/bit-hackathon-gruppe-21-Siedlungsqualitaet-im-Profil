@@ -144,12 +144,6 @@
       "description": "ARE solar installation suitability aspects (1–5, higher = more favourable)",
       "metricLabel": "Solar suitability",
       "metricUnit": "level"
-    },
-    "agglomeration": {
-      "label": "Agglomeration",
-      "description": "ARE agglomeration programme (eligible area for subsidies)",
-      "metricLabel": "Agglomeration",
-      "metricUnit": ""
     }
   },
   "regions": {

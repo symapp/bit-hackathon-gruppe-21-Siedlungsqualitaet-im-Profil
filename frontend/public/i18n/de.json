@@ -144,12 +144,6 @@
       "description": "ARE Solaranlagen Nutzungsaspekte (1–5, höher = günstiger)",
       "metricLabel": "Solar-Eignung",
       "metricUnit": "Stufe"
-    },
-    "agglomeration": {
-      "label": "Agglomeration",
-      "description": "ARE Agglomerationsprogramm (im förderberechtigten Gebiet)",
-      "metricLabel": "Agglomeration",
-      "metricUnit": ""
     }
   },
   "regions": {

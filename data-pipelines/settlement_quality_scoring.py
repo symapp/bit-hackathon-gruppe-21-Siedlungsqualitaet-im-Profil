@@ -130,14 +130,6 @@ QUALITY_SPECS: dict[str, QualitySpec] = {
         scale_range=(1.0, 5.0),
         default_weight=40,
     ),
-    "agglomeration": QualitySpec(
-        variable="in_agglomeration",
-        higher_is_better=True,
-        raw_interior_fill=0.0,
-        percentile_cutoff=None,
-        scale_range=(0.0, 1.0),
-        default_weight=60,
-    ),
 }
 
 

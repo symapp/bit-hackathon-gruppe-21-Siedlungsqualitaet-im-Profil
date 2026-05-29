@@ -13,7 +13,6 @@ METRIC_META: dict[str, tuple[bool, str]] = {
     "secondary-homes": (False, "%"),
     "landscape-type": (True, "Nr."),
     "solar-potential": (True, "Stufe"),
-    "agglomeration": (True, ""),
     "tranquillity": (True, ""),
     "population-density": (False, "per km²"),
 }

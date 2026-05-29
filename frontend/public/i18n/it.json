@@ -142,12 +142,6 @@
       "description": "Aspetti di utilizzo ARE degli impianti solari (1–5, più alto = più favorevole)",
       "metricLabel": "Idoneità solare",
       "metricUnit": "livello"
-    },
-    "agglomeration": {
-      "label": "Agglomerato",
-      "description": "Programma d'agglomerato ARE (zona ammissibile ai sussidi)",
-      "metricLabel": "Agglomerato",
-      "metricUnit": ""
     }
   },
   "regions": {

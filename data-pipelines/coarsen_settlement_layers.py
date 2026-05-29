@@ -27,7 +27,6 @@ LAYER_AGG: dict[str, str] = {
     "secondary-homes": AGG_MEAN,
     "landscape-type": AGG_MODE,
     "solar-potential": AGG_MEAN,
-    "agglomeration": AGG_MAX,
 }
 
 LAYER_VARIABLE: dict[str, str] = {
@@ -43,7 +42,6 @@ LAYER_VARIABLE: dict[str, str] = {
     "secondary-homes": "ZWG_3110",
     "landscape-type": "TYP_NR",
     "solar-potential": "solar_suitability",
-    "agglomeration": "in_agglomeration",
 }
 
 HIGHER_IS_BETTER: dict[str, bool] = {
@@ -59,7 +57,6 @@ HIGHER_IS_BETTER: dict[str, bool] = {
     "secondary-homes": False,
     "landscape-type": True,
     "solar-potential": True,
-    "agglomeration": True,
 }
 
 LAYER_UNIT: dict[str, str] = {

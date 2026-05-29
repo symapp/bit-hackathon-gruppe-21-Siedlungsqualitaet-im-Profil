@@ -83,7 +83,6 @@ const CLIM = {
   secondaryHomes: [0, 40] as [number, number],
   landscapeType: [1, 40] as [number, number],
   solarSuitability: [1, 5] as [number, number],
-  agglomeration: [0, 1] as [number, number],
 } as const;
 
 const base = environment.zarrBaseUrl;
@@ -291,23 +290,6 @@ const ZARR_LAYER_DEFINITIONS_BASE: Omit<ZarrLayerDefinition, 'overviewCoarse'>[]
     metricLabelKey: 'layers.solarPotential.metricLabel',
     metricUnitKey: 'layers.solarPotential.metricUnit',
     formatValue: (v) => v.toFixed(0),
-    higherIsBetter: true,
-  },
-  {
-    id: 'agglomeration',
-    labelKey: 'layers.agglomeration.label',
-    descriptionKey: 'layers.agglomeration.description',
-    storePath: `${base}/agglomeration_swiss_grid_100m.zarr`,
-    variable: 'in_agglomeration',
-    bounds: SWISS_GRID_LV95_BOUNDS,
-    latIsAscending: false,
-    fillValue: Number.NaN,
-    colormap: ['#f0f0f0', '#6366f1'],
-    clim: CLIM.agglomeration,
-    metricKey: 'inAgglomeration',
-    metricLabelKey: 'layers.agglomeration.metricLabel',
-    metricUnitKey: 'layers.agglomeration.metricUnit',
-    formatValue: (v) => (v >= 1 ? '✓' : '✗'),
     higherIsBetter: true,
   },
 ];

@@ -92,18 +92,10 @@ const SENSIBLE_TRAPEZOID: Record<string, TrapezoidDefaults> = {
     falloffRight: 0.1,
     importance: 40,
   },
-  agglomeration: {
-    rangeMin: 0.2,
-    rangeMax: 0.8,
-    falloffLeft: 0.2,
-    falloffRight: 0.2,
-    importance: 60,
-  },
 };
 
 const DEFAULT_ENABLED: Record<string, boolean> = {
   'landscape-type': false,
-  agglomeration: false,
 };
 
 export function createGoodPlaceLayerPreference(layerId: string): LayerPreference {

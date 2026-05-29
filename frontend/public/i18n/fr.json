@@ -144,12 +144,6 @@
       "description": "Aspects d'utilisation ARE des installations solaires (1–5, plus élevé = plus favorable)",
       "metricLabel": "Aptitude solaire",
       "metricUnit": "niveau"
-    },
-    "agglomeration": {
-      "label": "Agglomération",
-      "description": "Programme d'agglomération ARE (zone éligible aux subventions)",
-      "metricLabel": "Agglomération",
-      "metricUnit": ""
     }
   },
   "regions": {
