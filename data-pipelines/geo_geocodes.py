@@ -1,3 +1,4 @@
+Settlement quality
 #!/usr/bin/env python3
 """Rasterize swissBOUNDARIES3D municipality polygons to a 10 m GeoZarr with BFS geocodes.
 

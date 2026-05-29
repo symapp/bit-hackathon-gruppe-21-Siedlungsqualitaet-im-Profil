@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Settlement quality profile"
+    "title": "Livability score profile"
   },
   "search": {
     "placeholder": "Search for an address in Switzerland…",
@@ -14,7 +14,7 @@
   "sidebar": {
     "open": "Open panel",
     "close": "Close panel",
-    "title": "Settlement quality",
+    "title": "Livability score",
     "location": "Location",
     "radius": "Search radius",
     "overviewTitle": "Overview",

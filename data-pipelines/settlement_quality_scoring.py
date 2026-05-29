@@ -214,7 +214,7 @@ def linear_quality_score(
     *,
     percentile_cutoff: float | None = None,
 ) -> xr.DataArray:
-    """Map raw values to 0–1 where 1 = best settlement quality."""
+    """Map raw values to 0–1 where 1 = best livability score."""
     working = da.astype(np.float32)
     cutoff = spec.percentile_cutoff if percentile_cutoff is None else percentile_cutoff
 

@@ -1,6 +1,6 @@
 # Siedlungsqualität im Profil
 
-Siedlungsqualität im Profil is an interactive web application designed to evaluate and visualize settlement quality across Switzerland. It allows users to define their own living preferences using various indicators—such as noise levels, public transport accessibility, and population density—and see a personalized quality score directly on a map.
+Siedlungsqualität im Profil is an interactive web application designed to evaluate and visualize Livability scores across Switzerland. It allows users to define their own living preferences using various indicators—such as noise levels, public transport accessibility, and population density—and see a personalized quality score directly on a map.
 
 The project was developed as part of the BIT Hackathon.
 

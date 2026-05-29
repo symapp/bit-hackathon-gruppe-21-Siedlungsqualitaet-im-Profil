@@ -121,7 +121,7 @@ Frontend wiring: `frontend/src/app/config/zarr-layers.config.ts`. Registry & dow
 | **Calculation** | For each STATPOP 100 m cell: `population_density_per_km2 = population / cell_area_km2` with `cell_area_km2 = 0.01` (100 m × 100 m). Coordinates in CSV are **south-west corners** of cells; indexing accounts for that. |
 | **Output** | `statpop_population_density_100m.zarr` |
 | **Variables** | `population_density_score` (used by app), `population` (counts, auxiliary) |
-| **Scoring direction** | Lower density is better for typical “settlement quality” preferences |
+| **Scoring direction** | Lower density is better for typical “livability score” preferences |
 
 ---
 
