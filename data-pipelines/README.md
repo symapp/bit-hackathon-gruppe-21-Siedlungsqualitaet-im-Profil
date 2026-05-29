@@ -28,6 +28,28 @@ uv run python rasterize-are-metrics.py all-new --upload
 
 # PT Quality
 uv run python pt-quality-rasterize.py --upload
+
+# Swiss TLM green areas & single-tree density (requires local tiles)
+uv run python tlm-green-trees-rasterize.py --tiles-dir ../data/swisstlm3d --upload
+```
+
+### Swiss TLM: Grünflächen & Einzelbaumdichte
+
+By default the script downloads the latest national **swissTLM3D** GeoPackage from [geo.admin.ch STAC](https://data.geo.admin.ch/api/stac/v1/collections/ch.swisstopo.swisstlm3d) into `data/swisstlm3d/` (not committed, ~4.8 GiB zip). You can also pass local tiles via `--tiles-dir`.
+
+Feature filters (`tlm_green_trees_config.py`):
+
+| Source | Feature class | Filter |
+|--------|---------------|--------|
+| Bodenbedeckung | `TLM_BODENBEDECKUNG` | Objektart ∈ Gehoelzflaeche, Gebueschwald, Wald, Wald_offen, Feuchtgebiet (codes 6, 11–14) |
+| Einzelbäume | `TLM_EINZELBAUM_GEBUESCH` | ObjectVal / Objektart = Einzelbaum (code 1) |
+
+Output: `tlm_green_trees_swiss_grid_100m.zarr` with `green_amenity_index` (0–1 composite of green-area share and normalized tree density per ha). Attribution: © swisstopo.
+
+After the 100 m layer is built:
+
+```bash
+uv run python coarsen_settlement_layers.py --fine-dir . --layer-id tlm-green-trees
 ```
 
 ## 🏗 Key Components

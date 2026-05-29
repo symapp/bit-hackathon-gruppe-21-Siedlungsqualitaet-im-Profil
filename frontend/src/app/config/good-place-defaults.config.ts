@@ -92,6 +92,13 @@ const SENSIBLE_TRAPEZOID: Record<string, TrapezoidDefaults> = {
     falloffRight: 0.1,
     importance: 40,
   },
+  'tlm-green-trees': {
+    rangeMin: 0.35,
+    rangeMax: 0.75,
+    falloffLeft: 0.12,
+    falloffRight: 0.12,
+    importance: 80,
+  },
 };
 
 const DEFAULT_ENABLED: Record<string, boolean> = {

@@ -144,6 +144,12 @@
       "description": "ARE solar installation suitability aspects (1–5, higher = more favourable)",
       "metricLabel": "Solar suitability",
       "metricUnit": "level"
+    },
+    "tlmGreenTrees": {
+      "label": "Swiss TLM: green areas & trees",
+      "description": "swisstopo swissTLM3D: green-area share and single-tree density (100 m, © swisstopo)",
+      "metricLabel": "Green & tree amenity",
+      "metricUnit": "index"
     }
   },
   "regions": {

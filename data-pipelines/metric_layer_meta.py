@@ -15,4 +15,5 @@ METRIC_META: dict[str, tuple[bool, str]] = {
     "solar-potential": (True, "Stufe"),
     "tranquillity": (True, ""),
     "population-density": (False, "per km²"),
+    "tlm-green-trees": (True, "Index"),
 }

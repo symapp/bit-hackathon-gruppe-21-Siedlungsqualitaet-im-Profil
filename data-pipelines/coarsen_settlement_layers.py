@@ -27,6 +27,7 @@ LAYER_AGG: dict[str, str] = {
     "secondary-homes": AGG_MEAN,
     "landscape-type": AGG_MODE,
     "solar-potential": AGG_MEAN,
+    "tlm-green-trees": AGG_MEAN,
 }
 
 LAYER_VARIABLE: dict[str, str] = {
@@ -42,6 +43,7 @@ LAYER_VARIABLE: dict[str, str] = {
     "secondary-homes": "ZWG_3110",
     "landscape-type": "TYP_NR",
     "solar-potential": "solar_suitability",
+    "tlm-green-trees": "green_amenity_index",
 }
 
 HIGHER_IS_BETTER: dict[str, bool] = {
@@ -57,6 +59,7 @@ HIGHER_IS_BETTER: dict[str, bool] = {
     "secondary-homes": False,
     "landscape-type": True,
     "solar-potential": True,
+    "tlm-green-trees": True,
 }
 
 LAYER_UNIT: dict[str, str] = {
@@ -108,17 +111,13 @@ def coarsen_layer(
     if variable not in ds:
         raise KeyError(f"{fine_zarr} missing {variable!r}")
     coarse = _block_reduce(ds[variable], factor, how)
-    out_ds = coarse.to_dataset(name=variable)
+    out_ds = coarse.to_dataset(name=variable).load()
     if out_dir.exists():
         import shutil
 
         shutil.rmtree(out_dir)
     out_dir.parent.mkdir(parents=True, exist_ok=True)
-    out_ds.to_zarr(
-        out_dir,
-        mode="w",
-        encoding={variable: {"chunks": {"x": 512, "y": 512}}},
-    )
+    out_ds.to_zarr(out_dir, mode="w")
     write_meta_for_dataset(
         out_dir,
         out_ds,
@@ -151,15 +150,16 @@ def main() -> None:
     for layer_id in layer_ids:
         variable = LAYER_VARIABLE[layer_id]
         how = LAYER_AGG[layer_id]
-        matches = list(fine_dir.glob(f"*{layer_id.replace('-', '_')}*.zarr")) + list(
-            fine_dir.glob(f"*{layer_id}*.zarr")
-        )
-        if not matches:
-            matches = [p for p in fine_dir.glob("*.zarr") if layer_id.replace("-", "_") in p.name]
+        token = layer_id.replace("-", "_")
+        matches = [
+            p
+            for p in fine_dir.glob("*.zarr")
+            if token in p.name and "_500m" not in p.name and "_1000m" not in p.name
+        ]
         if not matches:
             print(f"skip {layer_id}: no zarr in {fine_dir}")
             continue
-        fine_path = matches[0]
+        fine_path = sorted(matches, key=lambda p: len(p.name))[0]
         for suffix, factor in (("500m", 5), ("1000m", 10)):
             out = fine_path.parent / f"{fine_path.stem}_{suffix}.zarr"
             print(f"{layer_id} -> {out.name} ({how}, block={factor})")

@@ -144,6 +144,12 @@
       "description": "ARE Solaranlagen Nutzungsaspekte (1–5, höher = günstiger)",
       "metricLabel": "Solar-Eignung",
       "metricUnit": "Stufe"
+    },
+    "tlmGreenTrees": {
+      "label": "Swiss TLM: Grünflächen & Bäume",
+      "description": "swisstopo swissTLM3D: Grünflächenanteil und Einzelbaumdichte (100 m, © swisstopo)",
+      "metricLabel": "Grün- & Baumamenität",
+      "metricUnit": "Index"
     }
   },
   "regions": {

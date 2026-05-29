@@ -130,6 +130,13 @@ QUALITY_SPECS: dict[str, QualitySpec] = {
         scale_range=(1.0, 5.0),
         default_weight=40,
     ),
+    "tlm-green-trees": QualitySpec(
+        variable="green_amenity_index",
+        higher_is_better=True,
+        raw_interior_fill=0.0,
+        percentile_cutoff=5.0,
+        default_weight=80,
+    ),
 }
 
 

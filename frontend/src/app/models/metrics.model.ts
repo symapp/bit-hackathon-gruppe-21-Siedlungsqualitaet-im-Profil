@@ -11,6 +11,7 @@ export interface LocationMetrics {
   secondaryHomesRatePct: number | null;
   landscapeTypeId: number | null;
   solarSuitability: number | null;
+  greenAmenityIndex: number | null;
 }
 
 export const EMPTY_LOCATION_METRICS: LocationMetrics = {
@@ -26,4 +27,5 @@ export const EMPTY_LOCATION_METRICS: LocationMetrics = {
   secondaryHomesRatePct: null,
   landscapeTypeId: null,
   solarSuitability: null,
+  greenAmenityIndex: null,
 };

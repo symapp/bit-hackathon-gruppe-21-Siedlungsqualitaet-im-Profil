@@ -83,6 +83,8 @@ const CLIM = {
   secondaryHomes: [0, 40] as [number, number],
   landscapeType: [1, 40] as [number, number],
   solarSuitability: [1, 5] as [number, number],
+  /** From settlement-layer-meta p5/p95 on national swissTLM3D run. */
+  greenAmenity: [0, 0.57] as [number, number],
 } as const;
 
 const base = environment.zarrBaseUrl;
@@ -290,6 +292,23 @@ const ZARR_LAYER_DEFINITIONS_BASE: Omit<ZarrLayerDefinition, 'overviewCoarse'>[]
     metricLabelKey: 'layers.solarPotential.metricLabel',
     metricUnitKey: 'layers.solarPotential.metricUnit',
     formatValue: (v) => v.toFixed(0),
+    higherIsBetter: true,
+  },
+  {
+    id: 'tlm-green-trees',
+    labelKey: 'layers.tlmGreenTrees.label',
+    descriptionKey: 'layers.tlmGreenTrees.description',
+    storePath: `${base}/tlm_green_trees_swiss_grid_100m.zarr`,
+    variable: 'green_amenity_index',
+    bounds: SWISS_GRID_LV95_BOUNDS,
+    latIsAscending: false,
+    fillValue: Number.NaN,
+    colormap: ['#f7fcf5', '#c2e699', '#74c476', '#238b45', '#00441b'],
+    clim: CLIM.greenAmenity,
+    metricKey: 'greenAmenityIndex',
+    metricLabelKey: 'layers.tlmGreenTrees.metricLabel',
+    metricUnitKey: 'layers.tlmGreenTrees.metricUnit',
+    formatValue: (v) => v.toFixed(2),
     higherIsBetter: true,
   },
 ];

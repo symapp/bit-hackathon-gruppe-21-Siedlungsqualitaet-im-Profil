@@ -144,6 +144,12 @@
       "description": "Aspects d'utilisation ARE des installations solaires (1–5, plus élevé = plus favorable)",
       "metricLabel": "Aptitude solaire",
       "metricUnit": "niveau"
+    },
+    "tlmGreenTrees": {
+      "label": "Swiss TLM : espaces verts et arbres",
+      "description": "swisstopo swissTLM3D : part d'espaces verts et densité d'arbres isolés (100 m, © swisstopo)",
+      "metricLabel": "Aménité verte",
+      "metricUnit": "indice"
     }
   },
   "regions": {

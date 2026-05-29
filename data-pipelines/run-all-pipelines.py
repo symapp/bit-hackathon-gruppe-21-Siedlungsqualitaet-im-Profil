@@ -8,6 +8,7 @@ PIPELINES: list[tuple[str, list[str], bool]] = [
     ("tranquillity-rasterize.py", [], True),
     ("density-rasterize.py", [], True),
     ("rasterize-are-metrics.py", ["all"], False),
+    ("tlm-green-trees-rasterize.py", [], False),
 ]
 
 

@@ -142,6 +142,12 @@
       "description": "Aspetti di utilizzo ARE degli impianti solari (1–5, più alto = più favorevole)",
       "metricLabel": "Idoneità solare",
       "metricUnit": "livello"
+    },
+    "tlmGreenTrees": {
+      "label": "Swiss TLM: aree verdi e alberi",
+      "description": "swisstopo swissTLM3D: quota aree verdi e densità di alberi singoli (100 m, © swisstopo)",
+      "metricLabel": "Amenità verde",
+      "metricUnit": "indice"
     }
   },
   "regions": {

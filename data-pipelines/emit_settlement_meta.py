@@ -25,6 +25,7 @@ STORES: dict[str, tuple[str, str]] = {
     "secondary-homes": ("zweitwohnungsanteil_swiss_grid_100m.zarr", "ZWG_3110"),
     "landscape-type": ("landschaftstypen_swiss_grid_100m.zarr", "TYP_NR"),
     "solar-potential": ("solar_nutzungsaspekte.zarr", "solar_suitability"),
+    "tlm-green-trees": ("tlm_green_trees_swiss_grid_100m.zarr", "green_amenity_index"),
 }
 
 
