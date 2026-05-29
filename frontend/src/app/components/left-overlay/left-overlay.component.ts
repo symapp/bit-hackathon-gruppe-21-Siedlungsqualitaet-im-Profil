@@ -91,11 +91,6 @@ export class LeftOverlayComponent implements OnInit {
     this.locationService.removeRegion(region.id);
   }
 
-  onAmenitiesEnabledChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.locationService.setAmenitiesEnabled(input.checked);
-  }
-
   formatRadius(value: number): string {
     if (value >= 1000) {
       return `${(value / 1000).toFixed(1)} km`;

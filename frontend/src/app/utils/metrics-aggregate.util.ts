@@ -41,6 +41,7 @@ function boundsForLayer(
 export function computePreferenceOverview(
   metrics: LocationMetrics,
   ctx: ComputeOverviewContext,
+  extraContributions?: { layerId: string; score: number; importance: number }[],
 ): number | null {
   const contributions: { layerId: string; score: number; importance: number }[] = [];
 
@@ -61,6 +62,15 @@ export function computePreferenceOverview(
       score: factorScoreFromRaw(raw, bounds, pref),
       importance: pref.importance,
     });
+  }
+
+  if (extraContributions) {
+    for (const c of extraContributions) {
+      if (c.importance <= 0 || !Number.isFinite(c.score)) {
+        continue;
+      }
+      contributions.push(c);
+    }
   }
 
   return computePreferenceOverviewScore(contributions);

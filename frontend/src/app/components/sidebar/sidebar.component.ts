@@ -14,8 +14,10 @@ import {
   ZARR_LAYER_DEFINITIONS,
   type ZarrLayerDefinition,
 } from '../../config/zarr-layers.config';
+import { AMENITY_CATEGORIES } from '../../config/amenity-categories.config';
 import type { LayerPreference } from '../../models/layer-preference.model';
 import { LocationService } from '../../services/location.service';
+import { createGoodPlaceLayerPreference } from '../../config/good-place-defaults.config';
 import {
   importanceFromStars,
   isDealbreakerPreference,
@@ -48,6 +50,7 @@ export class SidebarComponent implements OnInit {
   /** Per-layer advanced panel (curve editor + dealbreaker). */
   protected readonly advancedOpenByLayerId = signal<Record<string, boolean>>({});
   protected readonly metricDefinitions = ZARR_LAYER_DEFINITIONS;
+  protected readonly amenityCategories = AMENITY_CATEGORIES;
   protected readonly lifestylePresets = LIFESTYLE_PRESETS;
   protected readonly activePresetId = signal<LifestylePresetId>(loadStoredLifestylePresetId());
 
@@ -164,6 +167,31 @@ export class SidebarComponent implements OnInit {
 
   isAnyLayerEnabled(): boolean {
     return this.locationService.zarrLayers().some((layer) => layer.enabled);
+  }
+
+  onAmenitiesMasterToggle(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.locationService.setAmenitiesEnabled(input.checked);
+  }
+
+  amenityImportanceStars(categoryId: string): number {
+    const pref = this.locationService.getZarrLayerPreference(categoryId);
+    return pref ? starsFromImportance(pref.importance) : 0;
+  }
+
+  onAmenityImportanceChange(categoryId: string, stars: number): void {
+    const pref = this.locationService.getZarrLayerPreference(categoryId);
+    this.locationService.setZarrLayerPreference(categoryId, {
+      ...(pref ?? createGoodPlaceLayerPreference(categoryId)),
+      importance: importanceFromStars(stars),
+    });
+  }
+
+  amenityCountForCategory(categoryId: string): number {
+    const cat = AMENITY_CATEGORIES.find((c) => c.id === categoryId);
+    if (!cat) return 0;
+    const activeRegionId = this.locationService.activeRegionId();
+    return this.locationService.amenityCountByCategoryForRegion(activeRegionId, cat.categoryKey);
   }
 
   isLayerAdvancedOpen(layerId: string): boolean {

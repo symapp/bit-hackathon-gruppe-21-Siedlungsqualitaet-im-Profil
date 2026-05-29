@@ -3,10 +3,13 @@ import { clampToSwitzerland } from '../config/map-bounds.config';
 import type { LifestylePresetId } from '../config/lifestyle-presets.config';
 import { getAmenityCategory, OverpassService, type NearbyAmenity } from './overpass.service';
 import { ZARR_LAYER_DEFINITIONS } from '../config/zarr-layers.config';
+import { AMENITY_CATEGORIES } from '../config/amenity-categories.config';
 import type { LayerPreference } from '../models/layer-preference.model';
 import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.model';
 import { ZarrMapService } from './zarr-map.service';
 import { computePreferenceOverview } from '../utils/metrics-aggregate.util';
+import { factorScoreFromRaw } from '../utils/preference-scoring.util';
+import type { NormalizationBounds } from '../utils/preference-scoring.util';
 import { GeocodingService } from './geocoding.service';
 
 export interface RegionOfInterest {
@@ -107,8 +110,33 @@ export class LocationService {
     const metricsByRegion = this._regionMetrics();
     const preferences = this.zarrMap.layerPreferences();
     const metaByLayerId = this.zarrMap.layerMeta();
+    const amenitiesByRegion = this._amenitiesByRegion();
     const scores: Record<string, number | null> = {};
     for (const region of this._regions()) {
+      const extraContributions: { layerId: string; score: number; importance: number }[] = [];
+      if (this._amenitiesEnabled()) {
+        const regionAmenities = amenitiesByRegion[region.id] ?? [];
+        for (const cat of AMENITY_CATEGORIES) {
+          const pref = preferences[cat.id];
+          if (!pref || pref.importance <= 0) {
+            continue;
+          }
+          const count = regionAmenities.filter(
+            (a) => getAmenityCategory(a.type) === cat.categoryKey,
+          ).length;
+          const bounds: NormalizationBounds = {
+            p5: cat.clim[0],
+            p95: cat.clim[1],
+            higherIsBetter: cat.higherIsBetter,
+          };
+          const score = factorScoreFromRaw(count, bounds, pref);
+          extraContributions.push({
+            layerId: cat.id,
+            score,
+            importance: pref.importance,
+          });
+        }
+      }
       scores[region.id] = computePreferenceOverview(
         metricsByRegion[region.id] ?? { ...EMPTY_LOCATION_METRICS },
         {
@@ -116,6 +144,7 @@ export class LocationService {
           preferences,
           metaByLayerId,
         },
+        extraContributions.length > 0 ? extraContributions : undefined,
       );
     }
     return scores;
@@ -394,6 +423,10 @@ export class LocationService {
     }
     this._activeRegionId.set(regionId);
     this._address.set('');
+  }
+
+  getZarrLayerPreference(layerId: string): LayerPreference | undefined {
+    return this.zarrMap.layerPreferences()[layerId];
   }
 
   setZarrLayerPreference(layerId: string, preference: LayerPreference): void {

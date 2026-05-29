@@ -46,7 +46,10 @@
     "deselectAll": "Tout désélectionner",
     "deactivated": "Désactivé",
     "showLayerAdvanced": "Paramètres avancés",
-    "hideLayerAdvanced": "Masquer les paramètres avancés"
+    "hideLayerAdvanced": "Masquer les paramètres avancés",
+    "amenitiesTitle": "Services à proximité",
+    "amenitiesHint": "Quelle est l'importance des services de proximité pour votre qualité de vie ?",
+    "amenityCount": "{{ count }} dans la zone"
   },
   "tinder": {
     "title": "Onboarding des préférences",
@@ -181,6 +184,28 @@
       "description": "swisstopo swissTLM3D : part d'espaces verts et densité d'arbres isolés (100 m, © swisstopo)",
       "metricLabel": "Aménité verte",
       "metricUnit": "indice"
+    },
+    "amenities": {
+      "shopping": {
+        "label": "Commerces à proximité",
+        "metricUnit": "nombre"
+      },
+      "health": {
+        "label": "Services de santé",
+        "metricUnit": "nombre"
+      },
+      "pharmacy": {
+        "label": "Pharmacie",
+        "metricUnit": "nombre"
+      },
+      "culture": {
+        "label": "Culture",
+        "metricUnit": "nombre"
+      },
+      "hospital": {
+        "label": "Hôpital",
+        "metricUnit": "nombre"
+      }
     }
   },
   "regions": {

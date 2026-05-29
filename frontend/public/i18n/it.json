@@ -45,7 +45,10 @@
     "amenityCategoryHospital": "Ospedale",
     "deselectAll": "Deseleziona tutto",
     "showLayerAdvanced": "Impostazioni avanzate",
-    "hideLayerAdvanced": "Nascondi impostazioni avanzate"
+    "hideLayerAdvanced": "Nascondi impostazioni avanzate",
+    "amenitiesTitle": "Servizi nelle vicinanze",
+    "amenitiesHint": "Quanto sono importanti i servizi nelle vicinanze per la tua qualità di vita?",
+    "amenityCount": "{{ count }} nell'area"
   },
   "tinder": {
     "title": "Onboarding preferenze",
@@ -180,6 +183,28 @@
       "description": "swisstopo swissTLM3D: quota aree verdi e densità di alberi singoli (100 m, © swisstopo)",
       "metricLabel": "Amenità verde",
       "metricUnit": "indice"
+    },
+    "amenities": {
+      "shopping": {
+        "label": "Negozi nelle vicinanze",
+        "metricUnit": "numero"
+      },
+      "health": {
+        "label": "Servizi sanitari",
+        "metricUnit": "numero"
+      },
+      "pharmacy": {
+        "label": "Farmacia",
+        "metricUnit": "numero"
+      },
+      "culture": {
+        "label": "Cultura",
+        "metricUnit": "numero"
+      },
+      "hospital": {
+        "label": "Ospedale",
+        "metricUnit": "numero"
+      }
     }
   },
   "regions": {

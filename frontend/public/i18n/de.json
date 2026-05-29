@@ -46,7 +46,10 @@
     "deselectAll": "Alle abwählen",
     "deactivated": "Deaktiviert",
     "showLayerAdvanced": "Erweiterte Einstellungen",
-    "hideLayerAdvanced": "Erweiterte Einstellungen ausblenden"
+    "hideLayerAdvanced": "Erweiterte Einstellungen ausblenden",
+    "amenitiesTitle": "Angebote & Lädeli",
+    "amenitiesHint": "Wie wichtig sind Angebote in der Nähe für Ihre Lebensqualität?",
+    "amenityCount": "{{ count }} im Gebiet"
   },
   "tinder": {
     "title": "Präferenz-Onboarding",
@@ -181,6 +184,28 @@
       "description": "swisstopo swissTLM3D: Grünflächenanteil und Einzelbaumdichte (100 m, © swisstopo)",
       "metricLabel": "Grün- & Baumamenität",
       "metricUnit": "Index"
+    },
+    "amenities": {
+      "shopping": {
+        "label": "Einkaufsmöglichkeiten",
+        "metricUnit": "Anzahl"
+      },
+      "health": {
+        "label": "Gesundheitsdienste",
+        "metricUnit": "Anzahl"
+      },
+      "pharmacy": {
+        "label": "Apotheke",
+        "metricUnit": "Anzahl"
+      },
+      "culture": {
+        "label": "Kultur",
+        "metricUnit": "Anzahl"
+      },
+      "hospital": {
+        "label": "Spital",
+        "metricUnit": "Anzahl"
+      }
     }
   },
   "regions": {

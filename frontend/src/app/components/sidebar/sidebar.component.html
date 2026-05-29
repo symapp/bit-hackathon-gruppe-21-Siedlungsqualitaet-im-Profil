@@ -98,6 +98,45 @@
 
       <div class="layers-section">
         <div class="layers-header">
+          <h3 class="metrics-title">{{ 'sidebar.amenitiesTitle' | translate }}</h3>
+        </div>
+        <p class="layers-hint">{{ 'sidebar.amenitiesHint' | translate }}</p>
+
+        <div class="map-layer-list">
+          <div class="map-layer-card" [class.disabled]="!locationService.amenitiesEnabled()">
+            <label class="map-layer-toggle">
+              <input
+                type="checkbox"
+                [checked]="locationService.amenitiesEnabled()"
+                (change)="onAmenitiesMasterToggle($event)"
+              />
+              <span class="map-layer-title">{{ 'sidebar.amenitiesTitle' | translate }}</span>
+            </label>
+
+            <div class="amenity-sub-rows">
+              @for (cat of amenityCategories; track cat.id) {
+                <div class="layer-weight-row">
+                  <span class="layer-weight-label">{{ cat.labelKey | translate }} ({{ amenityCountForCategory(cat.id) }})</span>
+                  <span class="layer-weight-value">{{ amenityImportanceStars(cat.id) }}/5</span>
+                </div>
+                <input
+                  type="range"
+                  class="layer-weight-slider"
+                  [min]="0"
+                  [max]="5"
+                  [step]="1"
+                  [disabled]="!locationService.amenitiesEnabled()"
+                  [ngModel]="amenityImportanceStars(cat.id)"
+                  (ngModelChange)="onAmenityImportanceChange(cat.id, $event)"
+                />
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layers-section">
+        <div class="layers-header">
           <h3 class="metrics-title">{{ 'sidebar.layersTitle' | translate }}</h3>
           <div class="layers-header-actions">
             <button type="button" class="layers-reset-btn" (click)="resetAllPreferences()">

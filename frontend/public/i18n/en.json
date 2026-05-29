@@ -46,7 +46,10 @@
     "deselectAll": "Deselect all",
     "deactivated": "Deactivated",
     "showLayerAdvanced": "Advanced settings",
-    "hideLayerAdvanced": "Hide advanced settings"
+    "hideLayerAdvanced": "Hide advanced settings",
+    "amenitiesTitle": "Nearby Amenities",
+    "amenitiesHint": "How important are nearby amenities for your quality of life?",
+    "amenityCount": "{{ count }} in area"
   },
   "tinder": {
     "title": "Preference onboarding",
@@ -181,6 +184,28 @@
       "description": "swisstopo swissTLM3D: green-area share and single-tree density (100 m, © swisstopo)",
       "metricLabel": "Green & tree amenity",
       "metricUnit": "index"
+    },
+    "amenities": {
+      "shopping": {
+        "label": "Nearby Shopping",
+        "metricUnit": "count"
+      },
+      "health": {
+        "label": "Nearby Health Services",
+        "metricUnit": "count"
+      },
+      "pharmacy": {
+        "label": "Nearby Pharmacy",
+        "metricUnit": "count"
+      },
+      "culture": {
+        "label": "Nearby Culture",
+        "metricUnit": "count"
+      },
+      "hospital": {
+        "label": "Nearby Hospital",
+        "metricUnit": "count"
+      }
     }
   },
   "regions": {

@@ -1,12 +1,16 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ZARR_LAYER_DEFINITIONS } from '../../config/zarr-layers.config';
+import { AMENITY_CATEGORIES } from '../../config/amenity-categories.config';
 import { LocationService } from '../../services/location.service';
+import { ZarrMapService } from '../../services/zarr-map.service';
+import { getAmenityCategory } from '../../services/overpass.service';
 import {
   factorScoreFromRaw,
   normalizeToPreferenceScale,
   normalizationBoundsForLayer,
 } from '../../utils/preference-scoring.util';
+import type { NormalizationBounds } from '../../utils/preference-scoring.util';
 
 export interface FactorBreakdownRow {
   layerId: string;
@@ -29,6 +33,7 @@ export class FactorScoreBreakdownComponent {
   readonly regionId = input.required<string>();
 
   private readonly locationService = inject(LocationService);
+  private readonly zarrMapService = inject(ZarrMapService);
   private readonly translate = inject(TranslateService);
 
   protected readonly expanded = signal(false);
@@ -64,6 +69,35 @@ export class FactorScoreBreakdownComponent {
         contributionPoints: 0,
         t,
         rawLabel: `${def.formatValue(raw)} ${unit}`.trim(),
+      });
+    }
+
+    const preferences = this.zarrMapService.layerPreferences();
+    const regionAmenities = this.locationService.amenitiesForRegion(regionId);
+    for (const cat of AMENITY_CATEGORIES) {
+      const pref = preferences[cat.id];
+      if (!pref || pref.enabled === false || pref.importance <= 0) {
+        continue;
+      }
+      const count = regionAmenities.filter(
+        (a) => getAmenityCategory(a.type) === cat.categoryKey,
+      ).length;
+      const bounds: NormalizationBounds = {
+        p5: cat.clim[0],
+        p95: cat.clim[1],
+        higherIsBetter: cat.higherIsBetter,
+      };
+      const t = normalizeToPreferenceScale(count, bounds);
+      const score = factorScoreFromRaw(count, bounds, pref);
+      const unit = this.translate.instant(cat.metricUnitKey);
+      result.push({
+        layerId: cat.id,
+        labelKey: cat.labelKey,
+        score,
+        importance: pref.importance,
+        contributionPoints: 0,
+        t,
+        rawLabel: `${cat.formatValue(count)} ${unit}`.trim(),
       });
     }
 

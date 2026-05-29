@@ -198,24 +198,6 @@
 
     </div>
 
-    <div class="amenity-count-section fixed-bottom" [class.disabled]="!locationService.amenitiesEnabled()">
-      <label class="amenity-toggle">
-        <input
-          type="checkbox"
-          [checked]="locationService.amenitiesEnabled()"
-          (change)="onAmenitiesEnabledChange($event)"
-        />
-        <span class="amenity-title">{{ 'sidebar.amenityTitle' | translate }}</span>
-      </label>
 
-      @if (locationService.amenitiesEnabled()) {
-        <div class="amenity-summary">
-          <span class="amenity-summary-label">{{ 'sidebar.amenityTitle' | translate }}</span>
-          <span class="amenity-summary-value">{{ locationService.amenityCount() }}</span>
-        </div>
-      } @else {
-        <p class="amenity-count-status">{{ 'sidebar.deactivated' | translate }}</p>
-      }
-    </div>
   }
 </div>

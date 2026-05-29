@@ -61,6 +61,11 @@ const SENSIBLE_SHAPES: Record<string, GoodPlaceShape> = {
   'landscape-type': shape(0.4, 0.75, 0.22, 0.85, 50, { floor: 0.15 }),
   'solar-potential': shape(0.5, 0.85, 0.35, 0.92, 40, { floor: 0.15 }),
   'tlm-green-trees': shape(0.35, 0.75, 0.2, 0.84, 80),
+  'amenity-shopping': shape(0.15, 0.85, 0.02, 0.95, 100),
+  'amenity-health': shape(0.15, 0.85, 0.02, 0.95, 80),
+  'amenity-pharmacy': shape(0.15, 0.85, 0.02, 0.95, 60),
+  'amenity-culture': shape(0.15, 0.85, 0.02, 0.95, 60),
+  'amenity-hospital': shape(0.15, 0.85, 0.02, 0.95, 40),
 };
 
 const DEFAULT_ENABLED: Record<string, boolean> = {

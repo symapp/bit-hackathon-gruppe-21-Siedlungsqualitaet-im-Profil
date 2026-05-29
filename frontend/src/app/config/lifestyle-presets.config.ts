@@ -5,6 +5,7 @@ import {
   type GoodPlaceShape,
 } from './good-place-defaults.config';
 import { ZARR_LAYER_DEFINITIONS } from './zarr-layers.config';
+import { AMENITY_CATEGORIES } from './amenity-categories.config';
 import { clampLayerPreference } from '../utils/preference-scoring.util';
 
 export type LifestylePresetId =
@@ -263,6 +264,15 @@ export function createPreferencesForPreset(
     result[def.id] = clampLayerPreference({
       ...goodPlaceShapeFromHandles(shape),
       enabled,
+    });
+  }
+
+  for (const cat of AMENITY_CATEGORIES) {
+    const shapeOverride = overrides[cat.id];
+    const shape = mergeShape(getSensibleShape(cat.id), shapeOverride);
+    result[cat.id] = clampLayerPreference({
+      ...goodPlaceShapeFromHandles(shape),
+      enabled: shapeOverride?.enabled ?? true,
     });
   }
 
