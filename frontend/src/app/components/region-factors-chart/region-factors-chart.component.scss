@@ -43,6 +43,13 @@
   margin: 0 auto;
 }
 
+.radar-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
 .grid-ring {
   fill: none;
   stroke: rgba(0, 0, 0, 0.08);
@@ -52,6 +59,12 @@
 .grid-spoke {
   stroke: rgba(0, 0, 0, 0.08);
   stroke-width: 1;
+}
+
+.grid-spoke-hit {
+  stroke: transparent;
+  stroke-width: 14;
+  pointer-events: stroke;
 }
 
 .axis-label {
@@ -64,11 +77,86 @@
   fill-opacity: 0.2;
   stroke-width: 2;
   stroke-linejoin: round;
+  pointer-events: none;
 }
 
 .region-dot {
   stroke: #fff;
   stroke-width: 1.5;
+  cursor: help;
+}
+
+.radar-tooltip {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, calc(-100% - 10px));
+  min-width: 180px;
+  max-width: 250px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  background: rgba(255, 255, 255, 0.97);
+  color: #0f172a;
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+  pointer-events: none;
+}
+
+.radar-tooltip-title {
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.radar-tooltip-line {
+  padding: 5px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.radar-tooltip-line:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.radar-tooltip-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.radar-tooltip-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.radar-tooltip-meta {
+  margin-top: 2px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.radar-tooltip-value {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.radar-tooltip-percent {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  white-space: nowrap;
 }
 
 .radar-legend {

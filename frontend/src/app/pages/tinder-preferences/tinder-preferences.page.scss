@@ -179,6 +179,12 @@
   stroke-linejoin: round;
 }
 
+.radar-point {
+  fill: #dc2626;
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+
 .factor-list {
   display: grid;
   gap: 8px;
@@ -196,15 +202,8 @@
   padding-bottom: 6px;
 }
 
-.factor-row small {
-  color: var(--ch-text-secondary);
-  margin-left: 4px;
-}
-
-.factor-row em {
-  margin-left: 8px;
+.factor-row > span:last-child {
   color: #334155;
-  font-style: normal;
   font-weight: 700;
   font-size: 0.78rem;
 }

@@ -9,7 +9,6 @@ import {
   type ZarrLayerDefinition,
 } from '../../config/zarr-layers.config';
 import type { LayerPreference } from '../../models/layer-preference.model';
-import type { LocationMetrics } from '../../models/metrics.model';
 import { LocationService } from '../../services/location.service';
 import { normalizationBoundsForLayer } from '../../utils/preference-scoring.util';
 import { TrapezoidPreferenceEditorComponent } from '../trapezoid-preference-editor/trapezoid-preference-editor.component';
@@ -36,15 +35,6 @@ export class SidebarComponent {
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
-  }
-
-  formatMetricValue(key: keyof LocationMetrics): string {
-    const value = this.locationService.metrics()[key];
-    const definition = this.metricDefinitions.find((d) => d.metricKey === key);
-    if (value === null || value === undefined) {
-      return '—';
-    }
-    return definition?.formatValue(value) ?? String(value);
   }
 
   metricUnit(def: ZarrLayerDefinition): string {

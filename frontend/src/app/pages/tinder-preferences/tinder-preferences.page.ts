@@ -127,10 +127,32 @@ export class TinderPreferencesPage {
     if (count < 3) {
       return '';
     }
-    return factors
-      .map((factor, index) => this.polarToCartesian((factor.percent / 100) * RADAR_RADIUS, index, count))
+    return this.radarDataPoints()
       .map((point) => `${point.x},${point.y}`)
       .join(' ');
+  });
+  protected readonly radarDataPoints = computed(() => {
+    const factors = this.currentPlaceRadarPercentages();
+    const count = factors.length;
+    if (count < 3) {
+      return [] as Array<{
+        layer: ZarrLayerDefinition;
+        value: number | null;
+        percent: number;
+        x: number;
+        y: number;
+      }>;
+    }
+    return factors.map((factor, index) => {
+      const point = this.polarToCartesian((factor.percent / 100) * RADAR_RADIUS, index, count);
+      return {
+        layer: factor.layer,
+        value: factor.value,
+        percent: factor.percent,
+        x: point.x,
+        y: point.y,
+      };
+    });
   });
   protected readonly isLastPlace = computed(() => this.currentIndex() >= this.places.length - 1);
 

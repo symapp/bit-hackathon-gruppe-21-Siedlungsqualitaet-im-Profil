@@ -372,7 +372,6 @@ export class LocationService {
       console.warn('Region auto naming failed:', error);
     }
   }
-
   setActiveRegion(regionId: string): void {
     if (!this._regions().some((region) => region.id === regionId)) {
       return;

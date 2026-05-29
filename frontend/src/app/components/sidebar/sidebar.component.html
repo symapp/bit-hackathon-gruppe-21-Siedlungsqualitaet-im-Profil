@@ -148,14 +148,6 @@
                   {{ 'sidebar.resetLayer' | translate }}
                 </button>
 
-                <span class="map-layer-metric">
-                  {{ def.metricLabelKey | translate }}:
-                  <strong>{{ formatMetricValue(def.metricKey) }}</strong>
-                  @if (locationService.metrics()[def.metricKey] !== null) {
-                    <span class="metric-unit">{{ def.metricUnitKey | translate }}</span>
-                  }
-                </span>
-
                 @if (showAdvanced()) {
                   <app-trapezoid-preference-editor
                     [preference]="layer.preference"

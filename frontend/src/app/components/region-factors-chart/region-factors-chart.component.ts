@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ZARR_LAYER_DEFINITIONS } from '../../config/zarr-layers.config';
 import type { ZarrLayerDefinition } from '../../config/zarr-layers.config';
 import { LocationService } from '../../services/location.service';
@@ -35,13 +35,35 @@ export interface RadarRegionSeries {
   name: string;
   color: string;
   polygonPoints: string;
-  dots: { x: number; y: number }[];
+  dots: {
+    x: number;
+    y: number;
+    rawValue: number | null;
+    percent: number;
+    labelKey: string;
+    metricUnitKey: string;
+    def: ZarrLayerDefinition;
+  }[];
 }
 
 interface SelectedFactor {
   def: ZarrLayerDefinition;
   layerId: string;
   labelKey: string;
+}
+
+interface RadarTooltipState {
+  title: string;
+  entries: RadarTooltipEntry[];
+  leftPct: number;
+  topPct: number;
+}
+
+interface RadarTooltipEntry {
+  regionName: string;
+  regionColor: string;
+  value: string;
+  percent: string;
 }
 
 @Component({
@@ -53,9 +75,11 @@ interface SelectedFactor {
 })
 export class RegionFactorsChartComponent {
   protected readonly locationService = inject(LocationService);
+  private readonly translate = inject(TranslateService);
   protected readonly viewSize = VIEW_SIZE;
   protected readonly cx = CX;
   protected readonly cy = CY;
+  protected tooltip: RadarTooltipState | null = null;
 
   protected readonly selectedFactors = computed((): SelectedFactor[] => {
     const layers = this.locationService.zarrLayers();
@@ -123,26 +147,52 @@ export class RegionFactorsChartComponent {
 
     return this.locationService.regions().map((region) => {
       const metrics = metricsByRegion[region.id] ?? null;
-      const radii = factors.map((factor) => {
+      const normalizedFactors = factors.map((factor) => {
         const layer = layers.find((l) => l.id === factor.layerId);
         if (!layer || !metrics) {
-          return 0;
+          return {
+            rawValue: null,
+            percent: 0,
+            labelKey: factor.labelKey,
+            metricUnitKey: factor.def.metricUnitKey,
+            def: factor.def,
+          };
         }
         const raw = metrics[factor.def.metricKey];
         if (raw === null) {
-          return 0;
+          return {
+            rawValue: null,
+            percent: 0,
+            labelKey: factor.labelKey,
+            metricUnitKey: factor.def.metricUnitKey,
+            def: factor.def,
+          };
         }
         const bounds = normalizationBoundsForLayer(
           factor.def.clim,
           factor.def.higherIsBetter,
           layer.meta,
         );
-        return normalizedRawPercent(raw, bounds);
+        return {
+          rawValue: raw,
+          percent: normalizedRawPercent(raw, bounds),
+          labelKey: factor.labelKey,
+          metricUnitKey: factor.def.metricUnitKey,
+          def: factor.def,
+        };
       });
 
-      const dots = radii.map((radius, index) =>
-        this.polarToCartesian((radius / 100) * MAX_R, index, n),
-      );
+      const dots = normalizedFactors.map((factor, index) => {
+        const point = this.polarToCartesian((factor.percent / 100) * MAX_R, index, n);
+        return {
+          ...point,
+          rawValue: factor.rawValue,
+          percent: factor.percent,
+          labelKey: factor.labelKey,
+          metricUnitKey: factor.metricUnitKey,
+          def: factor.def,
+        };
+      });
 
       return {
         regionId: region.id,
@@ -153,6 +203,90 @@ export class RegionFactorsChartComponent {
       };
     });
   });
+
+  protected formatRawValue(def: ZarrLayerDefinition, value: number | null): string {
+    if (value === null) {
+      return '—';
+    }
+    return def.formatValue(value);
+  }
+
+  protected formatPercent(value: number): string {
+    return `${Math.round(value)}%`;
+  }
+
+  private factorTooltipEntry(
+    series: RadarRegionSeries,
+    dot: RadarRegionSeries['dots'][number],
+  ): RadarTooltipEntry {
+    const value = this.formatRawValue(dot.def, dot.rawValue);
+    const unit = dot.rawValue !== null ? ` ${this.translate.instant(dot.metricUnitKey)}` : '';
+    return {
+      regionName: series.name,
+      regionColor: series.color,
+      value: `${value}${unit}`,
+      percent: this.formatPercent(dot.percent),
+    };
+  }
+
+  protected showFactorTooltipByIndex(factorIndex: number, event: MouseEvent): void {
+    const factors = this.selectedFactors();
+    const factor = factors[factorIndex];
+    if (!factor) {
+      return;
+    }
+    const entries = this.regionSeries()
+      .map((series) => {
+        const dot = series.dots[factorIndex];
+        if (!dot) {
+          return null;
+        }
+        return this.factorTooltipEntry(series, dot);
+      })
+      .filter((entry): entry is RadarTooltipEntry => entry !== null);
+    this.tooltip = {
+      title: this.translate.instant(factor.labelKey),
+      entries,
+      ...this.tooltipPositionFromEvent(event),
+    };
+  }
+
+  protected showFactorTooltipByLayerId(layerId: string, event: MouseEvent): void {
+    const factorIndex = this.selectedFactors().findIndex((factor) => factor.layerId === layerId);
+    if (factorIndex < 0) {
+      return;
+    }
+    this.showFactorTooltipByIndex(factorIndex, event);
+  }
+
+  protected moveTooltip(event: MouseEvent): void {
+    if (!this.tooltip) {
+      return;
+    }
+    this.tooltip = {
+      ...this.tooltip,
+      ...this.tooltipPositionFromEvent(event),
+    };
+  }
+
+  protected hideTooltip(): void {
+    this.tooltip = null;
+  }
+
+  private tooltipPositionFromEvent(event: MouseEvent): { leftPct: number; topPct: number } {
+    const target = event.currentTarget as SVGGraphicsElement | null;
+    const svg = target?.ownerSVGElement;
+    if (!svg) {
+      return { leftPct: 50, topPct: 50 };
+    }
+    const rect = svg.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    return {
+      leftPct: Math.min(92, Math.max(8, x)),
+      topPct: Math.min(92, Math.max(8, y)),
+    };
+  }
 
   private polygonPointsForRadius(radius: number, axisCount: number): string {
     return Array.from({ length: axisCount }, (_, index) => {

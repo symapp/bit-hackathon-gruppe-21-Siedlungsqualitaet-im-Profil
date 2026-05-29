@@ -72,6 +72,17 @@
               }
 
               <polygon class="radar-data" [attr.points]="radarDataPolygon()"></polygon>
+              @for (point of radarDataPoints(); track point.layer.id) {
+                <circle class="radar-point" [attr.cx]="point.x" [attr.cy]="point.y" r="3.2">
+                  <title>
+                    {{ point.layer.labelKey | translate }}: {{ formatFactorValue(point.layer, point.value) }}
+                    @if (point.value !== null && point.layer.metricUnitKey) {
+                      {{ point.layer.metricUnitKey | translate }}
+                    }
+                    ({{ formatFactorPercent(point.percent) }})
+                  </title>
+                </circle>
+              }
             </svg>
           </div>
 
@@ -80,11 +91,7 @@
               <div class="factor-row">
                 <span>{{ factor.layer.labelKey | translate }}</span>
                 <span>
-                  {{ formatFactorValue(factor.layer, factor.value) }}
-                  @if (factor.value !== null && factor.layer.metricUnitKey) {
-                    <small>{{ factor.layer.metricUnitKey | translate }}</small>
-                  }
-                  <em>{{ formatFactorPercent(factor.percent) }}</em>
+                  {{ formatFactorPercent(factor.percent) }}
                 </span>
               </div>
             }

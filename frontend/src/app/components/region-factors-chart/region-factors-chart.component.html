@@ -14,54 +14,96 @@
   } @else {
     <p class="factors-hint">{{ 'regions.factorsHint' | translate }}</p>
 
-    <svg
-      class="radar-svg"
-      [attr.viewBox]="'0 0 ' + viewSize + ' ' + viewSize"
-      role="img"
-      [attr.aria-label]="'regions.factorsTitle' | translate"
-    >
-      @for (ring of gridRings(); track ring.level) {
-        <polygon [attr.points]="ring.points" class="grid-ring" />
-      }
-
-      @for (axis of axes(); track axis.layerId) {
-        <line
-          [attr.x1]="cx"
-          [attr.y1]="cy"
-          [attr.x2]="axis.lineX2"
-          [attr.y2]="axis.lineY2"
-          class="grid-spoke"
-        />
-        <text
-          [attr.x]="axis.labelX"
-          [attr.y]="axis.labelY"
-          class="axis-label"
-          [attr.text-anchor]="axis.textAnchor"
-          dominant-baseline="middle"
-        >
-          {{ axis.labelKey | translate }}
-        </text>
-      }
-
-      @for (series of regionSeries(); track series.regionId) {
-        <polygon
-          [attr.points]="series.polygonPoints"
-          class="region-polygon"
-          [attr.stroke]="series.color"
-          [attr.fill]="series.color"
-        />
-        @for (dot of series.dots; track $index) {
-          <circle
-            [attr.cx]="dot.x"
-            [attr.cy]="dot.y"
-            r="3.5"
-            class="region-dot"
-            [attr.fill]="series.color"
-            [attr.stroke]="series.color"
-          />
+    <div class="radar-wrap">
+      <svg
+        class="radar-svg"
+        [attr.viewBox]="'0 0 ' + viewSize + ' ' + viewSize"
+        role="img"
+        [attr.aria-label]="'regions.factorsTitle' | translate"
+      >
+        @for (ring of gridRings(); track ring.level) {
+          <polygon [attr.points]="ring.points" class="grid-ring" />
         }
+
+        @for (axis of axes(); track axis.layerId) {
+          <line
+            [attr.x1]="cx"
+            [attr.y1]="cy"
+            [attr.x2]="axis.lineX2"
+            [attr.y2]="axis.lineY2"
+            class="grid-spoke-hit"
+            (mouseenter)="showFactorTooltipByLayerId(axis.layerId, $event)"
+            (mousemove)="moveTooltip($event)"
+            (mouseleave)="hideTooltip()"
+          />
+          <line
+            [attr.x1]="cx"
+            [attr.y1]="cy"
+            [attr.x2]="axis.lineX2"
+            [attr.y2]="axis.lineY2"
+            class="grid-spoke"
+          />
+          <text
+            [attr.x]="axis.labelX"
+            [attr.y]="axis.labelY"
+            class="axis-label"
+            [attr.text-anchor]="axis.textAnchor"
+            dominant-baseline="middle"
+            (mouseenter)="showFactorTooltipByLayerId(axis.layerId, $event)"
+            (mousemove)="moveTooltip($event)"
+            (mouseleave)="hideTooltip()"
+          >
+            {{ axis.labelKey | translate }}
+          </text>
+        }
+
+        @for (series of regionSeries(); track series.regionId) {
+          <polygon
+            [attr.points]="series.polygonPoints"
+            class="region-polygon"
+            [attr.stroke]="series.color"
+            [attr.fill]="series.color"
+          />
+          @for (dot of series.dots; track $index) {
+            <circle
+              [attr.cx]="dot.x"
+              [attr.cy]="dot.y"
+              r="5"
+              class="region-dot"
+              [attr.fill]="series.color"
+              [attr.stroke]="series.color"
+              (mouseenter)="showFactorTooltipByIndex($index, $event)"
+              (mousemove)="moveTooltip($event)"
+              (mouseleave)="hideTooltip()"
+            />
+          }
+        }
+      </svg>
+
+      @if (tooltip; as currentTooltip) {
+        <div
+          class="radar-tooltip"
+          [style.left.%]="currentTooltip.leftPct"
+          [style.top.%]="currentTooltip.topPct"
+          role="status"
+          aria-live="polite"
+        >
+          <div class="radar-tooltip-title">{{ currentTooltip.title }}</div>
+          @for (entry of currentTooltip.entries; track $index) {
+            <div class="radar-tooltip-line">
+              <div class="radar-tooltip-label">
+                <span class="radar-tooltip-swatch" [style.background]="entry.regionColor"></span>
+                <span>{{ entry.regionName }}</span>
+              </div>
+              <div class="radar-tooltip-meta">
+                <span class="radar-tooltip-value">{{ entry.value }}</span>
+                <span class="radar-tooltip-percent">{{ entry.percent }}</span>
+              </div>
+            </div>
+          }
+        </div>
       }
-    </svg>
+    </div>
 
     <ul class="radar-legend">
       @for (series of regionSeries(); track series.regionId) {
