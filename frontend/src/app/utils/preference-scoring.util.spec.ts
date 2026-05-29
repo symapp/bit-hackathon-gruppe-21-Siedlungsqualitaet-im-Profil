@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createGoodPlaceLayerPreference } from '../config/good-place-defaults.config';
 import {
   computePreferenceOverviewScore,
   factorScoreFromRaw,
@@ -102,6 +103,23 @@ describe('computePreferenceOverviewScore', () => {
         { layerId: 'b', score: 0, importance: 100 },
       ]),
     ).toBe(50);
+  });
+});
+
+describe('good-place pt-accessibility default', () => {
+  const bounds = { p5: 4, p95: 2_533, higherIsBetter: true };
+
+  it('places the plateau toward high EW (right side of chart)', () => {
+    const pref = createGoodPlaceLayerPreference('pt-accessibility');
+    expect(pref.rangeMax).toBeGreaterThan(0.9);
+    expect(pref.rangeMin).toBeGreaterThan(0.35);
+    expect(pref.falloffRight).toBeLessThan(pref.falloffLeft);
+  });
+
+  it('scores strong ÖV highly and weak ÖV low', () => {
+    const pref = createGoodPlaceLayerPreference('pt-accessibility');
+    expect(factorScoreFromRaw(2_400, bounds, pref)).toBe(100);
+    expect(factorScoreFromRaw(50, bounds, pref)).toBeLessThan(30);
   });
 });
 

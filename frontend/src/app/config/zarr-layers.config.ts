@@ -73,7 +73,8 @@ const CLIM = {
   tranquillity: [0, 1] as [number, number],
   /** Raw Einw./km² from STATPOP (see settlement-layer-meta p5/p95 ≈ 300–9900). */
   populationDensity: [300, 9_900] as [number, number],
-  ptAccessibility: [0, 1] as [number, number],
+  /** ARE ÖV EW (populated cells; see settlement-layer-meta p5/p95). */
+  ptAccessibility: [4, 2_533] as [number, number],
   roadAccessibility: [50, 3_500] as [number, number],
   ptQuality: [1, 4] as [number, number],
   ptTravelTime: [15, 90] as [number, number],

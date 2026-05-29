@@ -71,9 +71,14 @@ def main() -> None:
 
         from settlement_layer_meta import build_layer_meta, compute_percentile_bounds
 
+        ew = aligned_grid["OeV_Erreichb_EW"]
+        # Geocube fill is 0; percentiles on the full grid collapse toward 0–1 in the UI.
+        # Use only cells with ARE EW values so p5/p95 match the real accessibility spread.
+        populated = ew.values > 0
         p5, p95 = compute_percentile_bounds(
-            aligned_grid["OeV_Erreichb_EW"],
+            ew,
             percentile_cutoff=args.percentile_cutoff,
+            mask=populated,
         )
         meta = build_layer_meta(
             variable="OeV_Erreichb_EW",
