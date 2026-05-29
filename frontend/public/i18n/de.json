@@ -117,5 +117,15 @@
       "metricLabel": "Agglomeration",
       "metricUnit": ""
     }
+  },
+  "regions": {
+    "title": "Interessensgebiete",
+    "add": "+ Region",
+    "factorsTitle": "Ausgewählte Faktoren",
+    "factorsHint": "Rohwerte je Region, auf p5–p95 normiert (0 = schlechter, 100 = besser) — vor der Trapez-Kurve.",
+    "factorsLoading": "Faktorwerte werden geladen…",
+    "factorsEmpty": "Keine Faktoren ausgewählt — aktivieren Sie Faktoren im rechten Panel.",
+    "factorsRadarMin": "Mindestens drei Faktoren auswählen für das Radar-Diagramm.",
+    "factorsOverview": "Gesamtscore"
   }
 }

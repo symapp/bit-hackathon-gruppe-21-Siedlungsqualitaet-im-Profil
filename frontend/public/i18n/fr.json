@@ -117,5 +117,15 @@
       "metricLabel": "Agglomération",
       "metricUnit": ""
     }
+  },
+  "regions": {
+    "title": "Zones d'intérêt",
+    "add": "+ Région",
+    "factorsTitle": "Facteurs sélectionnés",
+    "factorsHint": "Valeurs brutes par région, normalisées p5–p95 (0 = pire, 100 = meilleur) — avant la courbe trapézoïdale.",
+    "factorsLoading": "Chargement des valeurs…",
+    "factorsEmpty": "Aucun facteur sélectionné — activez des facteurs dans le panneau de droite.",
+    "factorsRadarMin": "Sélectionnez au moins trois facteurs pour le diagramme radar.",
+    "factorsOverview": "Score global"
   }
 }

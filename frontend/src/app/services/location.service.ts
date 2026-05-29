@@ -2,6 +2,7 @@ import { Injectable, computed, effect, inject, signal, untracked } from '@angula
 import { clampToSwitzerland } from '../config/map-bounds.config';
 import { OverpassService, type GroceryStore } from './overpass.service';
 import type { LayerPreference } from '../models/layer-preference.model';
+import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.model';
 import { ZarrMapService } from './zarr-map.service';
 
 export interface RegionOfInterest {
@@ -45,7 +46,11 @@ export class LocationService {
   private readonly groceryFetchGenerations = new Map<string, number>();
   private readonly groceryAborts = new Map<string, AbortController>();
   private readonly groceryQueryKeys = new Map<string, string>();
+  private regionsSampleGeneration = 0;
+  private regionsSampleAbort: AbortController | null = null;
   private readonly _address = signal('');
+  private readonly _regionMetrics = signal<Record<string, LocationMetrics>>({});
+  private readonly _regionMetricsLoading = signal(false);
 
   readonly regions = this._regions.asReadonly();
   readonly activeRegionId = this._activeRegionId.asReadonly();
@@ -74,22 +79,26 @@ export class LocationService {
   readonly metrics = this.zarrMap.metrics;
   readonly metricsLoading = this.zarrMap.metricsLoading;
   readonly metricsError = this.zarrMap.metricsError;
+  readonly regionMetrics = this._regionMetrics.asReadonly();
+  readonly regionMetricsLoading = this._regionMetricsLoading.asReadonly();
   readonly overviewScore = this.zarrMap.overviewScore;
   readonly overviewLoading = this.zarrMap.overviewLoading;
   readonly zarrLayers = this.zarrMap.layerStates;
 
   constructor() {
     effect((onCleanup) => {
-      const activeRegion = this.activeRegion();
       const regions = this._regions();
       const groceryStoresEnabled = this._groceryStoresEnabled();
 
-      if (!activeRegion) {
-        untracked(() => this.clearAllGroceryStores());
+      if (regions.length === 0) {
+        untracked(() => {
+          this.clearAllGroceryStores();
+          this._regionMetrics.set({});
+          this._regionMetricsLoading.set(false);
+          this.zarrMap.setMetrics({ ...EMPTY_LOCATION_METRICS });
+        });
         return;
       }
-
-      const { lat, lng, radius } = activeRegion;
 
       if (!groceryStoresEnabled) {
         untracked(() => this.clearAllGroceryStores());
@@ -98,7 +107,7 @@ export class LocationService {
       }
 
       const timer = setTimeout(() => {
-        void this.zarrMap.sampleLocation(lng, lat);
+        void this.sampleAllRegions();
         if (groceryStoresEnabled) {
           for (const region of regions) {
             void this.fetchGroceryStores(region);
@@ -106,8 +115,72 @@ export class LocationService {
         }
       }, 300);
 
-      onCleanup(() => clearTimeout(timer));
+      onCleanup(() => {
+        clearTimeout(timer);
+        this.regionsSampleAbort?.abort();
+      });
     });
+
+    effect(() => {
+      const active = this.activeRegion();
+      if (!active) {
+        return;
+      }
+
+      const cached = this._regionMetrics()[active.id];
+      if (cached) {
+        this.zarrMap.setMetrics(cached);
+      }
+    });
+  }
+
+  private async sampleAllRegions(): Promise<void> {
+    const regions = this._regions();
+    if (regions.length === 0) {
+      return;
+    }
+
+    const generation = ++this.regionsSampleGeneration;
+    this.regionsSampleAbort?.abort();
+    this.regionsSampleAbort = new AbortController();
+    const { signal } = this.regionsSampleAbort;
+
+    this._regionMetricsLoading.set(true);
+    this.zarrMap.metricsLoading.set(true);
+    this.zarrMap.metricsError.set(null);
+
+    try {
+      const entries = await Promise.all(
+        regions.map(async (region) => {
+          const metrics = await this.zarrMap.queryMetricsAt(region.lng, region.lat, signal);
+          return [region.id, metrics] as const;
+        }),
+      );
+
+      if (generation !== this.regionsSampleGeneration || signal.aborted) {
+        return;
+      }
+
+      const byId = Object.fromEntries(entries);
+      this._regionMetrics.set(byId);
+
+      const activeId = this._activeRegionId();
+      if (byId[activeId]) {
+        this.zarrMap.setMetrics(byId[activeId]);
+      }
+    } catch (err) {
+      if (generation !== this.regionsSampleGeneration || signal.aborted) {
+        return;
+      }
+      const message = err instanceof Error ? err.message : 'Zarr-Abfrage fehlgeschlagen';
+      this.zarrMap.metricsError.set(message);
+      console.error('[zarr] sampleAllRegions', err);
+    } finally {
+      if (generation === this.regionsSampleGeneration) {
+        this._regionMetricsLoading.set(false);
+        this.zarrMap.metricsLoading.set(false);
+      }
+    }
   }
 
   setLocation(lat: number, lng: number, address?: string): void {
@@ -185,6 +258,10 @@ export class LocationService {
     }
 
     this._regions.set(remaining);
+    this._regionMetrics.update((metrics) => {
+      const { [regionId]: _, ...rest } = metrics;
+      return rest;
+    });
     if (this._activeRegionId() === regionId) {
       this._activeRegionId.set(remaining[0].id);
       this._address.set('');

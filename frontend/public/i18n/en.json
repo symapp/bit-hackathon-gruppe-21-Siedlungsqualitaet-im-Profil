@@ -117,5 +117,15 @@
       "metricLabel": "Agglomeration",
       "metricUnit": ""
     }
+  },
+  "regions": {
+    "title": "Regions of interest",
+    "add": "+ Region",
+    "factorsTitle": "Selected factors",
+    "factorsHint": "Raw values per region, normalized to p5–p95 (0 = worse, 100 = better) — before the trapezoid curve.",
+    "factorsLoading": "Loading factor values…",
+    "factorsEmpty": "No factors selected — enable factors in the right panel.",
+    "factorsRadarMin": "Select at least three factors to show the radar chart.",
+    "factorsOverview": "Overall score"
   }
 }

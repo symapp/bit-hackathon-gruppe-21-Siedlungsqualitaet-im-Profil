@@ -40,9 +40,13 @@
   @if (!isCollapsed) {
     <div class="regions-content">
       <div class="regions-header">
-        <h2>Regions of interest</h2>
-        <button type="button" class="add-btn" (click)="addRegion()">+ Region</button>
+        <h2>{{ 'regions.title' | translate }}</h2>
+        <button type="button" class="add-btn" (click)="addRegion()">
+          {{ 'regions.add' | translate }}
+        </button>
       </div>
+
+      <app-region-factors-chart />
 
       <div class="regions-list">
         @for (region of locationService.regions(); track region.id) {

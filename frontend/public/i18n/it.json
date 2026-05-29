@@ -115,5 +115,15 @@
       "metricLabel": "Agglomerato",
       "metricUnit": ""
     }
+  },
+  "regions": {
+    "title": "Aree di interesse",
+    "add": "+ Regione",
+    "factorsTitle": "Fattori selezionati",
+    "factorsHint": "Valori grezzi per regione, normalizzati p5–p95 (0 = peggio, 100 = meglio) — prima della curva trapezoidale.",
+    "factorsLoading": "Caricamento valori…",
+    "factorsEmpty": "Nessun fattore selezionato — attivare i fattori nel pannello a destra.",
+    "factorsRadarMin": "Selezionare almeno tre fattori per il diagramma radar.",
+    "factorsOverview": "Punteggio complessivo"
   }
 }

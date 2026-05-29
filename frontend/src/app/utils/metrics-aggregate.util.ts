@@ -6,7 +6,7 @@ import {
   climToNormalizationBounds,
   computePreferenceOverviewScore,
   factorScoreFromRaw,
-  metaToNormalizationBounds,
+  normalizationBoundsForLayer,
   normalizeToPreferenceScale,
   type NormalizationBounds,
 } from './preference-scoring.util';
@@ -32,10 +32,7 @@ function boundsForLayer(
   def: ZarrLayerDefinition,
   meta: SettlementLayerMeta | null | undefined,
 ): NormalizationBounds {
-  if (meta) {
-    return metaToNormalizationBounds(meta);
-  }
-  return climToNormalizationBounds(def.clim, def.higherIsBetter);
+  return normalizationBoundsForLayer(def.clim, def.higherIsBetter, meta);
 }
 
 /**

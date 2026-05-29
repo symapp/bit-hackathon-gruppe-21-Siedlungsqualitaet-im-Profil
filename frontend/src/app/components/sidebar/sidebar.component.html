@@ -142,7 +142,6 @@
                 <app-trapezoid-preference-editor
                   [preference]="layer.preference"
                   [bounds]="normalizationBounds(layer.id)"
-                  [sampleRaw]="sampleRawForLayer(layer.id)"
                   [disabled]="!layer.enabled"
                   [formatRaw]="def.formatValue"
                   [unit]="metricUnit(def)"

@@ -4,6 +4,8 @@ import {
   factorScoreFromRaw,
   handlesFromPreference,
   normalizeToPreferenceScale,
+  normalizedRawPercent,
+  normalizationBoundsForLayer,
   preferenceFactor,
   preferenceFromHandles,
   preferenceScaleToRaw,
@@ -65,6 +67,30 @@ describe('factorScoreFromRaw', () => {
 
     const rawAt65 = preferenceScaleToRaw(0.65, bounds);
     expect(factorScoreFromRaw(rawAt65, bounds, pref)).toBeCloseTo(50, 5);
+  });
+});
+
+describe('normalizedRawPercent', () => {
+  it('maps raw EW into 0–100 using p5/p95 before trapezoid', () => {
+    const bounds = { p5: 50, p95: 3_500, higherIsBetter: true };
+    expect(normalizedRawPercent(50, bounds)).toBe(0);
+    expect(normalizedRawPercent(1_560, bounds)).toBeCloseTo(43.77, 1);
+    expect(normalizedRawPercent(3_500, bounds)).toBe(100);
+    expect(normalizedRawPercent(10_000, bounds)).toBe(100);
+  });
+});
+
+describe('normalizationBoundsForLayer', () => {
+  it('prefers settlement meta over clim fallback', () => {
+    const bounds = normalizationBoundsForLayer([0, 1], true, {
+      variable: 'x',
+      p5: 100,
+      p95: 2_000,
+      higherIsBetter: true,
+      unit: 'EW',
+    });
+    expect(bounds.p5).toBe(100);
+    expect(bounds.p95).toBe(2_000);
   });
 });
 

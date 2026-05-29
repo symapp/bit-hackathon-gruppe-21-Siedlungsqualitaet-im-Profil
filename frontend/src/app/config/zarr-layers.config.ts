@@ -75,7 +75,7 @@ const CLIM = {
   populationDensity: [300, 9_900] as [number, number],
   ptAccessibility: [0, 1] as [number, number],
   roadAccessibility: [50, 3_500] as [number, number],
-  ptQuality: [0, 1] as [number, number],
+  ptQuality: [1, 4] as [number, number],
   ptTravelTime: [15, 90] as [number, number],
   roadTravelTime: [10, 75] as [number, number],
   railTraffic: [500, 25_000] as [number, number],

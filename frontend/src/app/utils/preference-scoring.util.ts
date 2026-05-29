@@ -94,6 +94,23 @@ export function climToNormalizationBounds(
   return { p5: clim[0], p95: clim[1], higherIsBetter };
 }
 
+/** Layer meta p5/p95 when present, otherwise `clim` as percentile fallback. */
+export function normalizationBoundsForLayer(
+  clim: [number, number],
+  higherIsBetter: boolean,
+  meta: SettlementLayerMeta | null | undefined,
+): NormalizationBounds {
+  if (meta) {
+    return metaToNormalizationBounds(meta);
+  }
+  return climToNormalizationBounds(clim, higherIsBetter);
+}
+
+/** Raw value clamped to [p5, p95] and mapped to 0–100 (before trapezoid preference). */
+export function normalizedRawPercent(raw: number, bounds: NormalizationBounds): number {
+  return normalizeToPreferenceScale(raw, bounds) * 100;
+}
+
 export interface FactorContribution {
   layerId: string;
   score: number;

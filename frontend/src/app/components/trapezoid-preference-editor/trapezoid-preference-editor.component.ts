@@ -11,9 +11,7 @@ import type { LayerPreference } from '../../models/layer-preference.model';
 import type { NormalizationBounds } from '../../utils/preference-scoring.util';
 import {
   clampLayerPreference,
-  factorScoreFromT,
   handlesFromPreference,
-  normalizeToPreferenceScale,
   preferenceFromHandles,
   preferenceScaleToRaw,
 } from '../../utils/preference-scoring.util';
@@ -34,7 +32,6 @@ export class TrapezoidPreferenceEditorComponent {
 
   readonly preference = input.required<LayerPreference>();
   readonly bounds = input.required<NormalizationBounds>();
-  readonly sampleRaw = input<number | null>(null);
   readonly disabled = input(false);
   readonly formatRaw = input<(v: number) => string>((v) => v.toFixed(2));
   readonly unit = input('');
@@ -149,17 +146,6 @@ export class TrapezoidPreferenceEditorComponent {
       case 'rightZero':
         return this.toSvg(h.rightZero, 0);
     }
-  }
-
-  sampleMarker(): { x: number; y: number } | null {
-    const raw = this.sampleRaw();
-    if (raw === null) {
-      return null;
-    }
-    const t = normalizeToPreferenceScale(raw, this.bounds());
-    const pref = this.preference();
-    const factor = factorScoreFromT(t, pref) / 100;
-    return this.toSvg(t, factor);
   }
 
   tickLabels(): { t: number; label: string; x: number }[] {

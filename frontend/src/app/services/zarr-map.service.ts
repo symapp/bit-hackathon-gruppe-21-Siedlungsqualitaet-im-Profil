@@ -295,6 +295,30 @@ export class ZarrMapService {
     this.setLayerPreference(layerId, { ...current, importance: weight });
   }
 
+  /** Sample all layers at a point without updating global metrics state. */
+  async queryMetricsAt(lng: number, lat: number, signal?: AbortSignal): Promise<LocationMetrics> {
+    const point = { type: 'Point' as const, coordinates: [lng, lat] as [number, number] };
+    const next: LocationMetrics = { ...EMPTY_LOCATION_METRICS };
+
+    await Promise.all(
+      [...this.managedLayers.values()].map(async ({ definition, layer, ready }) => {
+        if (!ready) {
+          return;
+        }
+
+        const result = await layer.queryData(point, definition.selector, { signal });
+        const value = extractScalar(result, definition.variable);
+        next[definition.metricKey] = value;
+      }),
+    );
+
+    return next;
+  }
+
+  setMetrics(metrics: LocationMetrics): void {
+    this.metrics.set(metrics);
+  }
+
   async sampleLocation(lng: number, lat: number): Promise<void> {
     this.lastSample = { lng, lat };
     const generation = ++this.sampleGeneration;
@@ -305,25 +329,8 @@ export class ZarrMapService {
     this.metricsLoading.set(true);
     this.metricsError.set(null);
 
-    const point = { type: 'Point' as const, coordinates: [lng, lat] as [number, number] };
-    const next: LocationMetrics = { ...EMPTY_LOCATION_METRICS };
-
     try {
-      await Promise.all(
-        [...this.managedLayers.values()].map(async ({ definition, layer, ready }) => {
-          if (!ready) {
-            return;
-          }
-
-          const result = await layer.queryData(point, definition.selector, { signal });
-          if (generation !== this.sampleGeneration) {
-            return;
-          }
-
-          const value = extractScalar(result, definition.variable);
-          next[definition.metricKey] = value;
-        }),
-      );
+      const next = await this.queryMetricsAt(lng, lat, signal);
 
       if (generation === this.sampleGeneration) {
         this.metrics.set(next);

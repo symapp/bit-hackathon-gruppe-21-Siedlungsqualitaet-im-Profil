@@ -1,0 +1,75 @@
+<section class="factors-chart" aria-labelledby="region-factors-heading">
+  <div class="factors-chart-header">
+    <h3 id="region-factors-heading">{{ 'regions.factorsTitle' | translate }}</h3>
+  </div>
+
+  @if (locationService.regionMetricsLoading() || locationService.metricsLoading()) {
+    <p class="factors-status">{{ 'regions.factorsLoading' | translate }}</p>
+  } @else if (locationService.metricsError()) {
+    <p class="factors-status error">{{ locationService.metricsError() }}</p>
+  } @else if (!hasSelectedFactors()) {
+    <p class="factors-status">{{ 'regions.factorsEmpty' | translate }}</p>
+  } @else if (!canShowRadar()) {
+    <p class="factors-status">{{ 'regions.factorsRadarMin' | translate }}</p>
+  } @else {
+    <p class="factors-hint">{{ 'regions.factorsHint' | translate }}</p>
+
+    <svg
+      class="radar-svg"
+      [attr.viewBox]="'0 0 ' + viewSize + ' ' + viewSize"
+      role="img"
+      [attr.aria-label]="'regions.factorsTitle' | translate"
+    >
+      @for (ring of gridRings(); track ring.level) {
+        <polygon [attr.points]="ring.points" class="grid-ring" />
+      }
+
+      @for (axis of axes(); track axis.layerId) {
+        <line
+          [attr.x1]="cx"
+          [attr.y1]="cy"
+          [attr.x2]="axis.lineX2"
+          [attr.y2]="axis.lineY2"
+          class="grid-spoke"
+        />
+        <text
+          [attr.x]="axis.labelX"
+          [attr.y]="axis.labelY"
+          class="axis-label"
+          [attr.text-anchor]="axis.textAnchor"
+          dominant-baseline="middle"
+        >
+          {{ axis.labelKey | translate }}
+        </text>
+      }
+
+      @for (series of regionSeries(); track series.regionId) {
+        <polygon
+          [attr.points]="series.polygonPoints"
+          class="region-polygon"
+          [attr.stroke]="series.color"
+          [attr.fill]="series.color"
+        />
+        @for (dot of series.dots; track $index) {
+          <circle
+            [attr.cx]="dot.x"
+            [attr.cy]="dot.y"
+            r="3.5"
+            class="region-dot"
+            [attr.fill]="series.color"
+            [attr.stroke]="series.color"
+          />
+        }
+      }
+    </svg>
+
+    <ul class="radar-legend">
+      @for (series of regionSeries(); track series.regionId) {
+        <li class="legend-item">
+          <span class="legend-swatch" [style.background]="series.color"></span>
+          <span class="legend-name">{{ series.name }}</span>
+        </li>
+      }
+    </ul>
+  }
+</section>

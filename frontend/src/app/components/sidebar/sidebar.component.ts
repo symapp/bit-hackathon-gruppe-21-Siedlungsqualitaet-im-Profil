@@ -10,10 +10,7 @@ import {
 import type { LayerPreference } from '../../models/layer-preference.model';
 import type { LocationMetrics } from '../../models/metrics.model';
 import { LocationService } from '../../services/location.service';
-import {
-  climToNormalizationBounds,
-  metaToNormalizationBounds,
-} from '../../utils/preference-scoring.util';
+import { normalizationBoundsForLayer } from '../../utils/preference-scoring.util';
 import { TrapezoidPreferenceEditorComponent } from '../trapezoid-preference-editor/trapezoid-preference-editor.component';
 
 @Component({
@@ -69,18 +66,7 @@ export class SidebarComponent {
     if (!def) {
       return { p5: 0, p95: 1, higherIsBetter: true };
     }
-    if (layer?.meta) {
-      return metaToNormalizationBounds(layer.meta);
-    }
-    return climToNormalizationBounds(def.clim, def.higherIsBetter);
-  }
-
-  sampleRawForLayer(layerId: string): number | null {
-    const def = this.layerDefinition(layerId);
-    if (!def) {
-      return null;
-    }
-    return this.locationService.metrics()[def.metricKey];
+    return normalizationBoundsForLayer(def.clim, def.higherIsBetter, layer?.meta);
   }
 
   onPreferenceChange(layerId: string, preference: LayerPreference): void {

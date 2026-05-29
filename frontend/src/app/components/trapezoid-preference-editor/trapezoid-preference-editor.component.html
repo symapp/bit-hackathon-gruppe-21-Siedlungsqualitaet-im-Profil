@@ -23,10 +23,6 @@
   }
 
     <polyline [attr.points]="chartPoints()" class="curve" />
-    @if (sampleMarker(); as m) {
-      <line [attr.x1]="m.x" [attr.y1]="PAD.top" [attr.x2]="m.x" [attr.y2]="viewHeight - PAD.bottom" class="sample-line" />
-      <circle [attr.cx]="m.x" [attr.cy]="m.y" r="4" class="sample-dot" />
-    }
 
     @for (handle of handleKeys(); track handle) {
       @let pos = handlePos(handle);
