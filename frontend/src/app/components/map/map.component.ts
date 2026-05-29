@@ -373,6 +373,7 @@ export class MapComponent implements OnInit, OnDestroy {
   private async moveActiveRegionTo(lng: number, lat: number): Promise<void> {
     const clamped = clampToSwitzerland(lng, lat);
     this.marker.setLngLat([clamped.lng, clamped.lat]);
+    this.locationService.setLocation(clamped.lat, clamped.lng);
 
     this.reverseAbort?.abort();
     const abort = new AbortController();
