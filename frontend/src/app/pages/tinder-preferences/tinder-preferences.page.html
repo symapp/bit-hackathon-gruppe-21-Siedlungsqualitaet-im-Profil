@@ -155,17 +155,10 @@
         }
       </section>
 
-      <footer class="actions shimmer-card">
+      <footer class="actions">
         <button type="button" class="secondary-btn" [disabled]="currentIndex() === 0" (click)="back()">
           {{ 'tinder.actions.back' | translate }}
         </button>
-        @if (isLastPlace()) {
-          <button type="button" class="primary-btn" [disabled]="applyInProgress()" (click)="finish()">
-            {{ 'tinder.actions.finish' | translate }}
-          </button>
-        } @else {
-          <span class="actions-spacer"></span>
-        }
       </footer>
     }
   </div>

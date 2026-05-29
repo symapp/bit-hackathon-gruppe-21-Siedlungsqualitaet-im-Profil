@@ -74,6 +74,10 @@ export class MapPanelsService {
     this.closeRight.next();
   }
 
+  closeRightPanel(): void {
+    this.closeRight.next();
+  }
+
   private readMobile(): boolean {
     if (typeof globalThis.matchMedia !== 'function') {
       return false;

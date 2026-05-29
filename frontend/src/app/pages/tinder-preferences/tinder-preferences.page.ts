@@ -5,6 +5,7 @@ import { MapComponent } from '../../components/map/map.component';
 import { ZARR_LAYER_DEFINITIONS, type ZarrLayerDefinition } from '../../config/zarr-layers.config';
 import { OnboardingPreferencesService } from '../../services/onboarding-preferences.service';
 import { TinderPreferencesService } from '../../services/tinder-preferences.service';
+import { MapPanelsService } from '../../services/map-panels.service';
 import type { TinderRating } from '../../utils/tinder-inference.util';
 import {
   normalizationBoundsForLayer,
@@ -52,6 +53,7 @@ export class TinderPreferencesPage {
   private readonly router = inject(Router);
   private readonly onboarding = inject(OnboardingPreferencesService);
   private readonly tinderPreferences = inject(TinderPreferencesService);
+  private readonly mapPanels = inject(MapPanelsService);
 
   protected readonly places = this.tinderPreferences.featuredPlaces;
   protected readonly layerDefinitions = ZARR_LAYER_DEFINITIONS;
@@ -209,6 +211,7 @@ export class TinderPreferencesPage {
       this.tinderPreferences.applyPreferences(inferred);
       this.onboarding.markCompleted();
       await this.router.navigateByUrl('/');
+      setTimeout(() => this.mapPanels.closeRightPanel(), 0);
     } finally {
       this.applyInProgress.set(false);
     }
@@ -250,6 +253,7 @@ export class TinderPreferencesPage {
 
   private queueAutoAdvance(): void {
     if (this.isLastPlace()) {
+      void this.finish();
       return;
     }
     if (this.autoAdvanceTimer) {
