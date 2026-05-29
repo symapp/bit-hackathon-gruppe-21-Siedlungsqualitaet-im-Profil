@@ -10,10 +10,10 @@ export interface Language {
 }
 
 export const LANGUAGES: Language[] = [
-  { code: 'de', flag: '🇩🇪', label: 'DE' },
-  { code: 'fr', flag: '🇫🇷', label: 'FR' },
-  { code: 'it', flag: '🇮🇹', label: 'IT' },
-  { code: 'en', flag: '🇬🇧', label: 'EN' },
+  { code: 'de', flag: '', label: 'DE' },
+  { code: 'fr', flag: '', label: 'FR' },
+  { code: 'it', flag: '', label: 'IT' },
+  { code: 'en', flag: '', label: 'EN' },
 ];
 
 const STORAGE_KEY = 'app-locale';

@@ -7,7 +7,6 @@
       [attr.aria-pressed]="languageService.locale() === lang.code"
       (click)="select(lang.code)"
     >
-      <span class="lang-flag" aria-hidden="true">{{ lang.flag }}</span>
       <span class="lang-code">{{ lang.label }}</span>
     </button>
   }

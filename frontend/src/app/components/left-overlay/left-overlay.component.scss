@@ -6,7 +6,7 @@
   width: min(360px, calc(100vw - 32px));
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
-  border-radius: 16px;
+  border-radius: 2px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   z-index: 20;
   overflow: hidden;
@@ -18,7 +18,7 @@
     width: 48px;
     min-height: 48px;
     height: 48px;
-    border-radius: 12px;
+    border-radius: 2px;
     bottom: auto;
 
     .toggle-btn {
@@ -78,7 +78,7 @@
 
 .add-btn {
   border: 1px solid var(--ch-border);
-  border-radius: 8px;
+  border-radius: 2px;
   background: #fff;
   color: var(--ch-text-primary);
   font-size: 0.75rem;
@@ -101,7 +101,7 @@
 
 .region-card {
   border: 1px solid var(--ch-border);
-  border-radius: 12px;
+  border-radius: 2px;
   background: #fff;
   padding: 10px;
   display: flex;
@@ -114,7 +114,7 @@
 
   &.active {
     border-color: var(--ch-red);
-    box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.16);
+    box-shadow: 0 0 0 2px rgba(216, 35, 42, 0.16);
   }
 }
 
@@ -135,7 +135,7 @@
 
 .text-input {
   border: 1px solid var(--ch-border);
-  border-radius: 8px;
+  border-radius: 2px;
   font-size: 0.85rem;
   color: var(--ch-text-primary);
   padding: 7px 9px;
@@ -143,7 +143,7 @@
 
   &:focus {
     border-color: var(--ch-red);
-    box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.2);
+    box-shadow: 0 0 0 2px rgba(216, 35, 42, 0.2);
   }
 }
 
@@ -151,7 +151,7 @@
   width: 36px;
   height: 24px;
   border: 1px solid var(--ch-border);
-  border-radius: 8px;
+  border-radius: 2px;
   background: #fff;
   cursor: pointer;
 }
@@ -164,7 +164,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 2px;
   width: 24px;
   height: 24px;
   padding: 0;
@@ -178,7 +178,7 @@
 .radius-block {
   padding: 8px 10px;
   background: var(--ch-bg-light);
-  border-radius: 10px;
+  border-radius: 2px;
   border: 1px solid var(--ch-border);
 }
 
@@ -195,7 +195,7 @@
   color: var(--ch-red);
   background: var(--ch-bg-light);
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: 2px;
 }
 
 .radius-slider {
@@ -204,7 +204,7 @@
   -webkit-appearance: none;
   appearance: none;
   background: var(--ch-border);
-  border-radius: 3px;
+  border-radius: 2px;
   outline: none;
   cursor: pointer;
 
@@ -215,7 +215,7 @@
     height: 14px;
     border-radius: 50%;
     background: var(--ch-red);
-    box-shadow: 0 1px 4px rgba(255, 0, 0, 0.4);
+    box-shadow: 0 1px 4px rgba(216, 35, 42, 0.4);
   }
 
   &::-moz-range-thumb {

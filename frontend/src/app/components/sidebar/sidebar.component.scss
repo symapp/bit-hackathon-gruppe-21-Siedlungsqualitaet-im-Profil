@@ -6,7 +6,7 @@
   width: min(420px, calc(100vw - 32px));
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
-  border-radius: 16px;
+  border-radius: 2px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   z-index: 20;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -18,7 +18,7 @@
     width: 48px;
     min-height: 48px;
     height: 48px;
-    border-radius: 12px;
+    border-radius: 2px;
     bottom: auto;
     top: 16px;
 
@@ -68,7 +68,6 @@
 
 .sidebar-content {
   padding: 48px 20px 20px;
-  padding: 16px 20px 20px;
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
@@ -80,7 +79,7 @@
   gap: 4px;
   padding: 12px;
   background: var(--ch-bg-light);
-  border-radius: 10px;
+  border-radius: 2px;
   margin-bottom: 16px;
 }
 
@@ -103,7 +102,7 @@
   margin-bottom: 20px;
   padding: 14px;
   background: linear-gradient(135deg, var(--ch-bg-light) 0%, var(--ch-bg-light) 100%);
-  border-radius: 12px;
+  border-radius: 2px;
   border: 1px solid var(--ch-border);
 }
 
@@ -132,7 +131,7 @@
   flex: 1 1 100%;
   height: 8px;
   background: var(--ch-border);
-  border-radius: 4px;
+  border-radius: 2px;
   overflow: hidden;
   margin-top: 6px;
 }
@@ -140,7 +139,7 @@
 .overview-score-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--ch-red), var(--ch-red));
-  border-radius: 4px;
+  border-radius: 2px;
   transition: width 0.25s ease;
 }
 
@@ -164,7 +163,7 @@
   font-size: 0.72rem;
   padding: 4px 8px;
   border: 1px solid var(--ch-border);
-  border-radius: 6px;
+  border-radius: 2px;
   background: #f8fafc;
   cursor: pointer;
 
@@ -189,7 +188,7 @@
 
 .layers-reset-btn {
   border: 1px solid var(--ch-border);
-  border-radius: 8px;
+  border-radius: 2px;
   background: #fff;
   color: var(--ch-text-secondary);
   font-size: 0.72rem;
@@ -241,7 +240,7 @@
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--ch-border);
-  border-radius: 10px;
+  border-radius: 2px;
   background: #fff;
   transition:
     border-color 0.15s,
@@ -288,7 +287,7 @@
 .map-layer-legend {
   display: block;
   height: 8px;
-  border-radius: 4px;
+  border-radius: 2px;
   margin-top: 2px;
 }
 
@@ -326,7 +325,7 @@
   -webkit-appearance: none;
   appearance: none;
   background: var(--ch-border);
-  border-radius: 3px;
+  border-radius: 2px;
   outline: none;
   cursor: pointer;
 
@@ -392,7 +391,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 2px;
   transition: background 0.2s;
   margin-bottom: 4px;
 
@@ -432,7 +431,7 @@
   padding: 10px 12px;
   margin-bottom: 16px;
   background: var(--ch-bg-light);
-  border-radius: 8px;
+  border-radius: 2px;
   border: 1px solid var(--ch-border);
 }
 
