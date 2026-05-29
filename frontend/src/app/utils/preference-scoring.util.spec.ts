@@ -82,16 +82,17 @@ describe('normalizedRawPercent', () => {
 });
 
 describe('normalizationBoundsForLayer', () => {
-  it('prefers settlement meta over clim fallback', () => {
+  it('prefers settlement meta p5/p95 but keeps layer higherIsBetter', () => {
     const bounds = normalizationBoundsForLayer([0, 1], true, {
       variable: 'x',
       p5: 100,
       p95: 2_000,
-      higherIsBetter: true,
+      higherIsBetter: false,
       unit: 'EW',
     });
     expect(bounds.p5).toBe(100);
     expect(bounds.p95).toBe(2_000);
+    expect(bounds.higherIsBetter).toBe(true);
   });
 });
 
@@ -120,6 +121,23 @@ describe('good-place pt-accessibility default', () => {
     const pref = createGoodPlaceLayerPreference('pt-accessibility');
     expect(factorScoreFromRaw(2_400, bounds, pref)).toBe(100);
     expect(factorScoreFromRaw(50, bounds, pref)).toBeLessThan(30);
+  });
+});
+
+describe('good-place miv-accessibility default', () => {
+  const bounds = { p5: 45, p95: 11_657, higherIsBetter: true };
+
+  it('places the plateau toward high EW (right side of chart)', () => {
+    const pref = createGoodPlaceLayerPreference('miv-accessibility');
+    expect(pref.rangeMax).toBeGreaterThan(0.9);
+    expect(pref.rangeMin).toBeGreaterThan(0.35);
+    expect(pref.falloffRight).toBeLessThan(pref.falloffLeft);
+  });
+
+  it('scores strong MIV highly and weak MIV low', () => {
+    const pref = createGoodPlaceLayerPreference('miv-accessibility');
+    expect(factorScoreFromRaw(11_000, bounds, pref)).toBe(100);
+    expect(factorScoreFromRaw(80, bounds, pref)).toBeLessThan(30);
   });
 });
 

@@ -30,11 +30,12 @@ const SENSIBLE_TRAPEZOID: Record<string, TrapezoidDefaults> = {
     falloffRight: 0.04,
     importance: 120,
   },
+  /** Higher EW = better: plateau on the right (same shape as ÖV). */
   'miv-accessibility': {
-    rangeMin: 0.15,
-    rangeMax: 0.45,
-    falloffLeft: 0.12,
-    falloffRight: 0.1,
+    rangeMin: 0.42,
+    rangeMax: 0.95,
+    falloffLeft: 0.22,
+    falloffRight: 0.04,
     importance: 40,
   },
   'pt-quality': {

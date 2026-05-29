@@ -64,7 +64,7 @@ QUALITY_SPECS: dict[str, QualitySpec] = {
     ),
     "miv-accessibility": QualitySpec(
         variable="Strasse_Erreichb_EW",
-        higher_is_better=False,
+        higher_is_better=True,
         raw_interior_fill=0.0,
         fill_mode="nan_and_zero",
         default_weight=40,

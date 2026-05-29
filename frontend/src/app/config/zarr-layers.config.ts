@@ -75,7 +75,8 @@ const CLIM = {
   populationDensity: [300, 9_900] as [number, number],
   /** ARE ÖV EW (populated cells; see settlement-layer-meta p5/p95). */
   ptAccessibility: [4, 2_533] as [number, number],
-  roadAccessibility: [50, 3_500] as [number, number],
+  /** ARE MIV EW (populated cells; see settlement-layer-meta p5/p95). */
+  roadAccessibility: [45, 11_657] as [number, number],
   ptQuality: [1, 4] as [number, number],
   ptTravelTime: [15, 90] as [number, number],
   roadTravelTime: [10, 75] as [number, number],

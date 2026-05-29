@@ -259,7 +259,7 @@ export function scoreOverviewComposite(
     const pref = input.preferences[source.definition.id]!;
     const meta = input.metaByLayerId[source.definition.id];
     const boundsNorm = meta
-      ? metaToNormalizationBounds(meta)
+      ? metaToNormalizationBounds(meta, source.definition.higherIsBetter)
       : climToNormalizationBounds(source.definition.clim, source.definition.higherIsBetter);
 
     const cellMap = input.rawByLayerId.get(source.definition.id);

@@ -79,11 +79,14 @@ export function factorScoreFromT(t: number, pref: TrapezoidPreference): number {
   return 100 * preferenceFactor(t, pref);
 }
 
-export function metaToNormalizationBounds(meta: SettlementLayerMeta): NormalizationBounds {
+export function metaToNormalizationBounds(
+  meta: SettlementLayerMeta,
+  higherIsBetter: boolean,
+): NormalizationBounds {
   return {
     p5: meta.p5,
     p95: meta.p95,
-    higherIsBetter: meta.higherIsBetter,
+    higherIsBetter,
   };
 }
 
@@ -101,7 +104,7 @@ export function normalizationBoundsForLayer(
   meta: SettlementLayerMeta | null | undefined,
 ): NormalizationBounds {
   if (meta) {
-    return metaToNormalizationBounds(meta);
+    return metaToNormalizationBounds(meta, higherIsBetter);
   }
   return climToNormalizationBounds(clim, higherIsBetter);
 }

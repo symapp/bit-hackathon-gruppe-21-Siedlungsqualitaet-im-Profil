@@ -4,7 +4,7 @@ from __future__ import annotations
 
 METRIC_META: dict[str, tuple[bool, str]] = {
     "pt-accessibility": (True, "EW"),
-    "miv-accessibility": (False, "EW"),
+    "miv-accessibility": (True, "EW"),
     "pt-quality": (True, "Nr."),
     "pt-travel-time": (False, "min"),
     "miv-travel-time": (False, "min"),
