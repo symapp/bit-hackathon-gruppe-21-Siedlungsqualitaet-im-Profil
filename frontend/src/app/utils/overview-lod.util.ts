@@ -1,4 +1,5 @@
 import type { ZarrLayerDefinition } from '../config/zarr-layers.config';
+import { environment } from '../../environments/environment';
 import { SWISS_GRID_CELL_COUNT } from './swiss-grid.util';
 
 export type OverviewGridTier = 'L100' | 'L500' | 'L1000';
@@ -26,7 +27,10 @@ export function resolveOverviewLod(
   const coverage = cellCount / chCells;
 
   if (coverage > LOD_CH_COVERAGE_FORCE_L1000) {
-    return { tier: 'L1000', readMode: 'index_slice', cellM: 1000, blockFactor: 10 };
+    if (environment.overviewCoarseAvailable) {
+      return { tier: 'L1000', readMode: 'index_slice', cellM: 1000, blockFactor: 10 };
+    }
+    return { tier: 'L100', readMode: 'index_slice', cellM: 100, blockFactor: 1 };
   }
 
   if (zoom >= 11 && cellCount <= LOD_R1_MAX_CELLS) {
@@ -38,10 +42,17 @@ export function resolveOverviewLod(
   }
 
   if (zoom >= 9 || cellCount <= LOD_R3_MAX_CELLS) {
-    return { tier: 'L500', readMode: 'index_slice', cellM: 500, blockFactor: 5 };
+    if (environment.overviewCoarseAvailable) {
+      return { tier: 'L500', readMode: 'index_slice', cellM: 500, blockFactor: 5 };
+    }
+    return { tier: 'L100', readMode: 'index_slice', cellM: 100, blockFactor: 1 };
   }
 
-  return { tier: 'L1000', readMode: 'index_slice', cellM: 1000, blockFactor: 10 };
+  if (environment.overviewCoarseAvailable) {
+    return { tier: 'L1000', readMode: 'index_slice', cellM: 1000, blockFactor: 10 };
+  }
+
+  return { tier: 'L100', readMode: 'index_slice', cellM: 100, blockFactor: 1 };
 }
 
 export function coarseStorePath(definition: ZarrLayerDefinition, tier: OverviewGridTier): string {

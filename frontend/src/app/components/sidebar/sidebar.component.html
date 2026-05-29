@@ -147,7 +147,7 @@
                   [sampleRaw]="sampleRawForLayer(layer.id)"
                   [disabled]="!layer.enabled"
                   [formatRaw]="def.formatValue"
-                  [unit]="def.metricUnit"
+                  [unit]="metricUnit(def)"
                   (preferenceChange)="onPreferenceChange(layer.id, $event)"
                 />
 

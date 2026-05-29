@@ -22,6 +22,7 @@ export class MapComponent implements OnInit, OnDestroy {
   private deckOverlay!: MapboxOverlay;
   private locationService = inject(LocationService);
   private zarrMapService = inject(ZarrMapService);
+  private lastFlyToRegionKey: string | null = null;
 
   constructor() {
     effect(() => {
@@ -39,7 +40,14 @@ export class MapComponent implements OnInit, OnDestroy {
 
         this.marker.getElement().style.display = '';
         this.marker.setLngLat([activeRegion.lng, activeRegion.lat]);
-        this.map.flyTo({ center: [activeRegion.lng, activeRegion.lat], essential: true });
+
+        const flyKey = `${activeRegion.id}:${activeRegion.lng.toFixed(5)},${activeRegion.lat.toFixed(5)}`;
+        if (this.lastFlyToRegionKey !== flyKey && this.map.getZoom() >= 10) {
+          this.lastFlyToRegionKey = flyKey;
+          this.map.flyTo({ center: [activeRegion.lng, activeRegion.lat], essential: true });
+        } else if (this.lastFlyToRegionKey !== flyKey) {
+          this.lastFlyToRegionKey = flyKey;
+        }
       }
     });
   }

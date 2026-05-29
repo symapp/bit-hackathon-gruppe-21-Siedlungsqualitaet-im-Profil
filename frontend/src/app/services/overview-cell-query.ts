@@ -38,6 +38,7 @@ export async function queryOverviewCellMap(
       extent,
       plan.blockFactor,
       extent.stride,
+      definition.selector,
       signal,
     );
   } catch (err) {
@@ -49,6 +50,7 @@ export async function queryOverviewCellMap(
         extent,
         1,
         extent.stride,
+        definition.selector,
         signal,
       );
     }

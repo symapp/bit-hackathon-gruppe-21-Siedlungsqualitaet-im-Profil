@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SWITZERLAND_BBOX } from '../config/map-bounds.config';
 import {
   cellExtentToImageCoordinates,
   cellIndexToLv95,
@@ -28,6 +29,31 @@ describe('swiss-grid.util', () => {
     const [x1] = cellIndexToLv95(0, 0);
     const [x2] = cellIndexToLv95(1, 0);
     expect(x2 - x1).toBe(HECTARE_CELL_M);
+  });
+
+  it('country-level map bounds yield a national overview footprint', () => {
+    const extent = viewportCellExtent(5.42, 45.74, 11.03, 47.89);
+    expect(extent).not.toBeNull();
+
+    const coords = cellExtentToImageCoordinates(extent!);
+    const lngSpan = Math.max(...coords.map((c) => c[0])) - Math.min(...coords.map((c) => c[0]));
+    const latSpan = Math.max(...coords.map((c) => c[1])) - Math.min(...coords.map((c) => c[1]));
+    expect(lngSpan + latSpan).toBeGreaterThan(3);
+  });
+
+  it('national bbox overview corners span most of Switzerland', () => {
+    const extent = viewportCellExtent(
+      SWITZERLAND_BBOX.west,
+      SWITZERLAND_BBOX.south,
+      SWITZERLAND_BBOX.east,
+      SWITZERLAND_BBOX.north,
+    );
+    expect(extent).not.toBeNull();
+
+    const coords = cellExtentToImageCoordinates(extent!);
+    const lngSpan = Math.max(...coords.map((c) => c[0])) - Math.min(...coords.map((c) => c[0]));
+    const latSpan = Math.max(...coords.map((c) => c[1])) - Math.min(...coords.map((c) => c[1]));
+    expect(lngSpan + latSpan).toBeGreaterThan(3);
   });
 
   it('image corners span nx × stride hectare cells per axis', () => {

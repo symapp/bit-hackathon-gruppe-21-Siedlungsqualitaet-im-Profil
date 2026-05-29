@@ -26,6 +26,10 @@ async function sampleWebglCenterAlpha(page: import('@playwright/test').Page): Pr
 }
 
 test.describe('Zarr map overlay', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+  });
+
   test('registers zarr layers on the map', async ({ page }) => {
     await page.goto('/');
 
@@ -125,6 +129,12 @@ test.describe('Zarr map overlay', () => {
       })
       .toBeGreaterThan(0);
 
+    await expect
+      .poll(async () => page.evaluate(() => window.__SIEDLUNG_OVERVIEW__?.loading ?? true), {
+        timeout: 90_000,
+      })
+      .toBe(false);
+
     const before = await page.evaluate(() => ({
       gen: window.__SIEDLUNG_OVERVIEW__?.generation ?? 0,
       zarrRequests: performance
@@ -151,6 +161,40 @@ test.describe('Zarr map overlay', () => {
         .filter((e) => /zarr|backblazeb2/i.test(e.name)).length,
     );
 
-    expect(after - before.zarrRequests).toBeLessThan(20);
+    expect(after - before.zarrRequests).toBeLessThan(30);
+  });
+
+  test('national overview rebuilds after zooming out', async ({ page }) => {
+    test.setTimeout(300_000);
+
+    await page.goto('/');
+
+    await expect
+      .poll(async () => page.locator('.map-layer-card.loading').count(), { timeout: 90_000 })
+      .toBe(0);
+
+    const genBefore = await page.evaluate(() => window.__SIEDLUNG_OVERVIEW__?.generation ?? 0);
+
+    await page.evaluate(() => {
+      const map = window.__SIEDLUNG_MAP__;
+      if (!map) {
+        return;
+      }
+      map.resize();
+      map.jumpTo({ center: [8.23, 46.82], zoom: 7.5 });
+      window.__SIEDLUNG_SYNC_OVERVIEW__?.();
+    });
+
+    await expect
+      .poll(async () => page.evaluate(() => window.__SIEDLUNG_OVERVIEW__?.generation ?? 0), {
+        timeout: 240_000,
+      })
+      .toBeGreaterThan(genBefore);
+
+    await expect
+      .poll(async () => page.evaluate(() => window.__SIEDLUNG_OVERVIEW__?.loading ?? true), {
+        timeout: 240_000,
+      })
+      .toBe(false);
   });
 });

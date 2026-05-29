@@ -194,23 +194,29 @@ export async function fetchOverviewRawMaps(
       return;
     }
 
-    const cellMap = await queryOverviewCellMap(
-      source.queryContext,
-      input.west,
-      input.south,
-      input.east,
-      input.north,
-      extent,
-      signal,
-    );
+    try {
+      const cellMap = await queryOverviewCellMap(
+        source.queryContext,
+        input.west,
+        input.south,
+        input.east,
+        input.north,
+        extent,
+        signal,
+      );
 
-    if (signal?.aborted) {
-      return;
+      if (signal?.aborted) {
+        return;
+      }
+
+      rawCache.set(cacheKey, cellMap);
+      result.set(definition.id, cellMap);
+      input.onFetchLayer?.();
+    } catch (err) {
+      if (!signal?.aborted) {
+        console.error(`[overview] failed to fetch layer ${definition.id}`, err);
+      }
     }
-
-    rawCache.set(cacheKey, cellMap);
-    result.set(definition.id, cellMap);
-    input.onFetchLayer?.();
   }
 
   async function worker(): Promise<void> {

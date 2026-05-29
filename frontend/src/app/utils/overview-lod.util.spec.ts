@@ -14,21 +14,22 @@ describe('resolveOverviewLod', () => {
     expect(plan.readMode).toBe('index_slice');
   });
 
-  it('uses L500 for medium extent', () => {
+  it('uses L100 index slice for medium extent when coarse not on B2', () => {
     const plan = resolveOverviewLod(9.5, 800, 600);
-    expect(plan.tier).toBe('L500');
+    expect(plan.tier).toBe('L100');
     expect(plan.readMode).toBe('index_slice');
-    expect(plan.blockFactor).toBe(5);
+    expect(plan.blockFactor).toBe(1);
   });
 
-  it('uses L1000 for country zoom (R4)', () => {
+  it('uses L100 index slice for country zoom when coarse not on B2', () => {
     const plan = resolveOverviewLod(7, 3000, 2000);
-    expect(plan.tier).toBe('L1000');
-    expect(plan.blockFactor).toBe(10);
+    expect(plan.tier).toBe('L100');
+    expect(plan.readMode).toBe('index_slice');
   });
 
-  it('forces L1000 when viewport covers most of Switzerland', () => {
+  it('forces L100 when viewport covers most of Switzerland without coarse tiers', () => {
     const plan = resolveOverviewLod(11, 3000, 2000);
-    expect(plan.tier).toBe('L1000');
+    expect(plan.tier).toBe('L100');
+    expect(plan.readMode).toBe('index_slice');
   });
 });

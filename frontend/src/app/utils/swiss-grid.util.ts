@@ -77,37 +77,60 @@ export function viewportCellExtent(
   east: number,
   north: number,
 ): ViewportCellExtent | null {
-  const corners: [number, number][] = [
-    wgs84ToLv95(west, south),
-    wgs84ToLv95(east, south),
-    wgs84ToLv95(east, north),
-    wgs84ToLv95(west, north),
+  const wgsCorners: [number, number][] = [
+    [west, south],
+    [east, south],
+    [east, north],
+    [west, north],
   ];
+  const lv95Corners = wgsCorners.map(([lng, lat]) => wgs84ToLv95(lng, lat));
 
-  let ixMin = SWISS_GRID_CELL_COUNT.nx;
-  let ixMax = -1;
-  let iyMin = SWISS_GRID_CELL_COUNT.ny;
-  let iyMax = -1;
+  let vx0 = Math.min(...lv95Corners.map(([x]) => x));
+  let vx1 = Math.max(...lv95Corners.map(([x]) => x));
+  let vy0 = Math.min(...lv95Corners.map(([, y]) => y));
+  let vy1 = Math.max(...lv95Corners.map(([, y]) => y));
 
-  for (const [x, y] of corners) {
-    const cell = lv95ToCellIndex(x, y);
-    if (!cell) {
-      continue;
-    }
-    ixMin = Math.min(ixMin, cell.ix);
-    ixMax = Math.max(ixMax, cell.ix);
-    iyMin = Math.min(iyMin, cell.iy);
-    iyMax = Math.max(iyMax, cell.iy);
-  }
+  const x0 = Math.max(vx0, X_MIN);
+  const x1 = Math.min(vx1, X_MAX);
+  const y0 = Math.max(vy0, Y_MIN);
+  const y1 = Math.min(vy1, Y_MAX);
 
-  if (ixMax < ixMin || iyMax < iyMin) {
+  if (x0 > x1 || y0 > y1) {
     return null;
   }
 
-  const ix0 = Math.max(0, ixMin);
-  const iy0 = Math.max(0, iyMin);
-  const ix1 = Math.min(SWISS_GRID_CELL_COUNT.nx - 1, ixMax);
-  const iy1 = Math.min(SWISS_GRID_CELL_COUNT.ny - 1, iyMax);
+  const ix0 = Math.max(
+    0,
+    Math.min(
+      SWISS_GRID_CELL_COUNT.nx - 1,
+      Math.round((x0 - X0) / HECTARE_CELL_M),
+    ),
+  );
+  const ix1 = Math.max(
+    0,
+    Math.min(
+      SWISS_GRID_CELL_COUNT.nx - 1,
+      Math.round((x1 - X0) / HECTARE_CELL_M),
+    ),
+  );
+  const iy0 = Math.max(
+    0,
+    Math.min(
+      SWISS_GRID_CELL_COUNT.ny - 1,
+      Math.round((Y0 - y1) / HECTARE_CELL_M),
+    ),
+  );
+  const iy1 = Math.max(
+    0,
+    Math.min(
+      SWISS_GRID_CELL_COUNT.ny - 1,
+      Math.round((Y0 - y0) / HECTARE_CELL_M),
+    ),
+  );
+
+  if (ix1 < ix0 || iy1 < iy0) {
+    return null;
+  }
 
   const fullNx = ix1 - ix0 + 1;
   const fullNy = iy1 - iy0 + 1;
