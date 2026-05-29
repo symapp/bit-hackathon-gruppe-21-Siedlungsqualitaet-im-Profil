@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -23,6 +24,7 @@ import {
   starsFromImportance,
 } from '../../utils/preference-scoring.util';
 import { TrapezoidPreferenceEditorComponent } from '../trapezoid-preference-editor/trapezoid-preference-editor.component';
+import { MapPanelsService } from '../../services/map-panels.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -37,18 +39,36 @@ import { TrapezoidPreferenceEditorComponent } from '../trapezoid-preference-edit
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   protected readonly locationService = inject(LocationService);
   private readonly translate = inject(TranslateService);
-  protected isCollapsed = false;
+  private readonly mapPanels = inject(MapPanelsService);
+  private readonly destroyRef = inject(DestroyRef);
+  protected isCollapsed = this.mapPanels.initialCollapsed();
   /** Per-layer advanced panel (curve editor + dealbreaker). */
   protected readonly advancedOpenByLayerId = signal<Record<string, boolean>>({});
   protected readonly metricDefinitions = ZARR_LAYER_DEFINITIONS;
   protected readonly lifestylePresets = LIFESTYLE_PRESETS;
   protected readonly activePresetId = signal<LifestylePresetId>(loadStoredLifestylePresetId());
 
+  ngOnInit(): void {
+    this.mapPanels.setRightOpen(!this.isCollapsed);
+    this.mapPanels.closeRight$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.isCollapsed = true;
+      this.mapPanels.setRightOpen(false);
+    });
+    this.mapPanels.openRight$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.isCollapsed = false;
+      this.mapPanels.setRightOpen(true);
+    });
+  }
+
   toggleSidebar(): void {
+    if (this.isCollapsed) {
+      this.mapPanels.notifyOpen('right');
+    }
     this.isCollapsed = !this.isCollapsed;
+    this.mapPanels.setRightOpen(!this.isCollapsed);
   }
 
   metricUnit(def: ZarrLayerDefinition): string {

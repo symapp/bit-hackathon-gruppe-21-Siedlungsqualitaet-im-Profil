@@ -53,3 +53,74 @@
   border-color: var(--ch-red);
   color: #fff;
 }
+
+.panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(15, 23, 42, 0.45);
+  cursor: pointer;
+}
+
+.mobile-map-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 22;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  padding:
+    calc(8px + env(safe-area-inset-top, 0px))
+    calc(8px + env(safe-area-inset-right, 0px))
+    8px
+    calc(8px + env(safe-area-inset-left, 0px));
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+
+.toolbar-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border: 1px solid var(--ch-border);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--ch-text-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar-tinder {
+  border-color: var(--ch-red);
+  color: var(--ch-red);
+}
+
+@media (max-width: 768px) {
+  .tinder-prompt-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .tinder-prompt-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+}

@@ -1,10 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { FactorScoreBreakdownComponent } from '../factor-score-breakdown/factor-score-breakdown.component';
 import { RegionFactorsChartComponent } from '../region-factors-chart/region-factors-chart.component';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
 import { getAmenityCategory, getAmenityIcon } from '../../services/overpass.service';
+import { MapPanelsService } from '../../services/map-panels.service';
 
 @Component({
   selector: 'app-left-overlay',
@@ -13,8 +15,10 @@ import { getAmenityCategory, getAmenityIcon } from '../../services/overpass.serv
   templateUrl: './left-overlay.component.html',
   styleUrl: './left-overlay.component.scss',
 })
-export class LeftOverlayComponent {
+export class LeftOverlayComponent implements OnInit {
   protected readonly locationService = inject(LocationService);
+  private readonly mapPanels = inject(MapPanelsService);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly Math = Math;
   protected readonly getAmenityIcon = getAmenityIcon;
   protected readonly getAmenityCategory = getAmenityCategory;
@@ -25,12 +29,28 @@ export class LeftOverlayComponent {
     { key: 'culture', icon: 'theater_masks', label: 'sidebar.amenityCategoryCulture' },
     { key: 'hospital', icon: 'hospital', label: 'sidebar.amenityCategoryHospital' },
   ] as const;
-  protected isCollapsed = false;
+  protected isCollapsed = this.mapPanels.initialCollapsed();
   protected expandedRegionId: string | null = null;
   protected expandedCategoryKey: string | null = null;
 
+  ngOnInit(): void {
+    this.mapPanels.setLeftOpen(!this.isCollapsed);
+    this.mapPanels.closeLeft$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.isCollapsed = true;
+      this.mapPanels.setLeftOpen(false);
+    });
+    this.mapPanels.openLeft$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.isCollapsed = false;
+      this.mapPanels.setLeftOpen(true);
+    });
+  }
+
   toggleSidebar(): void {
+    if (this.isCollapsed) {
+      this.mapPanels.notifyOpen('left');
+    }
     this.isCollapsed = !this.isCollapsed;
+    this.mapPanels.setLeftOpen(!this.isCollapsed);
   }
 
   toggleCategory(regionId: string, categoryKey: string, event: Event): void {

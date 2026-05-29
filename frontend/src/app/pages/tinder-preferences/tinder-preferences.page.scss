@@ -11,6 +11,11 @@
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
   z-index: 30;
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
 }
 
 .tinder-map-bootstrap {
@@ -28,6 +33,17 @@
   margin: 16px auto 28px;
   display: grid;
   gap: 12px;
+}
+
+.back-to-map {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 4px;
+  color: var(--ch-red);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .tinder-header h1 {
@@ -325,8 +341,29 @@
     grid-template-columns: 1fr;
   }
 
-  .rating-grid {
-    gap: 8px;
+  .place-card img {
+    height: 200px;
+  }
+
+  .factor-list {
+    max-height: 220px;
+  }
+
+  .actions-spacer {
+    display: none;
+  }
+
+  .actions {
+    position: sticky;
+    bottom: 8px;
+    z-index: 2;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    min-height: 44px;
+    flex: 1;
+    text-align: center;
   }
 }
 
@@ -344,8 +381,40 @@
 }
 
 @media (max-width: 560px) {
+  .tinder-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .place-card img {
+    height: 160px;
+  }
+
+  .rating-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    gap: 8px;
+  }
+
   .rating-btn {
-    min-width: 138px;
-    padding: 10px 12px;
+    min-width: 0;
+    width: 100%;
+    white-space: normal;
+    min-height: 48px;
+    padding: 10px 8px;
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+
+  .rating-btn:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .radar-label {
+    font-size: 8px;
+  }
+
+  .factor-list {
+    max-height: 180px;
   }
 }

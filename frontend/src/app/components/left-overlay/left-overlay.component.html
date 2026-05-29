@@ -3,7 +3,7 @@
     type="button"
     class="toggle-btn"
     [attr.aria-expanded]="!isCollapsed"
-    [attr.aria-label]="isCollapsed ? 'Panel öffnen' : 'Panel schliessen'"
+    [attr.aria-label]="(isCollapsed ? 'sidebar.open' : 'sidebar.close') | translate"
     (click)="toggleSidebar()"
   >
     @if (isCollapsed) {

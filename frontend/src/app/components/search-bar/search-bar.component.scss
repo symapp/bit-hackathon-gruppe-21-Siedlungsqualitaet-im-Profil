@@ -172,3 +172,48 @@
   color: var(--ch-text-secondary);
   line-height: 1.35;
 }
+
+@media (max-width: 768px) {
+  .search-container {
+    left: 0;
+    right: 0;
+    transform: none;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    max-width: none;
+    padding: 0 calc(12px + env(safe-area-inset-right, 0px)) 0
+      calc(12px + env(safe-area-inset-left, 0px));
+  }
+
+  .search-wrapper {
+    border-radius: 10px;
+    padding: 4px 10px 4px 14px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  }
+
+  .search-input {
+    font-size: 16px;
+    padding: 14px 0;
+  }
+
+  .clear-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .suggestion-item {
+    min-height: 48px;
+    padding: 12px 16px;
+  }
+
+  .panel {
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    right: calc(12px + env(safe-area-inset-right, 0px));
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  .suggestions-list {
+    max-height: min(44vh, 320px);
+  }
+}

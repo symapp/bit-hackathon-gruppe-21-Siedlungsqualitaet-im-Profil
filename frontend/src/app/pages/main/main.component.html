@@ -1,5 +1,29 @@
 <div class="main-layout">
   <app-map></app-map>
+
+  @if (mapPanels.isMobile() && mapPanels.anyPanelOpen()) {
+    <button
+      type="button"
+      class="panel-backdrop"
+      [attr.aria-label]="'sidebar.close' | translate"
+      (click)="mapPanels.closeAll()"
+    ></button>
+  }
+
+  @if (mapPanels.isMobile() && !mapPanels.anyPanelOpen()) {
+    <nav class="mobile-map-toolbar" [attr.aria-label]="'sidebar.title' | translate">
+      <button type="button" class="toolbar-btn" (click)="mapPanels.openLeftPanel()">
+        {{ 'regions.title' | translate }}
+      </button>
+      <a class="toolbar-btn toolbar-tinder" routerLink="/preferences/tinder">
+        {{ 'tinder.openButton' | translate }}
+      </a>
+      <button type="button" class="toolbar-btn" (click)="mapPanels.openRightPanel()">
+        {{ 'sidebar.title' | translate }}
+      </button>
+    </nav>
+  }
+
   <app-left-overlay></app-left-overlay>
   <app-sidebar></app-sidebar>
   <app-search-bar></app-search-bar>

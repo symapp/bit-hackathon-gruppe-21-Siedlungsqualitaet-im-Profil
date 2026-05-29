@@ -53,12 +53,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
   color: var(--ch-text-secondary);
   transition: color 0.2s;
   padding: 0;
+  border-radius: 2px;
   flex-shrink: 0;
 
   &:hover {
@@ -120,43 +121,6 @@
   background: linear-gradient(135deg, var(--ch-bg-light) 0%, var(--ch-bg-light) 100%);
   border-radius: 2px;
   border: 1px solid var(--ch-border);
-}
-
-.overview-score-card {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
-  margin-top: 8px;
-}
-
-.overview-score-value {
-  font-size: 2.25rem;
-  font-weight: 800;
-  color: var(--ch-red-hover);
-  line-height: 1;
-}
-
-.overview-score-unit {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--ch-text-secondary);
-}
-
-.overview-score-bar {
-  flex: 1 1 100%;
-  height: 8px;
-  background: var(--ch-border);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-top: 6px;
-}
-
-.overview-score-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--ch-red), var(--ch-red));
-  border-radius: 2px;
-  transition: width 0.25s ease;
 }
 
 .layers-section {
@@ -374,27 +338,10 @@
   }
 }
 
-.map-layer-metric {
-  font-size: 0.75rem;
-  color: var(--ch-text-secondary);
-
-  strong {
-    color: var(--ch-text-primary);
-  }
-}
-
-.metrics-hint,
-.metrics-error {
+.metrics-hint {
   font-size: 0.8rem;
   margin: 0 0 10px 0;
-}
-
-.metrics-hint {
   color: var(--ch-text-secondary);
-}
-
-.metrics-error {
-  color: var(--ch-red);
 }
 
 .metrics-title {
@@ -404,44 +351,6 @@
   letter-spacing: 0.05em;
   color: var(--ch-text-secondary);
   margin: 0 0 12px 0;
-}
-
-.metric-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 2px;
-  transition: background 0.2s;
-  margin-bottom: 4px;
-
-  &:hover {
-    background: var(--ch-bg-light);
-  }
-}
-
-.metric-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.metric-label {
-  font-size: 0.8rem;
-  color: var(--ch-text-secondary);
-}
-
-.metric-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--ch-text-primary);
-}
-
-.metric-unit {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--ch-text-secondary);
-  margin-left: 4px;
 }
 
 .coordinates-section {
@@ -540,5 +449,115 @@
   input {
     margin: 0.15rem 0 0;
     flex-shrink: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    max-width: none;
+    border-radius: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+
+    &:not(.collapsed) {
+      z-index: 26;
+      box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
+    }
+
+    &.collapsed {
+      display: none;
+    }
+  }
+
+  .sidebar-header {
+    padding: 12px;
+    min-height: 52px;
+  }
+
+  .toggle-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.22);
+  }
+
+  .sidebar.collapsed .toggle-btn {
+    min-height: 48px;
+  }
+
+  .sidebar-content {
+    padding: 12px calc(16px + env(safe-area-inset-right, 0px))
+      calc(20px + env(safe-area-inset-bottom, 0px))
+      calc(16px + env(safe-area-inset-left, 0px));
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar,
+  .sidebar * {
+    box-sizing: border-box;
+  }
+
+  .overview-section,
+  .layers-section,
+  .map-layer-card,
+  .coordinates-section,
+  .address-display {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .layers-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .layers-header-actions {
+    width: 100%;
+  }
+
+  .tinder-mode-btn {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    align-items: center;
+    font-size: 0.85rem;
+  }
+
+  .map-layer-toggle input {
+    width: 26px;
+    height: 26px;
+  }
+
+  .layers-reset-btn,
+  .layer-advanced-toggle,
+  .layer-reset-pref-btn,
+  .preset-select {
+    min-height: 40px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .layer-weight-slider {
+    height: 6px;
+
+    &::-webkit-slider-thumb {
+      width: 18px;
+      height: 18px;
+    }
+
+    &::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+    }
   }
 }

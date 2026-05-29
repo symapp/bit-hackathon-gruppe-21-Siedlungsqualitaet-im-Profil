@@ -183,6 +183,14 @@ export class SearchBarComponent {
 
   protected onSuggestionPointerDown(event: PointerEvent, index: number): void {
     event.preventDefault();
+    event.stopPropagation();
+    this.cancelBlurClose();
+    this.highlightedIndex.set(index);
+  }
+
+  protected onSuggestionClick(event: MouseEvent, index: number): void {
+    event.preventDefault();
+    event.stopPropagation();
     this.cancelBlurClose();
     this.selectByIndex(index);
   }

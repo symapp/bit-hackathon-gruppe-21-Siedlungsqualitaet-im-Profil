@@ -6,13 +6,11 @@
   left: 0;
 }
 
-.store-count {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  background: rgba(255,255,255,0.8);
-  padding: 4px 8px;
-  border-radius: 2px;
-  font-size: 14px;
-  color: #333;
+@media (max-width: 768px) {
+  :host ::ng-deep .maplibregl-ctrl-top-left {
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    right: calc(12px + env(safe-area-inset-right, 0px));
+    left: auto;
+    bottom: auto;
+  }
 }

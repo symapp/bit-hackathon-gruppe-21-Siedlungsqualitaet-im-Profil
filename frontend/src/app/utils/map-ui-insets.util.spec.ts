@@ -9,6 +9,26 @@ describe('readMapUiPadding', () => {
     expect(readMapUiPadding()).toEqual({ top: 0, bottom: 0, left: 0, right: 0 });
   });
 
+  it('ignores collapsed sidebars', () => {
+    document.body.innerHTML = `
+      <div class="regions-sidebar collapsed" style="position:fixed;left:16px;top:12px;width:48px;height:48px"></div>
+      <div class="sidebar collapsed" style="position:fixed;right:16px;top:12px;width:48px;height:48px"></div>
+    `;
+
+    expect(readMapUiPadding()).toEqual({ top: 0, bottom: 0, left: 0, right: 0 });
+  });
+
+  it('measures mobile toolbar top inset', () => {
+    document.body.innerHTML = `
+      <nav class="mobile-map-toolbar" style="position:fixed;top:0;left:0;right:0;height:56px"></nav>
+    `;
+
+    const padding = readMapUiPadding();
+    expect(padding.top).toBe(56 + 8);
+    expect(padding.left).toBe(0);
+    expect(padding.right).toBe(0);
+  });
+
   it('measures sidebar and search bar insets', () => {
     document.body.innerHTML = `
       <div class="regions-sidebar" style="position:fixed;left:16px;top:104px;width:360px;height:200px"></div>

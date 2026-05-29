@@ -207,13 +207,23 @@ export class MapComponent implements OnInit, OnDestroy {
       }
     };
 
-    for (const selector of ['.regions-sidebar', '.sidebar', '.search-container']) {
+    for (const selector of [
+      '.regions-sidebar',
+      '.sidebar',
+      '.search-container',
+      '.mobile-map-toolbar',
+    ]) {
       observe(selector);
     }
     resizeObserver.observe(document.body);
 
     const mutationObserver = new MutationObserver(() => {
-      for (const selector of ['.regions-sidebar', '.sidebar']) {
+      for (const selector of [
+        '.regions-sidebar',
+        '.sidebar',
+        '.search-container',
+        '.mobile-map-toolbar',
+      ]) {
         observe(selector);
       }
       this.applyUiPadding();
@@ -223,6 +233,10 @@ export class MapComponent implements OnInit, OnDestroy {
       if (element) {
         mutationObserver.observe(element, { attributes: true, attributeFilter: ['class'] });
       }
+    }
+    const mainLayout = document.querySelector('.main-layout');
+    if (mainLayout) {
+      mutationObserver.observe(mainLayout, { childList: true });
     }
 
     window.addEventListener('resize', this.onUiPaddingChange);

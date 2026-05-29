@@ -92,7 +92,7 @@ test.describe('Zarr map overlay', () => {
     await expect
       .poll(
         async () => {
-          const text = await page.locator('.overview-score-value').textContent();
+          const text = await page.locator('.region-score-value').first().textContent();
           return text?.trim() ?? '';
         },
         { timeout: 90_000 },
