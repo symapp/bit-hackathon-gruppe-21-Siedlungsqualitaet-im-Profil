@@ -1,33 +1,69 @@
-# bit-hackathon-gruppe-21-Siedlungsqualit-t-im-Profil
-Siedlungsqualität im Profil
+# Siedlungsqualität im Profil
 
-## Data pipelines
+Siedlungsqualität im Profil is an interactive web application designed to evaluate and visualize settlement quality across Switzerland. It allows users to define their own living preferences using various indicators—such as noise levels, public transport accessibility, and population density—and see a personalized quality score directly on a map.
 
-All rasterize scripts write GeoZarr on the **same 100 m LV95 grid** (`EPSG:2056`, extent `2485400–2833000` E / `1075200–1296000` N). Every layer shares identical `x`/`y` coordinates so the map stacks correctly.
+The project was developed as part of the BIT Hackathon.
 
-Regenerate and upload everything:
+---
+
+## Key Features
+
+- **Interactive Map**: Visualize high-resolution spatial data layers using MapLibre and Deck.gl.
+- **Personalized Preferences**: Adjust scoring functions for each factor using an intuitive trapezoid editor.
+- **Dynamic Scoring**: See a real-time weighted "Overview Score" based on your custom importance settings.
+- **"Lädeli" (Grocery Stores) Integration**: Toggle grocery store locations nearby with personalized count tracking for regions of interest.
+- **Multi-language Support**: Full support for German, French, Italian, and English.
+- **High-Performance Data**: Leverages GeoZarr for efficient streaming of massive raster datasets directly in the browser.
+
+---
+
+## Tech Stack
+
+### Frontend
+- **Framework**: Angular (latest signals-based architecture)
+- **Mapping**: MapLibre GL JS and Deck.gl
+- **Data Rendering**: @carbonplan/zarr-layer (GeoZarr rendering)
+- **Styling**: Vanilla SCSS (Swiss Design System inspired)
+- **I18n**: @ngx-translate/core
+
+### Data Pipelines
+- **Language**: Python
+- **Package Manager**: uv
+- **Storage**: GeoZarr (EPSG:2056, 100m grid)
+- **Cloud Hosting**: Backblaze B2 (S3-compatible)
+
+---
+
+## Getting Started
+
+### 1. Frontend Development
 
 ```bash
-cd data-pipelines
-uv run python run-all-pipelines.py --force --upload
+cd frontend
+npm install
+npm start
 ```
+The application will be available at http://localhost:4200.
 
-Individual scripts also accept `--force` and `--upload`. To upload to Backblaze B2, set credentials in `.env`:
+### 2. Data Pipelines
 
-Copy `.env.example` to `.env` at the repo root and set your Backblaze Application Key credentials (`.env` is gitignored).
+The pipelines process raw Swiss administrative data (ARE, BAFU, BFS) into normalized GeoZarr layers.
 
 ```bash
+# Setup environment and run all pipelines
 cd data-pipelines
-uv run python density-rasterize.py --year 2024 --upload
-uv run python accessibility-pt-rasterize.py --upload
-uv run python tranquillity-rasterize.py --upload
-
-# Ten additional ARE indicators (Erreichbarkeit MIV, ÖV-Güte, Reisezeiten, Verkehr, …)
-uv run python rasterize-are-metrics.py all-new --upload
-
-# Or a single layer, e.g. Strassen-Erreichbarkeit:
-uv run python rasterize-are-metrics.py miv-accessibility --upload
-uv run python rasterize-are-metrics.py --list
+uv run python run-all-pipelines.py --upload
 ```
+Note: Set Backblaze B2 credentials in a .env file at the root (see .env.example).
 
-Optional environment variables: `B2_ENDPOINT_URL` (default `https://s3.eu-central-003.backblazeb2.com`), `B2_BUCKET_NAME` (default `egov-hackathon`). Use `--remote-name` to override the object prefix in the bucket.
+---
+
+## Documentation
+
+For a deep dive into the architecture, data grid specifications, and scoring logic, please refer to the [Technical Guide](./TECHNICAL_GUIDE.md).
+
+---
+
+## Contributors
+
+- Group 21 (BIT Hackathon)
