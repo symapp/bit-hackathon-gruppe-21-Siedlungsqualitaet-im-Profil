@@ -95,14 +95,8 @@ export function parseRegionQueryToCellMap(
   }
 
   for (let i = 0; i < values.length; i++) {
-    const entry = values[i];
-    const raw =
-      typeof entry === 'number'
-        ? entry
-        : typeof entry === 'bigint'
-          ? Number(entry)
-          : NaN;
-    if (!Number.isFinite(raw)) {
+    const raw = values[i];
+    if (typeof raw !== 'number' || !Number.isFinite(raw)) {
       continue;
     }
     const cell = lv95ToCellIndex(xs[i], ys[i]);

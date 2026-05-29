@@ -18,7 +18,33 @@ import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.
 import { clampLayerPreference } from '../utils/preference-scoring.util';
 import { computePreferenceOverview } from '../utils/metrics-aggregate.util';
 import { overviewCompositeDebounceMs, resolveOverviewLod } from '../utils/overview-lod.util';
-import { viewportCellExtent } from '../utils/swiss-grid.util';
+import { SWITZERLAND_BBOX } from '../config/map-bounds.config';
+import { cellExtentToImageCoordinates, viewportCellExtent } from '../utils/swiss-grid.util';
+import type { ViewportCellExtent } from '../utils/swiss-grid.util';
+
+/** Country zoom: overview uses the full settlement grid clip, not just map corner cells. */
+const COUNTRY_OVERVIEW_MAX_ZOOM = 9;
+
+function overviewExtentForMap(
+  map: MaplibreMap,
+): ViewportCellExtent | null {
+  const bounds = map.getBounds();
+  const west = bounds.getWest();
+  const east = bounds.getEast();
+  const south = bounds.getSouth();
+  const north = bounds.getNorth();
+
+  if (map.getZoom() <= COUNTRY_OVERVIEW_MAX_ZOOM) {
+    return viewportCellExtent(
+      SWITZERLAND_BBOX.west,
+      SWITZERLAND_BBOX.south,
+      SWITZERLAND_BBOX.east,
+      SWITZERLAND_BBOX.north,
+    );
+  }
+
+  return viewportCellExtent(west, south, east, north);
+}
 import { OverviewRawCache } from './overview-raw-cache';
 import {
   extentCacheKey,
@@ -74,6 +100,12 @@ export class ZarrMapService {
   private lastCompositeFingerprint: string | null = null;
   private overviewGeneration = 0;
   private lastFetchLayerCount = 0;
+  private compositeRunId = 0;
+  private pendingCompositeExtentKey: string | null = null;
+  private deferredLayerReadyRescore = false;
+  private lastOverviewFootprintSpan = 0;
+  private lastOverviewFullCells = 0;
+  private pendingOverviewFullCells = 0;
   private readonly onMapViewChange = (): void => this.scheduleOverviewComposite();
 
   readonly layerPreferences = signal<Record<string, LayerPreference>>(
@@ -149,7 +181,16 @@ export class ZarrMapService {
 
     this.syncLayerStateSignal();
     this.installLayersOnMap(map);
-    exposeOverviewForE2e(() => this.getOverviewE2eState());
+    exposeOverviewForE2e(() => this.getOverviewE2eState(), () => this.syncOverviewToViewport());
+  }
+
+  /** Rebuild the overview raster for the current map viewport (skips debounce). */
+  syncOverviewToViewport(): void {
+    if (this.compositeDebounce) {
+      clearTimeout(this.compositeDebounce);
+      this.compositeDebounce = null;
+    }
+    void this.runOverviewComposite();
   }
 
   detachFromMap(): void {
@@ -289,7 +330,11 @@ export class ZarrMapService {
       this.layerMeta.update((prev) => ({ ...prev, [definition.id]: null }));
       this.metaFallback.update((prev) => ({ ...prev, [definition.id]: true }));
       this.syncLayerStateSignal();
-      this.scheduleOverviewRescore();
+      if (this.overviewLoading()) {
+        this.deferredLayerReadyRescore = true;
+      } else {
+        this.scheduleOverviewRescore();
+      }
       return;
     }
 
@@ -312,7 +357,11 @@ export class ZarrMapService {
       this.metaFallback.update((prev) => ({ ...prev, [definition.id]: true }));
     }
     this.syncLayerStateSignal();
-    this.scheduleOverviewRescore();
+    if (this.overviewLoading()) {
+      this.deferredLayerReadyRescore = true;
+    } else {
+      this.scheduleOverviewRescore();
+    }
   }
 
   private installLayersOnMap(map: MaplibreMap): void {
@@ -404,15 +453,20 @@ export class ZarrMapService {
     if (this.compositeDebounce) {
       clearTimeout(this.compositeDebounce);
     }
+
+    if (this.map && this.overviewLoading()) {
+      const requested = overviewExtentForMap(this.map);
+      if (
+        requested &&
+        this.pendingOverviewFullCells > requested.fullNx * requested.fullNy * 4
+      ) {
+        return;
+      }
+    }
+
     let delayMs = 300;
     if (this.map) {
-      const b = this.map.getBounds();
-      const extent = viewportCellExtent(
-        b.getWest(),
-        b.getSouth(),
-        b.getEast(),
-        b.getNorth(),
-      );
+      const extent = overviewExtentForMap(this.map);
       if (extent) {
         const plan = resolveOverviewLod(this.map.getZoom(), extent.fullNx, extent.fullNy);
         delayMs = overviewCompositeDebounceMs(plan);
@@ -431,19 +485,24 @@ export class ZarrMapService {
 
   private async runOverviewRescore(): Promise<void> {
     if (!this.map || this.lastExtentKey === null || this.lastRawByLayerId.size === 0) {
+      if (this.overviewLoading()) {
+        return;
+      }
       await this.runOverviewComposite();
       return;
     }
 
     const bounds = this.map.getBounds();
-    const extent = viewportCellExtent(
-      bounds.getWest(),
-      bounds.getSouth(),
-      bounds.getEast(),
-      bounds.getNorth(),
-    );
+    const extent = overviewExtentForMap(this.map);
     if (!extent || extentCacheKey(extent) !== this.lastExtentKey) {
+      if (this.overviewLoading()) {
+        return;
+      }
       await this.runOverviewComposite();
+      return;
+    }
+
+    if (this.overviewLoading()) {
       return;
     }
 
@@ -508,17 +567,13 @@ export class ZarrMapService {
     this.overviewGeneration += 1;
     this.lastCompositeFingerprint = fingerprint;
     this.overviewCacheStats.set(this.rawCache.stats());
-    await this.applyCompositeToMap(composite);
+    await this.applyCompositeToMap(composite, extent);
   }
 
   private async runOverviewComposite(): Promise<void> {
     if (!this.map) {
       return;
     }
-
-    this.compositeAbort?.abort();
-    this.compositeAbort = new AbortController();
-    const { signal } = this.compositeAbort;
 
     const bounds = this.map.getBounds();
     const west = bounds.getWest();
@@ -527,10 +582,33 @@ export class ZarrMapService {
     const north = bounds.getNorth();
     const zoom = this.map.getZoom();
 
-    const extent = viewportCellExtent(west, south, east, north);
+    const extent = overviewExtentForMap(this.map);
     if (!extent) {
       return;
     }
+
+    this.pendingOverviewFullCells = extent.fullNx * extent.fullNy;
+
+    const extentKey = extentCacheKey(extent);
+    const inFlightForExtent =
+      this.overviewLoading() &&
+      this.pendingCompositeExtentKey === extentKey &&
+      this.compositeAbort &&
+      !this.compositeAbort.signal.aborted;
+
+    if (inFlightForExtent) {
+      return;
+    }
+
+    if (this.pendingCompositeExtentKey !== null && this.pendingCompositeExtentKey !== extentKey) {
+      this.compositeAbort?.abort();
+    }
+    if (!this.compositeAbort || this.compositeAbort.signal.aborted) {
+      this.compositeAbort = new AbortController();
+    }
+    const { signal } = this.compositeAbort;
+    const runId = ++this.compositeRunId;
+    this.pendingCompositeExtentKey = extentKey;
 
     const plan = resolveOverviewLod(zoom, extent.fullNx, extent.fullNy);
     const tierChanged = this.lastLodTier !== null && this.lastLodTier !== plan.tier;
@@ -589,25 +667,64 @@ export class ZarrMapService {
 
       this.overviewGeneration += 1;
       this.overviewCacheStats.set(this.rawCache.stats());
-      await this.applyCompositeToMap(composite);
+      await this.applyCompositeToMap(composite ?? null, extent);
+
+      if (this.deferredLayerReadyRescore) {
+        this.deferredLayerReadyRescore = false;
+        void this.runOverviewRescore();
+      }
     } catch (err) {
       if (!signal.aborted) {
         console.error('[overview] composite build failed', err);
+        await this.applyCompositeToMap(null, extent);
       }
     } finally {
-      if (!signal.aborted) {
+      if (runId === this.compositeRunId) {
         this.overviewLoading.set(false);
+        if (this.pendingCompositeExtentKey === extentKey) {
+          this.pendingCompositeExtentKey = null;
+          this.pendingOverviewFullCells = 0;
+        }
       }
     }
   }
 
-  private async applyCompositeToMap(composite: OverviewCompositeResult | null): Promise<void> {
+  private async applyCompositeToMap(
+    composite: OverviewCompositeResult | null,
+    extent?: ViewportCellExtent,
+  ): Promise<void> {
     if (!this.map) {
       return;
     }
 
     const source = this.map.getSource(OVERVIEW_SOURCE_ID) as ImageSource | undefined;
-    if (!source || !composite) {
+    if (!source) {
+      return;
+    }
+
+    const coordinates = composite
+      ? composite.coordinates
+      : extent
+        ? cellExtentToImageCoordinates(extent)
+        : null;
+
+    if (!coordinates) {
+      return;
+    }
+
+    this.lastOverviewFootprintSpan = ZarrMapService.footprintSpan(coordinates);
+    if (extent) {
+      this.lastOverviewFullCells = extent.fullNx * extent.fullNy;
+    }
+
+    if (!composite) {
+      source.updateImage({
+        url:
+          this.overviewDataUrl ??
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        coordinates,
+      });
+      this.map.triggerRepaint();
       return;
     }
 
@@ -617,7 +734,7 @@ export class ZarrMapService {
     this.overviewDataUrl = composite.canvas.toDataURL('image/png');
     source.updateImage({
       url: this.overviewDataUrl,
-      coordinates: composite.coordinates,
+      coordinates,
     });
     this.map.triggerRepaint();
   }
@@ -629,7 +746,17 @@ export class ZarrMapService {
       cacheHits: this.rawCache.stats().hits,
       cacheMisses: this.rawCache.stats().misses,
       loading: this.overviewLoading(),
+      imageFootprintSpan: this.lastOverviewFootprintSpan,
+      overviewFullCells: this.lastOverviewFullCells,
     };
+  }
+
+  private static footprintSpan(
+    coordinates: [[number, number], [number, number], [number, number], [number, number]],
+  ): number {
+    const lngs = coordinates.map((c) => c[0]);
+    const lats = coordinates.map((c) => c[1]);
+    return Math.max(...lngs) - Math.min(...lngs) + (Math.max(...lats) - Math.min(...lats));
   }
 
   private updateLayerState(
@@ -652,7 +779,13 @@ export class ZarrMapService {
         void this.sampleLocation(this.lastSample.lng, this.lastSample.lat);
       }
       if (patch.ready) {
-        this.applyLayerDisplay();
+        if (this.overviewLoading()) {
+          this.deferredLayerReadyRescore = true;
+        } else if (this.lastExtentKey !== null) {
+          this.applyLayerDisplay({ rescoreOnly: true });
+        } else {
+          this.applyLayerDisplay();
+        }
         this.map?.triggerRepaint();
       }
     }
