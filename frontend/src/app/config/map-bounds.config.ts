@@ -6,7 +6,8 @@ export const SWITZERLAND_BBOX = {
   north: 47.8084,
 } as const;
 
-const MAP_PADDING_DEG = 0.75;
+/** Extra degrees around CH bbox so maxBounds still allows country-wide view with UI chrome. */
+const MAP_PADDING_DEG = 3.5;
 
 /** Padded bounds for map pan/zoom (maxBounds). */
 export const SWITZERLAND_MAX_BOUNDS: [[number, number], [number, number]] = [
