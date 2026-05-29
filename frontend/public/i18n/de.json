@@ -31,10 +31,12 @@
     "layerLoading": "lädt…",
     "radiusMin": "100 m",
     "radiusMax": "3 km",
+    "groceryLabel": "Lädeli",
     "groceryTitle": "Lädeli in der Region",
     "groceryLoading": "Wird geladen…",
     "groceryAway": "entfernt",
-    "deselectAll": "Alle abwählen"
+    "deselectAll": "Alle abwählen",
+    "deactivated": "Deaktiviert"
   },
   "layers": {
     "tranquillity": {

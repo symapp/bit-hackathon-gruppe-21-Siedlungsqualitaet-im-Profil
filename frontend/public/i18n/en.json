@@ -31,10 +31,12 @@
     "layerLoading": "loading…",
     "radiusMin": "100 m",
     "radiusMax": "3 km",
+    "groceryLabel": "Grocery",
     "groceryTitle": "Grocery stores nearby",
     "groceryLoading": "Loading…",
     "groceryAway": "away",
-    "deselectAll": "Deselect all"
+    "deselectAll": "Deselect all",
+    "deactivated": "Deactivated"
   },
   "layers": {
     "tranquillity": {

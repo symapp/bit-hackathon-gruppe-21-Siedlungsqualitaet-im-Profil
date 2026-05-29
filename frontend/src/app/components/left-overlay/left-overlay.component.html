@@ -123,9 +123,29 @@
 
             @if (locationService.groceryStoresEnabled()) {
               <div class="region-grocery-row">
-                <span class="region-grocery-label">Lädeli</span>
+                <div class="region-grocery-label-group">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="grocery-icon"
+                  >
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path
+                      d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
+                    ></path>
+                  </svg>
+                  <span class="region-grocery-label">{{ 'sidebar.groceryLabel' | translate }}</span>
+                </div>
                 @if (locationService.groceryCountLoadingForRegion(region.id)) {
-                  <span class="region-grocery-value muted">Loading...</span>
+                  <span class="region-grocery-value muted">{{ 'sidebar.groceryLoading' | translate }}</span>
                 } @else if (locationService.groceryCountErrorForRegion(region.id)) {
                   <span class="region-grocery-value error">
                     {{ locationService.groceryCountErrorForRegion(region.id) }}
@@ -148,13 +168,16 @@
             [checked]="locationService.groceryStoresEnabled()"
             (change)="onGroceryStoresEnabledChange($event)"
           />
-          <span class="grocery-title">Lädeli in der Region</span>
+          <span class="grocery-title">{{ 'sidebar.groceryTitle' | translate }}</span>
         </label>
 
         @if (locationService.groceryStoresEnabled()) {
-          <p class="store-count-status">Pro Region aktiviert</p>
+          <div class="grocery-summary">
+            <span class="grocery-summary-label">{{ 'sidebar.groceryTitle' | translate }}</span>
+            <span class="grocery-summary-value">{{ locationService.groceryCount() }}</span>
+          </div>
         } @else {
-          <p class="store-count-status">Deaktiviert</p>
+          <p class="store-count-status">{{ 'sidebar.deactivated' | translate }}</p>
         }
       </div>
     </div>

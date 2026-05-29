@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
 
 @Component({
   selector: 'app-left-overlay',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TranslateModule],
   templateUrl: './left-overlay.component.html',
   styleUrl: './left-overlay.component.scss',
 })

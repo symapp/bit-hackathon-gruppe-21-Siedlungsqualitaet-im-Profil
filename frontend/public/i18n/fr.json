@@ -31,10 +31,12 @@
     "layerLoading": "chargement…",
     "radiusMin": "100 m",
     "radiusMax": "3 km",
+    "groceryLabel": "Épicerie",
     "groceryTitle": "Épiceries à proximité",
     "groceryLoading": "Chargement…",
     "groceryAway": "de distance",
-    "deselectAll": "Tout désélectionner"
+    "deselectAll": "Tout désélectionner",
+    "deactivated": "Désactivé"
   },
   "layers": {
     "tranquillity": {
