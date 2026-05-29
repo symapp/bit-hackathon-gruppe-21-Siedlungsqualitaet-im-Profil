@@ -60,7 +60,8 @@ Note: Set Backblaze B2 credentials in a .env file at the root (see .env.example)
 
 ## Documentation
 
-For a deep dive into the architecture, data grid specifications, and scoring logic, please refer to the [Technical Guide](./TECHNICAL_GUIDE.md).
+- **[Indicators reference](./INDICATORS.md)** — all factors: data sources, pipeline calculations, units, and scoring
+- **[Technical Guide](./TECHNICAL_GUIDE.md)** — architecture, data grid, and map stack
 
 ---
 
