@@ -1,4 +1,5 @@
 export interface LocationMetrics {
+  temperatureCelsius: number | null;
   tranquillityIndex: number | null;
   populationDensityPerKm2: number | null;
   vacancyRatePercent: number | null;
@@ -15,6 +16,7 @@ export interface LocationMetrics {
 }
 
 export const EMPTY_LOCATION_METRICS: LocationMetrics = {
+  temperatureCelsius: null,
   tranquillityIndex: null,
   populationDensityPerKm2: null,
   vacancyRatePercent: null,

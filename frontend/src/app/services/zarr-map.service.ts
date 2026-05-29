@@ -61,6 +61,7 @@ import {
 import { exposeOverviewForE2e, type OverviewE2eState } from '../testing/e2e-overview.harness';
 import { exposeZarrSampleForE2e } from '../testing/e2e-zarr.harness';
 import { environment } from '../../environments/environment';
+import type { MeteoManifest } from '../models/meteo-manifest.model';
 
 interface ManagedZarrLayer {
   definition: ZarrLayerDefinition;
@@ -69,6 +70,47 @@ interface ManagedZarrLayer {
   loading: boolean;
 }
 
+export interface ManagedLayerDisplayState {
+  id: string;
+  ready: boolean;
+  includeInOverview: boolean;
+}
+
+interface LayerDisplayPlan {
+  hasOverview: boolean;
+  visibleLayerIds: string[];
+}
+
+export function computeLayerDisplayPlan(
+  preferences: Record<string, LayerPreference>,
+  managedStates: readonly ManagedLayerDisplayState[],
+): LayerDisplayPlan {
+  const activeReadyLayerIds = managedStates
+    .filter((state) => {
+      const pref = preferences[state.id];
+      return !!pref?.enabled && pref.importance > 0 && state.ready && state.includeInOverview;
+    })
+    .map((state) => state.id);
+
+  if (activeReadyLayerIds.length === 1) {
+    return {
+      hasOverview: false,
+      visibleLayerIds: activeReadyLayerIds,
+    };
+  }
+
+  if (activeReadyLayerIds.length > 1) {
+    return {
+      hasOverview: true,
+      visibleLayerIds: [],
+    };
+  }
+
+  return {
+    hasOverview: false,
+    visibleLayerIds: [],
+  };
+}
 function isOverviewEligible(definition: ZarrLayerDefinition): boolean {
   return definition.includeInOverview !== false;
 }
@@ -89,9 +131,19 @@ export interface ZarrLayerState {
 
 const OVERVIEW_SOURCE_ID = 'settlement-overview-image';
 const SINGLE_LAYER_OPACITY = 0.82;
+const WEATHER_LAYER_IDS = new Set(['temperature']);
 
-function opacityFraction(percent: number): number {
-  return Math.min(1, Math.max(0, percent / 100));
+export function singleLayerOpacityFromImportance(
+  baseOpacity: number,
+  preference: LayerPreference | undefined,
+): number {
+  if (!preference?.enabled || preference.importance <= 0) {
+    return 0;
+  }
+  const clampedBaseOpacity = Math.min(1, Math.max(0, baseOpacity));
+  const clampedImportance = Math.min(100, Math.max(0, preference.importance));
+  const importanceFactor = clampedImportance / 100;
+  return clampedBaseOpacity * importanceFactor;
 }
 
 @Injectable({
@@ -121,6 +173,7 @@ export class ZarrMapService {
   private lastOverviewFootprintSpan = 0;
   private lastOverviewFullCells = 0;
   private pendingOverviewFullCells = 0;
+  private weatherCacheToken: string | null = null;
   private readonly onMapViewChange = (): void => this.scheduleOverviewComposite();
 
   readonly layerPreferences = signal<Record<string, LayerPreference>>(
@@ -152,38 +205,7 @@ export class ZarrMapService {
     this.map = map;
 
     for (const definition of ZARR_LAYER_DEFINITIONS) {
-      const layerOptions: ConstructorParameters<typeof ZarrLayer>[0] = {
-        id: definition.id,
-        source: definition.storePath,
-        variable: definition.variable,
-        selector: definition.selector,
-        // Let @carbonplan/zarr-layer derive LV95 extent from x/y cell-center coordinates (± half cell).
-        fillValue: definition.fillValue,
-        colormap: definition.colormap,
-        clim: definition.clim,
-        opacity: 0,
-        zarrVersion: 3,
-        proj4: SWISS_LV95_PROJ4,
-        spatialDimensions: { lat: 'y', lon: 'x' },
-        latIsAscending: definition.latIsAscending,
-        onLoadingStateChange: (state) => {
-          this.updateLayerState(definition.id, {
-            loading: state.loading || state.metadata,
-            ready: !state.loading && !state.metadata && !state.error,
-          });
-          if (state.error) {
-            console.error(`[zarr] ${definition.id}`, state.error);
-          }
-        },
-      };
-
-      if (definition.fillValue !== undefined) {
-        layerOptions.fillValue = definition.fillValue;
-      } else if (ZARR_LAYERS_WITH_NAN_FILL.has(definition.id)) {
-        layerOptions.fillValue = Number.NaN;
-      }
-
-      const layer = new ZarrLayer(layerOptions);
+      const layer = this.createZarrLayer(definition, this.cacheTokenForLayer(definition.id));
 
       this.managedLayers.set(definition.id, {
         definition,
@@ -192,7 +214,7 @@ export class ZarrMapService {
         loading: true,
       });
 
-      void this.fetchLayerMeta(definition);
+      void this.fetchLayerMeta(definition, this.cacheTokenForLayer(definition.id));
     }
 
     this.syncLayerStateSignal();
@@ -202,6 +224,39 @@ export class ZarrMapService {
       () => this.syncOverviewToViewport(),
     );
     exposeZarrSampleForE2e((lng, lat, layerId) => this.sampleLayerAt(lng, lat, layerId));
+  }
+
+  refreshMeteoLayers(manifest: MeteoManifest, reloadRaster = true): void {
+    this.weatherCacheToken = manifest.last_updated;
+
+    if (!reloadRaster || !this.map) {
+      return;
+    }
+
+    for (const weatherLayerId of WEATHER_LAYER_IDS) {
+      const managed = this.managedLayers.get(weatherLayerId);
+      if (!managed) {
+        continue;
+      }
+
+      if (this.map.getLayer(weatherLayerId)) {
+        this.map.removeLayer(weatherLayerId);
+      }
+
+      const layer = this.createZarrLayer(managed.definition, this.cacheTokenForLayer(weatherLayerId));
+      managed.layer = layer;
+      managed.loading = true;
+      managed.ready = false;
+
+      this.map.addLayer(
+        layer as unknown as CustomLayerInterface,
+        this.map.getLayer(OVERVIEW_MAP_LAYER_ID) ? OVERVIEW_MAP_LAYER_ID : undefined,
+      );
+      void this.fetchLayerMeta(managed.definition, this.cacheTokenForLayer(weatherLayerId));
+    }
+
+    this.syncLayerStateSignal();
+    this.applyLayerDisplay();
   }
 
   /** Point sample for e2e / debugging (WGS84). */
@@ -372,7 +427,7 @@ export class ZarrMapService {
     }
   }
 
-  private async fetchLayerMeta(definition: ZarrLayerDefinition): Promise<void> {
+  private async fetchLayerMeta(definition: ZarrLayerDefinition, cacheToken?: string | null): Promise<void> {
     if (!environment.settlementLayerMetaAvailable) {
       this.layerMeta.update((prev) => ({ ...prev, [definition.id]: null }));
       this.metaFallback.update((prev) => ({ ...prev, [definition.id]: true }));
@@ -385,7 +440,7 @@ export class ZarrMapService {
       return;
     }
 
-    const url = settlementLayerMetaUrl(definition.storePath);
+    const url = addCacheToken(settlementLayerMetaUrl(definition.storePath), cacheToken);
     try {
       const res = await fetch(url);
       if (!res.ok) {
@@ -454,40 +509,83 @@ export class ZarrMapService {
     }
   }
 
+  private createZarrLayer(definition: ZarrLayerDefinition, cacheToken?: string | null): ZarrLayer {
+    const layerOptions: ConstructorParameters<typeof ZarrLayer>[0] = {
+      id: definition.id,
+      source: addCacheToken(definition.storePath, cacheToken),
+      variable: definition.variable,
+      selector: definition.selector,
+      // Let @carbonplan/zarr-layer derive LV95 extent from x/y cell-center coordinates (± half cell).
+      fillValue: definition.fillValue,
+      colormap: definition.colormap,
+      clim: definition.clim,
+      opacity: 0,
+      zarrVersion: 3,
+      proj4: SWISS_LV95_PROJ4,
+      spatialDimensions: { lat: 'y', lon: 'x' },
+      latIsAscending: definition.latIsAscending,
+      onLoadingStateChange: (state) => {
+        this.updateLayerState(definition.id, {
+          loading: state.loading || state.metadata,
+          ready: !state.loading && !state.metadata && !state.error,
+        });
+        if (state.error) {
+          console.error(`[zarr] ${definition.id}`, state.error);
+        }
+      },
+    };
+
+    if (definition.fillValue !== undefined) {
+      layerOptions.fillValue = definition.fillValue;
+    } else if (ZARR_LAYERS_WITH_NAN_FILL.has(definition.id)) {
+      layerOptions.fillValue = Number.NaN;
+    }
+
+    return new ZarrLayer(layerOptions);
+  }
+
+  private cacheTokenForLayer(layerId: string): string | null {
+    if (!WEATHER_LAYER_IDS.has(layerId)) {
+      return null;
+    }
+    return this.weatherCacheToken;
+  }
+
   private applyLayerDisplay(options?: { rescoreOnly?: boolean }): void {
     if (!this.map) {
       return;
     }
 
     const preferences = this.layerPreferences();
-    const hasOverview = [...this.managedLayers.values()].some(({ definition, ready }) => {
-      if (!ready || !isOverviewEligible(definition)) {
-        return false;
-      }
-      const pref = preferences[definition.id];
-      return !!pref?.enabled && pref.importance > 0;
-    });
-    const overlayOpacity = opacityFraction(this.overviewOpacity());
+    const displayPlan = computeLayerDisplayPlan(
+      preferences,
+      [...this.managedLayers.values()].map((managed) => ({
+        id: managed.definition.id,
+        ready: managed.ready,
+        includeInOverview: managed.definition.includeInOverview !== false,
+      })),
+    );
 
     for (const { definition, layer } of this.managedLayers.values()) {
       if (!this.map.getLayer(layer.id)) {
         continue;
       }
-      const pref = preferences[definition.id];
-      const showSingle = pref?.enabled && pref.importance > 0 && !hasOverview;
-      layer.setOpacity(showSingle ? SINGLE_LAYER_OPACITY * overlayOpacity : 0);
+      const showSingle = displayPlan.visibleLayerIds.includes(definition.id);
+      const preference = preferences[definition.id];
+      const baseOpacity = definition.renderOpacity ?? SINGLE_LAYER_OPACITY;
+      layer.setOpacity(showSingle ? singleLayerOpacityFromImportance(baseOpacity, preference) : 0);
     }
 
     if (this.map.getLayer(OVERVIEW_MAP_LAYER_ID)) {
       this.map.setLayoutProperty(
         OVERVIEW_MAP_LAYER_ID,
         'visibility',
-        hasOverview ? 'visible' : 'none',
+        displayPlan.hasOverview ? 'visible' : 'none',
       );
       this.map.setPaintProperty(
         OVERVIEW_MAP_LAYER_ID,
         'raster-opacity',
-        hasOverview ? overlayOpacity : 0,
+        displayPlan.hasOverview ? this.overviewOpacity() / 100 : 0,
       );
     }
 
@@ -902,4 +1000,12 @@ function extractScalar(result: QueryResult, variable: string): number | null {
     }
   }
   return null;
+}
+
+function addCacheToken(url: string, cacheToken?: string | null): string {
+  if (!cacheToken) {
+    return url;
+  }
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${encodeURIComponent(cacheToken)}`;
 }

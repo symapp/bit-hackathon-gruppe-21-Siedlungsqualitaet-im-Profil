@@ -98,6 +98,18 @@
               (click)="$event.stopPropagation()"
             />
 
+            <div class="region-temperature-row" data-testid="region-temperature-row">
+              <span class="field-label">{{ 'regions.temperatureLabel' | translate }}</span>
+              @if (locationService.regionMetricsLoading()) {
+                <span class="region-temperature-value muted">{{ 'regions.temperatureLoading' | translate }}</span>
+              } @else {
+                @let temperature = averageTemperatureForRegion(region.id);
+                <span class="region-temperature-value">
+                  {{ temperature === null ? ('regions.temperatureUnavailable' | translate) : (formatTemperature(temperature) + ' ' + ('layers.temperature.metricUnit' | translate)) }}
+                </span>
+              }
+            </div>
+
             <div class="region-row">
               <label class="field-label" [for]="'region-color-' + region.id">{{ 'regions.colorLabel' | translate }}</label>
               <input

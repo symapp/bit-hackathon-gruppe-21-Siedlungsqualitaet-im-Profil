@@ -108,4 +108,12 @@ export class LeftOverlayComponent implements OnInit {
   overviewScoreForRegion(regionId: string): number | null {
     return this.locationService.overviewScoreForRegion(regionId);
   }
+
+  averageTemperatureForRegion(regionId: string): number | null {
+    return this.locationService.regionMetrics()[regionId]?.temperatureCelsius ?? null;
+  }
+
+  formatTemperature(value: number): string {
+    return value.toFixed(1);
+  }
 }
