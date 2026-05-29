@@ -1,4 +1,4 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { clampToSwitzerland } from '../config/map-bounds.config';
 import { OverpassService, type GroceryStore } from './overpass.service';
 import type { LayerPreference } from '../models/layer-preference.model';
@@ -85,16 +85,16 @@ export class LocationService {
       const groceryStoresEnabled = this._groceryStoresEnabled();
 
       if (!activeRegion) {
-        this.clearAllGroceryStores();
+        untracked(() => this.clearAllGroceryStores());
         return;
       }
 
       const { lat, lng, radius } = activeRegion;
 
       if (!groceryStoresEnabled) {
-        this.clearAllGroceryStores();
+        untracked(() => this.clearAllGroceryStores());
       } else {
-        this.clearRemovedRegionGroceryStores(regions);
+        untracked(() => this.clearRemovedRegionGroceryStores(regions));
       }
 
       const timer = setTimeout(() => {
@@ -246,7 +246,10 @@ export class LocationService {
 
   private clearAllGroceryStores(): void {
     for (const [regionId, abort] of this.groceryAborts) {
-      this.groceryFetchGenerations.set(regionId, (this.groceryFetchGenerations.get(regionId) ?? 0) + 1);
+      this.groceryFetchGenerations.set(
+        regionId,
+        (this.groceryFetchGenerations.get(regionId) ?? 0) + 1,
+      );
       abort.abort();
     }
     this.groceryAborts.clear();
@@ -258,8 +261,15 @@ export class LocationService {
 
   private clearRemovedRegionGroceryStores(regions: RegionOfInterest[]): void {
     const regionIds = new Set(regions.map((region) => region.id));
+    const trackedRegionIds = new Set([
+      ...Object.keys(this._groceryStoresByRegion()),
+      ...Object.keys(this._groceryCountLoadingByRegion()),
+      ...Object.keys(this._groceryCountErrorByRegion()),
+      ...this.groceryAborts.keys(),
+      ...this.groceryQueryKeys.keys(),
+    ]);
 
-    for (const regionId of this.groceryAborts.keys()) {
+    for (const regionId of trackedRegionIds) {
       if (!regionIds.has(regionId)) {
         this.clearGroceryStoresForRegion(regionId);
       }
@@ -267,7 +277,10 @@ export class LocationService {
   }
 
   private clearGroceryStoresForRegion(regionId: string): void {
-    this.groceryFetchGenerations.set(regionId, (this.groceryFetchGenerations.get(regionId) ?? 0) + 1);
+    this.groceryFetchGenerations.set(
+      regionId,
+      (this.groceryFetchGenerations.get(regionId) ?? 0) + 1,
+    );
     this.groceryAborts.get(regionId)?.abort();
     this.groceryAborts.delete(regionId);
     this.groceryQueryKeys.delete(regionId);
@@ -285,7 +298,8 @@ export class LocationService {
 
     if (
       this.groceryQueryKeys.get(regionId) === queryKey &&
-      (isLoading || (Object.prototype.hasOwnProperty.call(existingStores, regionId) && existingError === null))
+      (isLoading ||
+        (Object.prototype.hasOwnProperty.call(existingStores, regionId) && existingError === null))
     ) {
       return;
     }
