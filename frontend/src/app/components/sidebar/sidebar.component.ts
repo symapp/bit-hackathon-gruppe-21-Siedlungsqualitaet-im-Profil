@@ -107,6 +107,11 @@ export class SidebarComponent {
     this.locationService.setZarrLayerEnabled(layerId, input.checked);
   }
 
+  onGroceryStoresEnabledChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.locationService.setGroceryStoresEnabled(input.checked);
+  }
+
   resetLayerPreference(layerId: string): void {
     this.locationService.resetZarrLayerPreference(layerId);
   }

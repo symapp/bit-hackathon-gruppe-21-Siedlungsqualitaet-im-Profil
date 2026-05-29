@@ -40,6 +40,7 @@ export class LocationService {
   private readonly _groceryStores = signal<GroceryStore[]>([]);
   private readonly _groceryCountLoading = signal(false);
   private readonly _groceryCountError = signal<string | null>(null);
+  private readonly _groceryStoresEnabled = signal(false);
   private groceryFetchGeneration = 0;
   private groceryAbort: AbortController | null = null;
   private readonly _address = signal('');
@@ -56,6 +57,7 @@ export class LocationService {
   readonly groceryStores = this._groceryStores.asReadonly();
   readonly groceryCountLoading = this._groceryCountLoading.asReadonly();
   readonly groceryCountError = this._groceryCountError.asReadonly();
+  readonly groceryStoresEnabled = this._groceryStoresEnabled.asReadonly();
   readonly address = this._address.asReadonly();
 
   readonly metrics = this.zarrMap.metrics;
@@ -68,20 +70,24 @@ export class LocationService {
   constructor() {
     effect((onCleanup) => {
       const activeRegion = this.activeRegion();
+      const groceryStoresEnabled = this._groceryStoresEnabled();
 
       if (!activeRegion) {
-        this._groceryStores.set([]);
-        this._groceryCount.set(0);
-        this._groceryCountLoading.set(false);
-        this._groceryCountError.set(null);
+        this.clearGroceryStores();
         return;
       }
 
       const { lat, lng, radius } = activeRegion;
 
+      if (!groceryStoresEnabled) {
+        this.clearGroceryStores();
+      }
+
       const timer = setTimeout(() => {
         void this.zarrMap.sampleLocation(lng, lat);
-        void this.fetchGroceryStores(lat, lng, radius);
+        if (groceryStoresEnabled) {
+          void this.fetchGroceryStores(lat, lng, radius);
+        }
       }, 300);
 
       onCleanup(() => clearTimeout(timer));
@@ -200,6 +206,20 @@ export class LocationService {
 
   setAllZarrLayersEnabled(enabled: boolean): void {
     this.zarrMap.setAllLayersEnabled(enabled);
+  }
+
+  setGroceryStoresEnabled(enabled: boolean): void {
+    this._groceryStoresEnabled.set(enabled);
+  }
+
+  private clearGroceryStores(): void {
+    this.groceryFetchGeneration++;
+    this.groceryAbort?.abort();
+    this.groceryAbort = null;
+    this._groceryStores.set([]);
+    this._groceryCount.set(0);
+    this._groceryCountLoading.set(false);
+    this._groceryCountError.set(null);
   }
 
   private async fetchGroceryStores(lat: number, lng: number, radius: number): Promise<void> {
