@@ -7,8 +7,13 @@
 }
 
 // Non-interleaved deck.gl canvas sits above heatmap layers; markers stay above the circle.
-:host ::ng-deep .maplibregl-marker-container {
-  z-index: 2;
+:host ::ng-deep .maplibregl-ctrl-globe,
+:host ::ng-deep .maplibregl-ctrl-terrain {
+  display: none !important;
+}
+
+:host ::ng-deep .maplibregl-canvas-container .deck-widget-container {
+  z-index: 1;
   pointer-events: none;
 }
 

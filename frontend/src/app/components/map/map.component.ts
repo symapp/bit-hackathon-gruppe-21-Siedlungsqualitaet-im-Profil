@@ -118,11 +118,19 @@ export class MapComponent implements OnInit, OnDestroy {
       style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       center: [lng, lat],
       zoom: 14,
+      pitch: 0,
+      maxPitch: 0,
+      dragRotate: false,
+      touchPitch: false,
+      pitchWithRotate: false,
       maxBounds: SWITZERLAND_MAX_BOUNDS,
       canvasContextAttributes: { preserveDrawingBuffer: true },
     });
 
-    this.map.addControl(new NavigationControl(), 'top-left');
+    this.map.addControl(
+      new NavigationControl({ showCompass: true, showZoom: true, visualizePitch: false }),
+      'top-left',
+    );
 
     this.marker = new Marker({
       draggable: true,
@@ -156,6 +164,7 @@ export class MapComponent implements OnInit, OnDestroy {
     });
 
     this.map.addControl(this.deckOverlay as any);
+    this.repositionDeckOverlayLayer();
     exposeMapForE2e(this.map);
     this.zarrMapService.attachToMap(this.map);
 
@@ -172,6 +181,9 @@ export class MapComponent implements OnInit, OnDestroy {
     });
 
     this.map.on('load', () => {
+      this.map.setPitch(0);
+      this.map.setProjection({ type: 'mercator' });
+      this.repositionDeckOverlayLayer();
       this.applyUiPadding();
       this.setupUiPaddingSync();
       const regions = this.locationService.regions();
@@ -183,6 +195,39 @@ export class MapComponent implements OnInit, OnDestroy {
       const center = this.map.getCenter();
       this.locationService.setViewCenter(center.lat, center.lng);
     });
+  }
+
+  /**
+   * Deck.gl is added as a control (full-map overlay). Move it into the canvas stack
+   * between the basemap and MapLibre markers so pins stay visible above radius circles.
+   */
+  private repositionDeckOverlayLayer(): void {
+    if (!this.map) {
+      return;
+    }
+
+    const canvasContainer = this.map.getContainer().querySelector('.maplibregl-canvas-container');
+    if (!canvasContainer) {
+      return;
+    }
+
+    const deckContainer =
+      this.map.getContainer().querySelector('.deck-widget-container') ??
+      this.map.getContainer().querySelector('.maplibregl-ctrl-top-left > div:not(.maplibregl-ctrl-group)');
+
+    if (!(deckContainer instanceof HTMLElement) || deckContainer.parentElement === canvasContainer) {
+      return;
+    }
+
+    const firstMarker = canvasContainer.querySelector('.maplibregl-marker');
+    if (firstMarker) {
+      canvasContainer.insertBefore(deckContainer, firstMarker);
+    } else {
+      canvasContainer.appendChild(deckContainer);
+    }
+
+    deckContainer.style.zIndex = '1';
+    deckContainer.style.pointerEvents = 'none';
   }
 
   private applyUiPadding(): void {
