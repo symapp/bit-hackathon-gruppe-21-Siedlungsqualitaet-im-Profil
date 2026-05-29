@@ -248,9 +248,6 @@ export class ZarrMapService {
   }
 
   setLayerPreference(layerId: string, preference: LayerPreference): void {
-    if (!this.managedLayers.has(layerId)) {
-      return;
-    }
     this.layerPreferences.update((prev) => ({
       ...prev,
       [layerId]: clampLayerPreference(preference),
