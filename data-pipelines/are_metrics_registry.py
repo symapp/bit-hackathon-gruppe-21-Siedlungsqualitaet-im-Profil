@@ -99,14 +99,6 @@ ARE_METRICS: dict[str, AreMetricSpec] = {
         zarr_name="belastung_strasse_swiss_grid_100m.zarr",
         line_buffer_m=100,
     ),
-    "secondary-homes": AreMetricSpec(
-        id="secondary-homes",
-        source_type=GPKG,
-        source_url="https://data.geo.admin.ch/ch.are.wohnungsinventar-zweitwohnungsanteil/wohnungsinventar-zweitwohnungsanteil_2026-03/wohnungsinventar-zweitwohnungsanteil_2026-03_2056.gpkg",
-        field="ZWG_3110",
-        variable="ZWG_3110",
-        zarr_name="zweitwohnungsanteil_swiss_grid_100m.zarr",
-    ),
     "landscape-type": AreMetricSpec(
         id="landscape-type",
         source_type=GPKG,
@@ -132,7 +124,6 @@ NEW_METRIC_IDS: tuple[str, ...] = (
     "miv-travel-time",
     "rail-traffic",
     "road-traffic",
-    "secondary-homes",
     "landscape-type",
     "solar-potential",
 )

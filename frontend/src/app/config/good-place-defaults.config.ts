@@ -73,13 +73,6 @@ const SENSIBLE_TRAPEZOID: Record<string, TrapezoidDefaults> = {
     falloffRight: 0.12,
     importance: 100,
   },
-  'secondary-homes': {
-    rangeMin: 0.0,
-    rangeMax: 0.35,
-    falloffLeft: 0.06,
-    falloffRight: 0.1,
-    importance: 70,
-  },
   'landscape-type': {
     rangeMin: 0.4,
     rangeMax: 0.75,

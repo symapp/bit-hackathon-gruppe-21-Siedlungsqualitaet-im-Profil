@@ -8,7 +8,6 @@ export interface LocationMetrics {
   roadTravelTimeMin: number | null;
   railTrafficLoad: number | null;
   roadTrafficLoad: number | null;
-  secondaryHomesRatePct: number | null;
   landscapeTypeId: number | null;
   solarSuitability: number | null;
   greenAmenityIndex: number | null;
@@ -24,7 +23,6 @@ export const EMPTY_LOCATION_METRICS: LocationMetrics = {
   roadTravelTimeMin: null,
   railTrafficLoad: null,
   roadTrafficLoad: null,
-  secondaryHomesRatePct: null,
   landscapeTypeId: null,
   solarSuitability: null,
   greenAmenityIndex: null,

@@ -10,7 +10,6 @@ METRIC_META: dict[str, tuple[bool, str]] = {
     "miv-travel-time": (False, "min"),
     "rail-traffic": (False, "DTV"),
     "road-traffic": (False, "DTV"),
-    "secondary-homes": (False, "%"),
     "landscape-type": (True, "Nr."),
     "solar-potential": (True, "Stufe"),
     "tranquillity": (True, ""),

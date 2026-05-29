@@ -107,13 +107,6 @@ QUALITY_SPECS: dict[str, QualitySpec] = {
         fill_mode="nan_and_zero",
         default_weight=100,
     ),
-    "secondary-homes": QualitySpec(
-        variable="ZWG_3110",
-        higher_is_better=False,
-        raw_interior_fill=0.0,
-        fill_mode="nan_and_zero",
-        default_weight=70,
-    ),
     "landscape-type": QualitySpec(
         variable="TYP_NR",
         higher_is_better=True,

@@ -131,12 +131,6 @@
       "metricLabel": "Traffico stradale",
       "metricUnit": "TGM"
     },
-    "secondaryHomes": {
-      "label": "Abitazioni secondarie",
-      "description": "Inventario delle abitazioni ARE, quota di abitazioni secondarie (%, più basso = migliore)",
-      "metricLabel": "Abitazioni secondarie",
-      "metricUnit": "%"
-    },
     "landscapeType": {
       "label": "Tipo di paesaggio",
       "description": "Tipologia paesaggistica ARE (n° tipo, più alto = categoria più diversificata)",

@@ -132,12 +132,6 @@
       "metricLabel": "Strassenverkehr",
       "metricUnit": "DTV"
     },
-    "secondaryHomes": {
-      "label": "Zweitwohnungsanteil",
-      "description": "ARE Wohnungsinventar, Anteil Zweitwohnungen (%, niedriger = besser)",
-      "metricLabel": "Zweitwohnungsanteil",
-      "metricUnit": "%"
-    },
     "landscapeType": {
       "label": "Landschaftstyp",
       "description": "ARE Landschaftstypologie (Typ-Nr., höher = vielfältigere Kategorie)",

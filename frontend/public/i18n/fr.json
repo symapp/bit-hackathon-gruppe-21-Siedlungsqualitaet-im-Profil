@@ -132,12 +132,6 @@
       "metricLabel": "Trafic routier",
       "metricUnit": "DJM"
     },
-    "secondaryHomes": {
-      "label": "Résidences secondaires",
-      "description": "Inventaire des logements ARE, part des résidences secondaires (%, moins élevé = meilleur)",
-      "metricLabel": "Résidences secondaires",
-      "metricUnit": "%"
-    },
     "landscapeType": {
       "label": "Type de paysage",
       "description": "Typologie paysagère ARE (n° de type, plus élevé = catégorie plus diversifiée)",

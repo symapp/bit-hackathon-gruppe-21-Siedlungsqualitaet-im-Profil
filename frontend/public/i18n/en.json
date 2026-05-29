@@ -132,12 +132,6 @@
       "metricLabel": "Road traffic",
       "metricUnit": "AADT"
     },
-    "secondaryHomes": {
-      "label": "Secondary residences",
-      "description": "ARE housing inventory, share of secondary residences (%, lower = better)",
-      "metricLabel": "Secondary residences",
-      "metricUnit": "%"
-    },
     "landscapeType": {
       "label": "Landscape type",
       "description": "ARE landscape typology (type no., higher = more diverse category)",
