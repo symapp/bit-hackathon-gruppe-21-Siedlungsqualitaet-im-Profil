@@ -4,7 +4,7 @@ import { getAmenityIcon, type NearbyAmenity } from '../../services/overpass.serv
 import { ZarrMapService } from '../../services/zarr-map.service';
 import { GeocodingService } from '../../services/geocoding.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
-import { Map, NavigationControl, Marker } from 'maplibre-gl';
+import { Map, NavigationControl, Marker, type MapMouseEvent } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer, IconLayer } from '@deck.gl/layers';
 
@@ -118,6 +118,13 @@ export class MapComponent implements OnInit, OnDestroy {
 
     this.marker.on('dragend', () => {
       void this.handleMarkerDragEnd();
+    });
+
+    this.map.on('click', (event: MapMouseEvent) => {
+      if (!this.locationService.activeRegion()) {
+        return;
+      }
+      void this.moveActiveRegionTo(event.lngLat.lng, event.lngLat.lat);
     });
 
     this.deckOverlay = new MapboxOverlay({
@@ -346,7 +353,11 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private async handleMarkerDragEnd(): Promise<void> {
     const lngLat = this.marker.getLngLat();
-    const clamped = clampToSwitzerland(lngLat.lng, lngLat.lat);
+    await this.moveActiveRegionTo(lngLat.lng, lngLat.lat);
+  }
+
+  private async moveActiveRegionTo(lng: number, lat: number): Promise<void> {
+    const clamped = clampToSwitzerland(lng, lat);
     this.marker.setLngLat([clamped.lng, clamped.lat]);
 
     this.reverseAbort?.abort();
