@@ -161,25 +161,26 @@
         }
       </div>
 
-      <div class="grocery-count-section" [class.disabled]="!locationService.groceryStoresEnabled()">
-        <label class="grocery-toggle">
-          <input
-            type="checkbox"
-            [checked]="locationService.groceryStoresEnabled()"
-            (change)="onGroceryStoresEnabledChange($event)"
-          />
-          <span class="grocery-title">{{ 'sidebar.groceryTitle' | translate }}</span>
-        </label>
+    </div>
 
-        @if (locationService.groceryStoresEnabled()) {
-          <div class="grocery-summary">
-            <span class="grocery-summary-label">{{ 'sidebar.groceryTitle' | translate }}</span>
-            <span class="grocery-summary-value">{{ locationService.groceryCount() }}</span>
-          </div>
-        } @else {
-          <p class="store-count-status">{{ 'sidebar.deactivated' | translate }}</p>
-        }
-      </div>
+    <div class="grocery-count-section fixed-bottom" [class.disabled]="!locationService.groceryStoresEnabled()">
+      <label class="grocery-toggle">
+        <input
+          type="checkbox"
+          [checked]="locationService.groceryStoresEnabled()"
+          (change)="onGroceryStoresEnabledChange($event)"
+        />
+        <span class="grocery-title">{{ 'sidebar.groceryTitle' | translate }}</span>
+      </label>
+
+      @if (locationService.groceryStoresEnabled()) {
+        <div class="grocery-summary">
+          <span class="grocery-summary-label">{{ 'sidebar.groceryTitle' | translate }}</span>
+          <span class="grocery-summary-value">{{ locationService.groceryCount() }}</span>
+        </div>
+      } @else {
+        <p class="store-count-status">{{ 'sidebar.deactivated' | translate }}</p>
+      }
     </div>
   }
 </div>

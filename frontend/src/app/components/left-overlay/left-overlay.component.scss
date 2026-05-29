@@ -294,18 +294,22 @@
 }
 
 .grocery-count-section {
-  margin-top: 16px;
   padding: 16px;
   background: var(--ch-bg-light);
-  border-radius: 2px;
-  border: 1px solid var(--ch-border);
+  border-top: 1px solid var(--ch-border);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex-shrink: 0;
 
   &.disabled {
     opacity: 0.6;
     background: #fcfcfc;
+  }
+
+  &.fixed-bottom {
+    margin-top: 0;
+    border-radius: 0;
   }
 }
 
