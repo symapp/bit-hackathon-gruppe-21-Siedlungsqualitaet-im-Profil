@@ -59,7 +59,7 @@ export class LocationService {
   );
   readonly lat = computed(() => this.activeRegion()?.lat ?? 46.99718);
   readonly lng = computed(() => this.activeRegion()?.lng ?? 7.46274);
-  readonly radius = computed(() => this.activeRegion()?.radius ?? 500);
+  readonly radius = computed(() => this.activeRegion()?.radius ?? 1000);
   readonly amenities = computed(() => {
     const activeRegionId = this._activeRegionId();
     return this._amenitiesByRegion()[activeRegionId] ?? [];
@@ -296,7 +296,7 @@ export class LocationService {
       id: crypto.randomUUID(),
       name: this.translate.instant('regions.defaultName', { index: nextIndex }),
       color: DEFAULT_REGION_COLORS[(nextIndex - 1) % DEFAULT_REGION_COLORS.length],
-      radius: 500,
+      radius: 1000,
       lat: clamped.lat,
       lng: clamped.lng,
     };
@@ -621,7 +621,7 @@ export class LocationService {
       id: crypto.randomUUID(),
       name: this.translate.instant('regions.defaultName', { index }),
       color: DEFAULT_REGION_COLORS[(index - 1) % DEFAULT_REGION_COLORS.length],
-      radius: 500,
+      radius: 1000,
       lat: 46.99718,
       lng: 7.46274,
     };
