@@ -108,6 +108,7 @@ export class LocationService {
   });
   readonly overviewScore = this.zarrMap.overviewScore;
   readonly overviewLoading = this.zarrMap.overviewLoading;
+  readonly overviewOpacity = this.zarrMap.overviewOpacity;
   readonly zarrLayers = this.zarrMap.layerStates;
 
   constructor() {
@@ -400,6 +401,10 @@ export class LocationService {
 
   applyLifestylePreset(presetId: LifestylePresetId): void {
     this.zarrMap.applyLifestylePreset(presetId);
+  }
+
+  setOverviewOpacity(value: number): void {
+    this.zarrMap.setOverviewOpacity(value);
   }
 
   setZarrLayerEnabled(layerId: string, enabled: boolean): void {

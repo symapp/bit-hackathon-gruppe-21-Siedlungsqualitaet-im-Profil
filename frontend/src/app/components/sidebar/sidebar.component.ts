@@ -118,6 +118,10 @@ export class SidebarComponent {
     this.locationService.setZarrLayerEnabled(layerId, input.checked);
   }
 
+  onOverviewOpacityChange(value: number): void {
+    this.locationService.setOverviewOpacity(value);
+  }
+
   onPresetChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     const presetId = select.value as LifestylePresetId;

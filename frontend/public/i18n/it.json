@@ -19,6 +19,7 @@
     "overviewHint": "Media ponderata delle funzioni di valutazione (0–100, più alto = meglio per la ricerca di casa).",
     "dealbreaker": "Criterio esclusione (0 fuori intervallo)",
     "overviewLoading": "Caricamento mappa di sintesi…",
+    "overviewTransparency": "Trasparenza",
     "overviewMapScale": "Mappa: 0 – 100 (peggiore – migliore)",
     "layersTitle": "Fattori e preferenze",
     "layersHint": "Curva trapezoidale per fattore: plateau = 100 punti. L'importanza guida il punteggio complessivo e la mappa di sintesi.",

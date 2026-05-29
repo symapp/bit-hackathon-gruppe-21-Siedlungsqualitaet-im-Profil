@@ -19,6 +19,7 @@
     "overviewHint": "Weighted mean of factor scoring functions (0–100, higher = better for your housing search).",
     "dealbreaker": "Dealbreaker (zero outside range)",
     "overviewLoading": "Loading overview map…",
+    "overviewTransparency": "Transparency",
     "overviewMapScale": "Map: 0 – 100 (worse – better)",
     "layersTitle": "Factors & preferences",
     "layersHint": "Trapezoid curve per factor: plateau = 100 points. Importance drives the overall score and overview map.",

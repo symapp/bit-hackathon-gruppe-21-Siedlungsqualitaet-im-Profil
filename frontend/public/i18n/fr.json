@@ -19,6 +19,7 @@
     "overviewHint": "Moyenne pondérée des fonctions de notation (0–100, plus élevé = mieux pour votre recherche de logement).",
     "dealbreaker": "Critère d'exclusion (0 hors plage)",
     "overviewLoading": "Chargement de la carte de synthèse…",
+    "overviewTransparency": "Transparence",
     "overviewMapScale": "Carte : 0 – 100 (moins bon – meilleur)",
     "layersTitle": "Facteurs & préférences",
     "layersHint": "Courbe trapézoïdale par facteur : plateau = 100 points. L'importance pilote le score global et la carte de synthèse.",

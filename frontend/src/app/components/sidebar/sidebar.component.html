@@ -83,6 +83,17 @@
           <span class="map-layer-legend" [style.background]="overviewLegendGradient()"></span>
           <span class="map-layer-scale">{{ 'sidebar.overviewMapScale' | translate }}</span>
         </div>
+        <div class="overview-opacity-row">
+          <span class="layer-weight-label">{{ 'sidebar.overviewTransparency' | translate }}</span>
+          <span class="layer-weight-value">{{ locationService.overviewOpacity() }}%</span>
+        </div>
+        <input
+          type="range"
+          class="layer-weight-slider"
+          min="0" max="100" step="1"
+          [ngModel]="locationService.overviewOpacity()"
+          (ngModelChange)="onOverviewOpacityChange($event)"
+        />
       </div>
 
       <div class="layers-section">

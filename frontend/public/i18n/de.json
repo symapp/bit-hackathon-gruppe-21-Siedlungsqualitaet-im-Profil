@@ -19,6 +19,7 @@
     "overviewHint": "Gewichteter Mittelwert der Faktor-Bewertungsfunktionen (0–100, höher = besser zur Wohnsuche).",
     "dealbreaker": "Ausschlusskriterium (0 ausserhalb des Bereichs)",
     "overviewLoading": "Übersichtskarte wird geladen…",
+    "overviewTransparency": "Transparenz",
     "overviewMapScale": "Karte: 0 – 100 (schlechter – besser)",
     "layersTitle": "Faktoren & Präferenzen",
     "layersHint": "Trapez-Kurve pro Faktor: Plateau = 100 Punkte. Wichtigkeit steuert den Gesamtscore und die Übersichtskarte.",

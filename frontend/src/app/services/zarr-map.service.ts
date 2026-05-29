@@ -124,6 +124,7 @@ export class ZarrMapService {
   readonly metricsLoading = signal(false);
   readonly metricsError = signal<string | null>(null);
   readonly layerStates = signal<ZarrLayerState[]>([]);
+  readonly overviewOpacity = signal<number>(88);
   readonly overviewLoading = signal(false);
   readonly overviewCacheStats = signal(this.rawCache.stats());
   readonly overviewScore = computed(() =>
@@ -426,7 +427,7 @@ export class ZarrMapService {
           type: 'raster',
           source: OVERVIEW_SOURCE_ID,
           paint: {
-            'raster-opacity': 0.88,
+            'raster-opacity': this.overviewOpacity() / 100,
             'raster-resampling': 'nearest',
             'raster-fade-duration': 0,
           },
@@ -469,6 +470,11 @@ export class ZarrMapService {
         'visibility',
         hasOverview ? 'visible' : 'none',
       );
+      this.map.setPaintProperty(
+        OVERVIEW_MAP_LAYER_ID,
+        'raster-opacity',
+        hasOverview ? this.overviewOpacity() / 100 : 0,
+      );
     }
 
     if (options?.rescoreOnly) {
@@ -477,6 +483,13 @@ export class ZarrMapService {
       this.scheduleOverviewComposite();
     }
     this.map.triggerRepaint();
+  }
+
+  setOverviewOpacity(value: number): void {
+    this.overviewOpacity.set(value);
+    if (this.map?.getLayer(OVERVIEW_MAP_LAYER_ID)) {
+      this.map.setPaintProperty(OVERVIEW_MAP_LAYER_ID, 'raster-opacity', value / 100);
+    }
   }
 
   private scheduleOverviewRescore(): void {
