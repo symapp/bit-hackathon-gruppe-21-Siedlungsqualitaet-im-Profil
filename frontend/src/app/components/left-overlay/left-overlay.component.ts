@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FactorScoreBreakdownComponent } from '../factor-score-breakdown/factor-score-breakdown.component';
 import { RegionFactorsChartComponent } from '../region-factors-chart/region-factors-chart.component';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
@@ -17,6 +17,7 @@ import { MapPanelsService } from '../../services/map-panels.service';
 })
 export class LeftOverlayComponent implements OnInit {
   protected readonly locationService = inject(LocationService);
+  private readonly translate = inject(TranslateService);
   private readonly mapPanels = inject(MapPanelsService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly Math = Math;
@@ -93,9 +94,11 @@ export class LeftOverlayComponent implements OnInit {
 
   formatRadius(value: number): string {
     if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)} km`;
+      return this.translate.instant('regions.radiusValueKilometers', {
+        value: (value / 1000).toFixed(1),
+      });
     }
-    return `${value} m`;
+    return this.translate.instant('regions.radiusValueMeters', { value });
   }
 
   isActive(regionId: string): boolean {

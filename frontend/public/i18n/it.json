@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Qualità insediativa in profilo"
+  },
   "search": {
     "placeholder": "Cercare un indirizzo in Svizzera…",
     "loading": "Ricerca in corso…",
@@ -207,9 +210,34 @@
       }
     }
   },
+  "languageSelector": {
+    "ariaLabel": "Selezione lingua"
+  },
+  "preferenceEditor": {
+    "ariaLabel": "Funzione di valutazione",
+    "handlesHint": "Maniglie superiori: spostamento orizzontale e verticale. Maniglie inferiori: larghezza del decadimento.",
+    "worse": "peggio",
+    "better": "meglio",
+    "axisHigherIsBetter": "← {{left}} ({{worse}}) · {{right}} ({{better}}) →",
+    "axisLowerIsBetter": "← {{left}} ({{better}}) · {{right}} ({{worse}}) →"
+  },
+  "errors": {
+    "zarrQueryFailed": "Query Zarr non riuscita",
+    "amenityLoadFailed": "Caricamento non riuscito"
+  },
   "regions": {
     "title": "Aree di interesse",
     "add": "+ Regione",
+    "nameLabel": "Nome",
+    "colorLabel": "Colore",
+    "deleteRegion": "Elimina regione",
+    "deleteRegionAria": "Elimina {{name}}",
+    "defaultName": "Regione {{index}}",
+    "noAddress": "Nessun indirizzo",
+    "distanceMeters": "{{distance}} m",
+    "distanceAway": "{{distance}} m di distanza",
+    "radiusValueMeters": "{{value}} m",
+    "radiusValueKilometers": "{{value}} km",
     "factorsTitle": "Fattori selezionati",
     "factorsHint": "Valori grezzi per regione, normalizzati p5–p95 (0 = peggio, 100 = meglio) — prima della curva trapezoidale.",
     "factorsLoading": "Caricamento valori…",

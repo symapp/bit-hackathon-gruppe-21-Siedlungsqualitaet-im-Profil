@@ -1,4 +1,5 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { clampToSwitzerland } from '../config/map-bounds.config';
 import type { LifestylePresetId } from '../config/lifestyle-presets.config';
 import { getAmenityCategory, OverpassService, type NearbyAmenity } from './overpass.service';
@@ -25,17 +26,6 @@ type AmenityRegionMap<T> = Record<string, T>;
 
 const DEFAULT_REGION_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7'];
 
-function createDefaultRegion(): RegionOfInterest {
-  return {
-    id: crypto.randomUUID(),
-    name: 'Region 1',
-    color: DEFAULT_REGION_COLORS[0],
-    radius: 500,
-    lat: 46.99718,
-    lng: 7.46274,
-  };
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -43,9 +33,10 @@ export class LocationService {
   private readonly zarrMap = inject(ZarrMapService);
   private readonly overpass = inject(OverpassService);
   private readonly geocoding = inject(GeocodingService);
+  private readonly translate = inject(TranslateService);
 
-  private readonly _regions = signal<RegionOfInterest[]>([createDefaultRegion()]);
-  private readonly _activeRegionId = signal(this._regions()[0]?.id ?? '');
+  private readonly _regions = signal<RegionOfInterest[]>([]);
+  private readonly _activeRegionId = signal('');
   private readonly _viewCenter = signal({ lat: 46.99718, lng: 7.46274 });
   private readonly _amenitiesByRegion = signal<AmenityRegionMap<NearbyAmenity[]>>({});
   private readonly _amenityCountLoadingByRegion = signal<AmenityRegionMap<boolean>>({});
@@ -57,9 +48,7 @@ export class LocationService {
   private regionsSampleGeneration = 0;
   private regionsSampleAbort: AbortController | null = null;
   private readonly _address = signal('');
-  private readonly _regionNameTouchedById = signal<Record<string, boolean>>(
-    this._regions()[0]?.id ? { [this._regions()[0].id]: false } : {},
-  );
+  private readonly _regionNameTouchedById = signal<Record<string, boolean>>({});
   private readonly _regionMetrics = signal<Record<string, LocationMetrics>>({});
   private readonly _regionMetricsLoading = signal(false);
 
@@ -155,6 +144,11 @@ export class LocationService {
   readonly zarrLayers = this.zarrMap.layerStates;
 
   constructor() {
+    const region = this.buildRegion(1);
+    this._regions.set([region]);
+    this._activeRegionId.set(region.id);
+    this._regionNameTouchedById.set({ [region.id]: false });
+
     effect((onCleanup) => {
       const regions = this._regions();
       const amenitiesEnabled = this._amenitiesEnabled();
@@ -262,7 +256,8 @@ export class LocationService {
       if (generation !== this.regionsSampleGeneration || signal.aborted) {
         return;
       }
-      const message = err instanceof Error ? err.message : 'Zarr-Abfrage fehlgeschlagen';
+      const message =
+        err instanceof Error ? err.message : this.translate.instant('errors.zarrQueryFailed');
       this.zarrMap.metricsError.set(message);
       console.error('[zarr] sampleAllRegions', err);
     } finally {
@@ -299,7 +294,7 @@ export class LocationService {
     const clamped = clampToSwitzerland(viewCenter.lng, viewCenter.lat);
     const region: RegionOfInterest = {
       id: crypto.randomUUID(),
-      name: `Region ${nextIndex}`,
+      name: this.translate.instant('regions.defaultName', { index: nextIndex }),
       color: DEFAULT_REGION_COLORS[(nextIndex - 1) % DEFAULT_REGION_COLORS.length],
       radius: 500,
       lat: clamped.lat,
@@ -588,7 +583,7 @@ export class LocationService {
         }));
         this._amenityCountErrorByRegion.update((errors) => ({
           ...errors,
-          [regionId]: 'Unable to load',
+          [regionId]: this.translate.instant('errors.amenityLoadFailed'),
         }));
         this._amenityCountLoadingByRegion.update((loading) => ({
           ...loading,
@@ -619,6 +614,17 @@ export class LocationService {
       }),
     );
     return averageMetrics(samples);
+  }
+
+  private buildRegion(index: number): RegionOfInterest {
+    return {
+      id: crypto.randomUUID(),
+      name: this.translate.instant('regions.defaultName', { index }),
+      color: DEFAULT_REGION_COLORS[(index - 1) % DEFAULT_REGION_COLORS.length],
+      radius: 500,
+      lat: 46.99718,
+      lng: 7.46274,
+    };
   }
 }
 

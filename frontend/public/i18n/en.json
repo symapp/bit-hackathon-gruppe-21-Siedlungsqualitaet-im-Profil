@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Settlement quality profile"
+  },
   "search": {
     "placeholder": "Search for an address in Switzerland…",
     "loading": "Searching…",
@@ -208,9 +211,34 @@
       }
     }
   },
+  "languageSelector": {
+    "ariaLabel": "Language selection"
+  },
+  "preferenceEditor": {
+    "ariaLabel": "Scoring function",
+    "handlesHint": "Upper handles: move left/right horizontally and vertically. Lower handles: adjust falloff width.",
+    "worse": "worse",
+    "better": "better",
+    "axisHigherIsBetter": "← {{left}} ({{worse}}) · {{right}} ({{better}}) →",
+    "axisLowerIsBetter": "← {{left}} ({{better}}) · {{right}} ({{worse}}) →"
+  },
+  "errors": {
+    "zarrQueryFailed": "Zarr query failed",
+    "amenityLoadFailed": "Unable to load"
+  },
   "regions": {
     "title": "Regions of interest",
     "add": "+ Region",
+    "nameLabel": "Name",
+    "colorLabel": "Color",
+    "deleteRegion": "Delete region",
+    "deleteRegionAria": "Delete {{name}}",
+    "defaultName": "Region {{index}}",
+    "noAddress": "No address",
+    "distanceMeters": "{{distance}} m",
+    "distanceAway": "{{distance}} m away",
+    "radiusValueMeters": "{{value}} m",
+    "radiusValueKilometers": "{{value}} km",
     "factorsTitle": "Selected factors",
     "factorsHint": "Raw values per region, normalized to p5–p95 (0 = worse, 100 = better) — before the trapezoid curve.",
     "factorsLoading": "Loading factor values…",

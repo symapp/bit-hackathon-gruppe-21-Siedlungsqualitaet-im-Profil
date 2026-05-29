@@ -1,4 +1,5 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ZarrLayer, type QueryResult } from '@carbonplan/zarr-layer';
 import type { CustomLayerInterface, ImageSource, Map as MaplibreMap } from 'maplibre-gl';
 import {
@@ -91,6 +92,7 @@ const SINGLE_LAYER_OPACITY = 0.82;
   providedIn: 'root',
 })
 export class ZarrMapService {
+  private readonly translate = inject(TranslateService);
   private map: MaplibreMap | null = null;
   private readonly managedLayers = new Map<string, ManagedZarrLayer>();
   private sampleGeneration = 0;
@@ -353,7 +355,8 @@ export class ZarrMapService {
       if (generation !== this.sampleGeneration || signal.aborted) {
         return;
       }
-      const message = err instanceof Error ? err.message : 'Zarr-Abfrage fehlgeschlagen';
+      const message =
+        err instanceof Error ? err.message : this.translate.instant('errors.zarrQueryFailed');
       this.metricsError.set(message);
       console.error('[zarr] sampleLocation', err);
     } finally {

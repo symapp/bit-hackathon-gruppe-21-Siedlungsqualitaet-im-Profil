@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MapComponent } from '../../components/map/map.component';
 import { ZARR_LAYER_DEFINITIONS, type ZarrLayerDefinition } from '../../config/zarr-layers.config';
 import { OnboardingPreferencesService } from '../../services/onboarding-preferences.service';
@@ -11,10 +11,17 @@ import {
   normalizedRawPercent,
 } from '../../utils/preference-scoring.util';
 
+type RatingTone =
+  | 'strong-negative'
+  | 'mild-negative'
+  | 'neutral'
+  | 'mild-positive'
+  | 'strong-positive';
+
 interface RatingOption {
   value: TinderRating;
   labelKey: string;
-  className: string;
+  tone: RatingTone;
 }
 
 interface RadarAxis {
@@ -41,6 +48,7 @@ const RADAR_RINGS = [20, 40, 60, 80, 100];
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TinderPreferencesPage {
+  private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly onboarding = inject(OnboardingPreferencesService);
   private readonly tinderPreferences = inject(TinderPreferencesService);
@@ -58,11 +66,11 @@ export class TinderPreferencesPage {
   private autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly ratingOptions: readonly RatingOption[] = [
-    { value: -2, labelKey: 'tinder.rating.definitelyNot', className: 'negative' },
-    { value: -1, labelKey: 'tinder.rating.no', className: 'negative' },
-    { value: 0, labelKey: 'tinder.rating.neutral', className: 'neutral' },
-    { value: 1, labelKey: 'tinder.rating.yes', className: 'positive' },
-    { value: 2, labelKey: 'tinder.rating.forSure', className: 'positive' },
+    { value: -2, labelKey: 'tinder.rating.definitelyNot', tone: 'strong-negative' },
+    { value: -1, labelKey: 'tinder.rating.no', tone: 'mild-negative' },
+    { value: 0, labelKey: 'tinder.rating.neutral', tone: 'neutral' },
+    { value: 1, labelKey: 'tinder.rating.yes', tone: 'mild-positive' },
+    { value: 2, labelKey: 'tinder.rating.forSure', tone: 'strong-positive' },
   ];
 
   protected readonly currentPlace = computed(() => this.places[this.currentIndex()] ?? null);
@@ -232,7 +240,8 @@ export class TinderPreferencesPage {
       const samples = await this.tinderPreferences.sampleFeaturedPlaces(this.places);
       this.samplesByPlaceId.set(samples);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load samples';
+      const message =
+        error instanceof Error ? error.message : this.translate.instant('tinder.loadError');
       this.loadError.set(message);
     } finally {
       this.loadingSamples.set(false);

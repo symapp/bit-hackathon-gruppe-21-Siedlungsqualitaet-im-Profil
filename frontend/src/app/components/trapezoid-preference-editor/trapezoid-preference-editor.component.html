@@ -4,7 +4,7 @@
     class="trapezoid-svg"
     [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
     role="img"
-    aria-label="Bewertungsfunktion"
+    [attr.aria-label]="'preferenceEditor.ariaLabel' | translate"
     (pointermove)="onPointerMove($event)"
     (pointerup)="onPointerUp($event)"
     (pointercancel)="onPointerUp($event)"
@@ -38,7 +38,5 @@
     }
   </svg>
   <p class="chart-hint">{{ axisCaption() }}</p>
-  <p class="chart-hint chart-hint-sub">
-    Obere Griffe: links/rechts horizontal und vertikal. Untere Griffe: Breite des Abfalls.
-  </p>
+  <p class="chart-hint chart-hint-sub">{{ 'preferenceEditor.handlesHint' | translate }}</p>
 </div>

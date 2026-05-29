@@ -31,12 +31,20 @@ export class LanguageService {
   constructor() {
     this.translate.setDefaultLang(DEFAULT_LOCALE);
     this.translate.use(this.locale());
+    this.syncDocumentTitle();
+    this.translate.onLangChange.subscribe(() => this.syncDocumentTitle());
   }
 
   setLocale(code: Locale): void {
     this.locale.set(code);
     localStorage.setItem(STORAGE_KEY, code);
     this.translate.use(code);
+  }
+
+  private syncDocumentTitle(): void {
+    if (typeof document !== 'undefined') {
+      document.title = this.translate.instant('app.title');
+    }
   }
 
   private loadLocale(): Locale {

@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Siedlungsqualität im Profil"
+  },
   "search": {
     "placeholder": "Adresse in der Schweiz suchen…",
     "loading": "Suche läuft…",
@@ -208,9 +211,34 @@
       }
     }
   },
+  "languageSelector": {
+    "ariaLabel": "Sprachauswahl"
+  },
+  "preferenceEditor": {
+    "ariaLabel": "Bewertungsfunktion",
+    "handlesHint": "Obere Griffe: links/rechts horizontal und vertikal. Untere Griffe: Breite des Abfalls.",
+    "worse": "schlechter",
+    "better": "besser",
+    "axisHigherIsBetter": "← {{left}} ({{worse}}) · {{right}} ({{better}}) →",
+    "axisLowerIsBetter": "← {{left}} ({{better}}) · {{right}} ({{worse}}) →"
+  },
+  "errors": {
+    "zarrQueryFailed": "Zarr-Abfrage fehlgeschlagen",
+    "amenityLoadFailed": "Laden fehlgeschlagen"
+  },
   "regions": {
     "title": "Interessensgebiete",
     "add": "+ Region",
+    "nameLabel": "Name",
+    "colorLabel": "Farbe",
+    "deleteRegion": "Region löschen",
+    "deleteRegionAria": "{{name}} löschen",
+    "defaultName": "Region {{index}}",
+    "noAddress": "Keine Adresse",
+    "distanceMeters": "{{distance}} m",
+    "distanceAway": "{{distance}} m entfernt",
+    "radiusValueMeters": "{{value}} m",
+    "radiusValueKilometers": "{{value}} km",
     "factorsTitle": "Ausgewählte Faktoren",
     "factorsHint": "Rohwerte je Region, auf p5–p95 normiert (0 = schlechter, 100 = besser) — vor der Trapez-Kurve.",
     "factorsLoading": "Faktorwerte werden geladen…",

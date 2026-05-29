@@ -1,4 +1,4 @@
-<div class="lang-selector" role="group" aria-label="Language / Langue / Lingua">
+<div class="lang-selector" role="group" [attr.aria-label]="'languageSelector.ariaLabel' | translate">
   @for (lang of languageService.languages; track lang.code) {
     <button
       type="button"

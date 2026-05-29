@@ -3,10 +3,12 @@ import {
   ElementRef,
   ViewChild,
   effect,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { LayerPreference } from '../../models/layer-preference.model';
 import type { NormalizationBounds, PreferenceHandles } from '../../utils/preference-scoring.util';
 import {
@@ -24,10 +26,12 @@ const H = 120;
 @Component({
   selector: 'app-trapezoid-preference-editor',
   standalone: true,
+  imports: [TranslatePipe],
   templateUrl: './trapezoid-preference-editor.component.html',
   styleUrl: './trapezoid-preference-editor.component.scss',
 })
 export class TrapezoidPreferenceEditorComponent {
+  private readonly translate = inject(TranslateService);
   protected readonly PAD = { left: 44, right: 12, top: 12, bottom: 28 };
 
   readonly preference = input.required<LayerPreference>();
@@ -194,10 +198,12 @@ export class TrapezoidPreferenceEditorComponent {
     const b = this.bounds();
     const left = this.formatAxisTick(0);
     const right = this.formatAxisTick(1);
+    const worse = this.translate.instant('preferenceEditor.worse');
+    const better = this.translate.instant('preferenceEditor.better');
     if (b.higherIsBetter) {
-      return `← ${left} (schlechter) · ${right} (besser) →`;
+      return this.translate.instant('preferenceEditor.axisHigherIsBetter', { left, right, worse, better });
     }
-    return `← ${left} (besser) · ${right} (schlechter) →`;
+    return this.translate.instant('preferenceEditor.axisLowerIsBetter', { left, right, worse, better });
   }
 
   protected handleKeys(): DragHandle[] {

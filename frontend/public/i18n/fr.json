@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Qualité de l'habitat en profil"
+  },
   "search": {
     "placeholder": "Rechercher une adresse en Suisse…",
     "loading": "Recherche en cours…",
@@ -208,9 +211,34 @@
       }
     }
   },
+  "languageSelector": {
+    "ariaLabel": "Sélection de la langue"
+  },
+  "preferenceEditor": {
+    "ariaLabel": "Fonction d'évaluation",
+    "handlesHint": "Poignées supérieures : déplacement horizontal et vertical. Poignées inférieures : largeur de la décroissance.",
+    "worse": "pire",
+    "better": "meilleur",
+    "axisHigherIsBetter": "← {{left}} ({{worse}}) · {{right}} ({{better}}) →",
+    "axisLowerIsBetter": "← {{left}} ({{better}}) · {{right}} ({{worse}}) →"
+  },
+  "errors": {
+    "zarrQueryFailed": "Échec de la requête Zarr",
+    "amenityLoadFailed": "Chargement impossible"
+  },
   "regions": {
     "title": "Zones d'intérêt",
     "add": "+ Région",
+    "nameLabel": "Nom",
+    "colorLabel": "Couleur",
+    "deleteRegion": "Supprimer la région",
+    "deleteRegionAria": "Supprimer {{name}}",
+    "defaultName": "Région {{index}}",
+    "noAddress": "Aucune adresse",
+    "distanceMeters": "{{distance}} m",
+    "distanceAway": "à {{distance}} m",
+    "radiusValueMeters": "{{value}} m",
+    "radiusValueKilometers": "{{value}} km",
     "factorsTitle": "Facteurs sélectionnés",
     "factorsHint": "Valeurs brutes par région, normalisées p5–p95 (0 = pire, 100 = meilleur) — avant la courbe trapézoïdale.",
     "factorsLoading": "Chargement des valeurs…",

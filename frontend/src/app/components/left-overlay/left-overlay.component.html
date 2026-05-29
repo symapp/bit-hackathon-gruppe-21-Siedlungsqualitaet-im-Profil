@@ -48,12 +48,12 @@
             (click)="setActiveRegion(region.id)"
           >
             <div class="region-row">
-              <label class="field-label" [for]="'region-name-' + region.id">Name</label>
+              <label class="field-label" [for]="'region-name-' + region.id">{{ 'regions.nameLabel' | translate }}</label>
               <button
                 type="button"
                 class="trash-btn"
-                title="Region löschen"
-                [attr.aria-label]="region.name + ' löschen'"
+                [attr.title]="'regions.deleteRegion' | translate"
+                [attr.aria-label]="'regions.deleteRegionAria' | translate: { name: region.name }"
                 (click)="removeRegion(region, $event)"
               >
                 <svg
@@ -98,7 +98,7 @@
             />
 
             <div class="region-row">
-              <label class="field-label" [for]="'region-color-' + region.id">Farbe</label>
+              <label class="field-label" [for]="'region-color-' + region.id">{{ 'regions.colorLabel' | translate }}</label>
               <input
                 [id]="'region-color-' + region.id"
                 type="color"
@@ -111,7 +111,7 @@
 
             <div class="radius-block" (click)="$event.stopPropagation()">
               <div class="radius-header">
-                <span class="field-label">Suchradius</span>
+                <span class="field-label">{{ 'sidebar.radius' | translate }}</span>
                 <span class="radius-value">{{ formatRadius(region.radius) }}</span>
               </div>
               <input
@@ -124,8 +124,8 @@
                 (ngModelChange)="updateRadius(region, $event)"
               />
               <div class="radius-range">
-                <span>100 m</span>
-                <span>3 km</span>
+                <span>{{ 'sidebar.radiusMin' | translate }}</span>
+                <span>{{ 'sidebar.radiusMax' | translate }}</span>
               </div>
             </div>
 
@@ -181,9 +181,13 @@
                             </div>
                             <div class="amenity-item-info">
                               <span class="amenity-item-name">{{ amenity.name }}</span>
-                              <span class="amenity-item-address">{{ amenity.address || 'Keine Adresse' }}</span>
+                              <span class="amenity-item-address">{{
+                                amenity.address || ('regions.noAddress' | translate)
+                              }}</span>
                             </div>
-                            <span class="amenity-item-distance">{{ Math.round(amenity.distanceMeters) }}m</span>
+                            <span class="amenity-item-distance">{{
+                              'regions.distanceMeters' | translate: { distance: Math.round(amenity.distanceMeters) }
+                            }}</span>
                           </div>
                         }
                       }

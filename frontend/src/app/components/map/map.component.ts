@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
 import { getAmenityIcon, type NearbyAmenity } from '../../services/overpass.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
@@ -27,6 +28,7 @@ export class MapComponent implements OnInit, OnDestroy {
   private locationService = inject(LocationService);
   private zarrMapService = inject(ZarrMapService);
   private geocodingService = inject(GeocodingService);
+  private readonly translate = inject(TranslateService);
   private lastFlyToRegionKey: string | null = null;
   private reverseAbort: AbortController | null = null;
   private lastUiPadding: PaddingOptions = { top: 0, bottom: 0, left: 0, right: 0 };
@@ -135,14 +137,19 @@ export class MapComponent implements OnInit, OnDestroy {
           return null;
         }
         const amenity = info.object as NearbyAmenity;
+        const address =
+          amenity.address || this.translate.instant('regions.noAddress');
+        const distance = this.translate.instant('regions.distanceAway', {
+          distance: Math.round(amenity.distanceMeters),
+        });
         return {
           html: `
             <div style="padding: 8px; font-family: sans-serif; font-size: 12px; line-height: 1.4;">
               <div style="font-weight: 700; color: #111; margin-bottom: 2px;">${amenity.name}</div>
-              <div style="color: #666; margin-bottom: 4px;">${amenity.address || 'Keine Adresse'}</div>
+              <div style="color: #666; margin-bottom: 4px;">${address}</div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 4px; margin-top: 4px;">
                 <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 2px; text-transform: capitalize;">${amenity.type}</span>
-                <span style="font-weight: 600; color: #d8232a;">${Math.round(amenity.distanceMeters)}m entfernt</span>
+                <span style="font-weight: 600; color: #d8232a;">${distance}</span>
               </div>
             </div>
           `,
