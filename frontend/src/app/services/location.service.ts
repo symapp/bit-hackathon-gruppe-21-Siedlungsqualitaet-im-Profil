@@ -21,8 +21,8 @@ function createDefaultRegion(): RegionOfInterest {
     name: 'Region 1',
     color: DEFAULT_REGION_COLORS[0],
     radius: 500,
-    lat: 47.3769,
-    lng: 8.5417,
+    lat: 47.37259,
+    lng: 8.54487,
   };
 }
 
@@ -35,7 +35,7 @@ export class LocationService {
 
   private readonly _regions = signal<RegionOfInterest[]>([createDefaultRegion()]);
   private readonly _activeRegionId = signal(this._regions()[0]?.id ?? '');
-  private readonly _viewCenter = signal({ lat: 47.3769, lng: 8.5417 });
+  private readonly _viewCenter = signal({ lat: 47.37259, lng: 8.54487 });
   private readonly _groceryCount = signal(0);
   private readonly _groceryStores = signal<GroceryStore[]>([]);
   private readonly _groceryCountLoading = signal(false);
@@ -49,8 +49,8 @@ export class LocationService {
   readonly activeRegion = computed(
     () => this._regions().find((region) => region.id === this._activeRegionId()) ?? null,
   );
-  readonly lat = computed(() => this.activeRegion()?.lat ?? 47.3769);
-  readonly lng = computed(() => this.activeRegion()?.lng ?? 8.5417);
+  readonly lat = computed(() => this.activeRegion()?.lat ?? 47.37259);
+  readonly lng = computed(() => this.activeRegion()?.lng ?? 8.54487);
   readonly radius = computed(() => this.activeRegion()?.radius ?? 500);
   readonly groceryCount = this._groceryCount.asReadonly();
   readonly groceryStores = this._groceryStores.asReadonly();

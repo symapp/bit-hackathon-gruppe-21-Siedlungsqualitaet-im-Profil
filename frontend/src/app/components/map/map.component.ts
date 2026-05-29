@@ -68,8 +68,8 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private initMap(): void {
     const activeRegion = this.locationService.activeRegion();
-    const lat = activeRegion?.lat ?? 47.3769;
-    const lng = activeRegion?.lng ?? 8.5417;
+    const lat = activeRegion?.lat ?? 47.37259;
+    const lng = activeRegion?.lng ?? 8.54487;
     this.locationService.setViewCenter(lat, lng);
 
     this.map = new Map({
