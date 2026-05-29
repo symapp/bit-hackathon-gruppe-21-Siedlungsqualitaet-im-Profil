@@ -54,6 +54,7 @@ import {
   type OverviewCompositeResult,
 } from './settlement-overview-composite';
 import { exposeOverviewForE2e, type OverviewE2eState } from '../testing/e2e-overview.harness';
+import { exposeZarrSampleForE2e } from '../testing/e2e-zarr.harness';
 import { environment } from '../../environments/environment';
 
 interface ManagedZarrLayer {
@@ -141,7 +142,7 @@ export class ZarrMapService {
         source: definition.storePath,
         variable: definition.variable,
         selector: definition.selector,
-        bounds: definition.bounds,
+        // Let @carbonplan/zarr-layer derive LV95 extent from x/y cell-center coordinates (± half cell).
         fillValue: definition.fillValue,
         colormap: definition.colormap,
         clim: definition.clim,
@@ -182,6 +183,22 @@ export class ZarrMapService {
     this.syncLayerStateSignal();
     this.installLayersOnMap(map);
     exposeOverviewForE2e(() => this.getOverviewE2eState(), () => this.syncOverviewToViewport());
+    exposeZarrSampleForE2e((lng, lat, layerId) => this.sampleLayerAt(lng, lat, layerId));
+  }
+
+  /** Point sample for e2e / debugging (WGS84). */
+  async sampleLayerAt(lng: number, lat: number, layerId: string): Promise<number | null> {
+    const managed = this.managedLayers.get(layerId);
+    if (!managed?.ready) {
+      return null;
+    }
+    const point = { type: 'Point' as const, coordinates: [lng, lat] as [number, number] };
+    try {
+      const result = await managed.layer.queryData(point, managed.definition.selector);
+      return extractScalar(result, managed.definition.variable);
+    } catch {
+      return null;
+    }
   }
 
   /** Rebuild the overview raster for the current map viewport (skips debounce). */

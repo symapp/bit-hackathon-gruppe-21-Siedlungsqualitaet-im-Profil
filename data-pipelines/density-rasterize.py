@@ -218,8 +218,10 @@ def density_to_dataset(df: pd.DataFrame, year: int, percentile_cutoff: float = 5
         f"[{xmin}, {ymin}, {xmax}, {ymax}]: {len(x)} columns x {len(y)} rows"
     )
 
-    xi = np.round((df["x"].to_numpy() - x[0]) / CELL_SIZE_M).astype("int64")
-    yi = np.round((y[0] - df["y"].to_numpy()) / CELL_SIZE_M).astype("int64")
+    # STATPOP E_KOORD/N_KOORD are the south-west corners of 100 m cells (multiples of 100 m),
+    # not cell centers. Rounding against center coords collapses alternating columns/rows.
+    xi = ((df["x"].to_numpy() - xmin) // CELL_SIZE_M).astype("int64")
+    yi = ((ymax - df["y"].to_numpy()) // CELL_SIZE_M).astype("int64")
     in_bounds = (xi >= 0) & (xi < len(x)) & (yi >= 0) & (yi < len(y))
     if not in_bounds.all():
         dropped = int((~in_bounds).sum())
@@ -294,8 +296,8 @@ def main() -> None:
         year = args.year
         if year is None:
             match = re.search(r"vz(\d{4})statpop", zip_path.name, re.IGNORECASE)
-        if not match:
-            raise RuntimeError("Pass --year when using a ZIP path whose filename does not contain the year.")
+            if not match:
+                raise RuntimeError("Pass --year when using a ZIP path whose filename does not contain the year.")
             year = int(match.group(1))
     else:
         log("Looking up BFS STATPOP geodata asset")

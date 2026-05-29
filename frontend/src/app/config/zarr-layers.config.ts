@@ -71,7 +71,8 @@ export const OVERVIEW_COLORMAP = ['#f7fcf5', '#c2e699', '#74c476', '#238b45', '#
  */
 const CLIM = {
   tranquillity: [0, 1] as [number, number],
-  populationDensity: [0, 1] as [number, number],
+  /** Raw Einw./km² from STATPOP (see settlement-layer-meta p5/p95 ≈ 300–9900). */
+  populationDensity: [300, 9_900] as [number, number],
   ptAccessibility: [0, 1] as [number, number],
   roadAccessibility: [50, 3_500] as [number, number],
   ptQuality: [0, 1] as [number, number],

@@ -6,5 +6,5 @@ export const environment = {
    * When false, skips HTTP fetch of settlement-layer-meta.json (uses clim from config).
    * Enable once meta sidecars are deployed next to each GeoZarr store.
    */
-  settlementLayerMetaAvailable: false,
+  settlementLayerMetaAvailable: true,
 };
