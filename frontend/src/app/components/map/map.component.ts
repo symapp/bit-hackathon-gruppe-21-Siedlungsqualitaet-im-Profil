@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } f
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
 import type { GroceryStore } from '../../services/overpass.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
+import { GeocodingService } from '../../services/geocoding.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
@@ -25,7 +26,9 @@ export class MapComponent implements OnInit, OnDestroy {
   private deckOverlay!: MapboxOverlay;
   private locationService = inject(LocationService);
   private zarrMapService = inject(ZarrMapService);
+  private geocodingService = inject(GeocodingService);
   private lastFlyToRegionKey: string | null = null;
+  private reverseAbort: AbortController | null = null;
 
   constructor() {
     effect(() => {
@@ -57,9 +60,14 @@ export class MapComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initMap();
+    const activeRegion = this.locationService.activeRegion();
+    if (activeRegion) {
+      void this.applyReverseAutoName(activeRegion.lat, activeRegion.lng);
+    }
   }
 
   ngOnDestroy(): void {
+    this.reverseAbort?.abort();
     this.zarrMapService.detachFromMap();
     if (this.deckOverlay) {
       this.deckOverlay.finalize();
@@ -102,10 +110,7 @@ export class MapComponent implements OnInit, OnDestroy {
     });
 
     this.marker.on('dragend', () => {
-      const lngLat = this.marker.getLngLat();
-      const clamped = clampToSwitzerland(lngLat.lng, lngLat.lat);
-      this.marker.setLngLat([clamped.lng, clamped.lat]);
-      this.locationService.setLocation(clamped.lat, clamped.lng, '');
+      void this.handleMarkerDragEnd();
     });
 
     this.deckOverlay = new MapboxOverlay({
@@ -251,5 +256,62 @@ export class MapComponent implements OnInit, OnDestroy {
     }
 
     return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+  }
+
+  private async handleMarkerDragEnd(): Promise<void> {
+    const lngLat = this.marker.getLngLat();
+    const clamped = clampToSwitzerland(lngLat.lng, lngLat.lat);
+    this.marker.setLngLat([clamped.lng, clamped.lat]);
+
+    this.reverseAbort?.abort();
+    const abort = new AbortController();
+    this.reverseAbort = abort;
+
+    try {
+      const locality = await this.reverseGeocodeLocality(clamped.lat, clamped.lng, abort);
+      if (this.reverseAbort !== abort) {
+        return;
+      }
+      this.locationService.setLocation(clamped.lat, clamped.lng, '', locality ?? undefined);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+      this.locationService.setLocation(clamped.lat, clamped.lng, '');
+    } finally {
+      if (this.reverseAbort === abort) {
+        this.reverseAbort = null;
+      }
+    }
+  }
+
+  private async applyReverseAutoName(lat: number, lng: number): Promise<void> {
+    this.reverseAbort?.abort();
+    const abort = new AbortController();
+    this.reverseAbort = abort;
+    try {
+      const locality = await this.reverseGeocodeLocality(lat, lng, abort);
+      if (this.reverseAbort !== abort || !locality) {
+        return;
+      }
+      this.locationService.setLocation(lat, lng, undefined, locality);
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        console.warn('Initial reverse geocoding failed:', error);
+      }
+    } finally {
+      if (this.reverseAbort === abort) {
+        this.reverseAbort = null;
+      }
+    }
+  }
+
+  private async reverseGeocodeLocality(
+    lat: number,
+    lng: number,
+    abort: AbortController,
+  ): Promise<string | null> {
+    const reverse = await this.geocodingService.reverseGeocode(lat, lng, abort.signal);
+    return reverse?.locality ?? null;
   }
 }

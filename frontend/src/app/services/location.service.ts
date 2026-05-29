@@ -6,6 +6,7 @@ import type { LayerPreference } from '../models/layer-preference.model';
 import { EMPTY_LOCATION_METRICS, type LocationMetrics } from '../models/metrics.model';
 import { ZarrMapService } from './zarr-map.service';
 import { computePreferenceOverview } from '../utils/metrics-aggregate.util';
+import { GeocodingService } from './geocoding.service';
 
 export interface RegionOfInterest {
   id: string;
@@ -37,6 +38,7 @@ function createDefaultRegion(): RegionOfInterest {
 export class LocationService {
   private readonly zarrMap = inject(ZarrMapService);
   private readonly overpass = inject(OverpassService);
+  private readonly geocoding = inject(GeocodingService);
 
   private readonly _regions = signal<RegionOfInterest[]>([createDefaultRegion()]);
   private readonly _activeRegionId = signal(this._regions()[0]?.id ?? '');
@@ -51,6 +53,9 @@ export class LocationService {
   private regionsSampleGeneration = 0;
   private regionsSampleAbort: AbortController | null = null;
   private readonly _address = signal('');
+  private readonly _regionNameTouchedById = signal<Record<string, boolean>>(
+    this._regions()[0]?.id ? { [this._regions()[0].id]: false } : {},
+  );
   private readonly _regionMetrics = signal<Record<string, LocationMetrics>>({});
   private readonly _regionMetricsLoading = signal(false);
 
@@ -223,7 +228,7 @@ export class LocationService {
     }
   }
 
-  setLocation(lat: number, lng: number, address?: string): void {
+  setLocation(lat: number, lng: number, address?: string, localityHint?: string): void {
     const clamped = clampToSwitzerland(lng, lat);
     const activeRegionId = this._activeRegionId();
 
@@ -235,6 +240,11 @@ export class LocationService {
 
     if (address !== undefined) {
       this._address.set(address);
+    }
+
+    const autoName = this.extractAutoNameCandidate(localityHint, address);
+    if (autoName) {
+      this.maybeAutoNameRegion(activeRegionId, autoName);
     }
   }
 
@@ -252,8 +262,10 @@ export class LocationService {
     };
 
     this._regions.update((regions) => [...regions, region]);
+    this._regionNameTouchedById.update((state) => ({ ...state, [region.id]: false }));
     this._activeRegionId.set(region.id);
     this._address.set('');
+    void this.autoNameRegionFromCoordinates(region.id, region.lat, region.lng);
   }
 
   setViewCenter(lat: number, lng: number): void {
@@ -286,18 +298,24 @@ export class LocationService {
     );
   }
 
+  markRegionNameTouched(regionId: string): void {
+    this._regionNameTouchedById.update((state) => ({ ...state, [regionId]: true }));
+  }
+
   removeRegion(regionId: string): void {
     const currentRegions = this._regions();
     const remaining = currentRegions.filter((region) => region.id !== regionId);
 
     if (remaining.length === 0) {
       this._regions.set([]);
+      this._regionNameTouchedById.set({});
       this._activeRegionId.set('');
       this._address.set('');
       return;
     }
 
     this._regions.set(remaining);
+    this._regionNameTouchedById.update(({ [regionId]: _removed, ...rest }) => rest);
     this._regionMetrics.update((metrics) => {
       const { [regionId]: _, ...rest } = metrics;
       return rest;
@@ -305,6 +323,53 @@ export class LocationService {
     if (this._activeRegionId() === regionId) {
       this._activeRegionId.set(remaining[0].id);
       this._address.set('');
+    }
+  }
+
+  private maybeAutoNameRegion(regionId: string, nextName: string): void {
+    const touched = this._regionNameTouchedById()[regionId] ?? false;
+    if (touched) {
+      return;
+    }
+    const trimmed = nextName.trim();
+    if (!trimmed) {
+      return;
+    }
+    this._regions.update((regions) =>
+      regions.map((region) => (region.id === regionId ? { ...region, name: trimmed } : region)),
+    );
+  }
+
+  private extractAutoNameCandidate(localityHint?: string, address?: string): string | null {
+    const hint = localityHint?.trim();
+    if (hint) {
+      return hint;
+    }
+
+    const fallback = address
+      ?.split(',')
+      .map((segment) => segment.trim())
+      .find((segment) => segment.length > 0);
+    return fallback?.trim() || null;
+  }
+
+  private async autoNameRegionFromCoordinates(
+    regionId: string,
+    lat: number,
+    lng: number,
+  ): Promise<void> {
+    try {
+      const reverse = await this.geocoding.reverseGeocode(lat, lng);
+      const locality = reverse?.locality?.trim();
+      if (!locality) {
+        return;
+      }
+      this.maybeAutoNameRegion(regionId, locality);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+      console.warn('Region auto naming failed:', error);
     }
   }
 

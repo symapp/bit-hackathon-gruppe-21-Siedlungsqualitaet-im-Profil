@@ -28,6 +28,7 @@ export class LeftOverlayComponent {
   }
 
   updateName(region: RegionOfInterest, value: string): void {
+    this.locationService.markRegionNameTouched(region.id);
     this.locationService.updateRegion(region.id, { name: value });
   }
 

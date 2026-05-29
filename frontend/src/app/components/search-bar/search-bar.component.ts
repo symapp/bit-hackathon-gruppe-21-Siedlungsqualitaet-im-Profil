@@ -258,7 +258,12 @@ export class SearchBarComponent {
     this.loading.set(false);
 
     this.suppressQuerySync = true;
-    this.locationService.setLocation(suggestion.lat, suggestion.lng, suggestion.label);
+    this.locationService.setLocation(
+      suggestion.lat,
+      suggestion.lng,
+      suggestion.label,
+      toLocalityHint(suggestion.label),
+    );
     this.suppressQuerySync = false;
 
     this.query.set(suggestion.label);
@@ -288,6 +293,14 @@ export class SearchBarComponent {
       this.blurCloseTimer = null;
     }
   }
+}
+
+function toLocalityHint(label: string): string | undefined {
+  const parts = label
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  return parts[1] ?? parts[0];
 }
 
 function toSuggestionView(result: GeocodingResult): GeocodingSuggestionView {
