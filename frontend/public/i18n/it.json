@@ -129,6 +129,12 @@
       "metricLabel": "Densità di popolazione",
       "metricUnit": "ab./km²"
     },
+    "vacancyRates": {
+      "label": "Tasso di alloggi sfitti",
+      "description": "Indicatore UST del tasso di vacanza per comune (2025, griglia 100 m)",
+      "metricLabel": "Tasso di vacanza",
+      "metricUnit": "%"
+    },
     "ptAccessibility": {
       "label": "Accessibilità TP",
       "description": "Valore di accessibilità TP ARE (EW, più alto = meglio servito)",

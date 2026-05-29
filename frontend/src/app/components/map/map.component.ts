@@ -29,8 +29,11 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private map!: Map;
   private marker!: Marker;
-  private amenityMarkerEntries: Array<{ marker: Marker; element: HTMLDivElement; amenity: NearbyAmenity }> =
-    [];
+  private amenityMarkerEntries: Array<{
+    marker: Marker;
+    element: HTMLDivElement;
+    amenity: NearbyAmenity;
+  }> = [];
   private amenityHoverPopup: Popup | null = null;
   private amenityHoverPopupAmenityId: string | null = null;
   private amenityPopupHideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -160,6 +163,7 @@ export class MapComponent implements OnInit, OnDestroy {
     });
 
     this.deckOverlay = new MapboxOverlay({
+      // Keep overlay in its own canvas so region circles/points stay visible above rasters.
       interleaved: false,
       layers: [],
     });
@@ -214,9 +218,14 @@ export class MapComponent implements OnInit, OnDestroy {
 
     const deckContainer =
       this.map.getContainer().querySelector('.deck-widget-container') ??
-      this.map.getContainer().querySelector('.maplibregl-ctrl-top-left > div:not(.maplibregl-ctrl-group)');
+      this.map
+        .getContainer()
+        .querySelector('.maplibregl-ctrl-top-left > div:not(.maplibregl-ctrl-group)');
 
-    if (!(deckContainer instanceof HTMLElement) || deckContainer.parentElement === canvasContainer) {
+    if (
+      !(deckContainer instanceof HTMLElement) ||
+      deckContainer.parentElement === canvasContainer
+    ) {
       return;
     }
 
@@ -352,7 +361,8 @@ export class MapComponent implements OnInit, OnDestroy {
       }
 
       const display = element.dataset['display'] ?? 'dot';
-      const popupOffset = display === 'pin' ? this.amenityPopupOffsetPin : this.amenityPopupOffsetDot;
+      const popupOffset =
+        display === 'pin' ? this.amenityPopupOffsetPin : this.amenityPopupOffsetDot;
 
       this.hideAmenityPopupImmediate();
       this.amenityHoverPopup = new Popup({

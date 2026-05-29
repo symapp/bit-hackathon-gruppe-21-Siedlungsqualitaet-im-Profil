@@ -49,6 +49,7 @@ function shape(
 const SENSIBLE_SHAPES: Record<string, GoodPlaceShape> = {
   tranquillity: shape(0.55, 0.85, 0.4, 0.9, 150),
   'population-density': shape(0.35, 0.65, 0.18, 0.78, 80),
+  'vacancy-rates': shape(0.25, 0.6, 0.08, 0.8, 55),
   /** Main: plateau on high ÖV-EW (right side of t). */
   'pt-accessibility': shape(0.42, 0.95, 0.2, 0.98, 120),
   /** Main: same high-EW shape as ÖV (not the old low-EW band). */

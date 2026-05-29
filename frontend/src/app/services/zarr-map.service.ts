@@ -111,7 +111,6 @@ export function computeLayerDisplayPlan(
     visibleLayerIds: [],
   };
 }
-
 function isOverviewEligible(definition: ZarrLayerDefinition): boolean {
   return definition.includeInOverview !== false;
 }

@@ -132,6 +132,12 @@
       "metricLabel": "Densité de population",
       "metricUnit": "hab./km²"
     },
+    "vacancyRates": {
+      "label": "Taux de logements vacants",
+      "description": "Indicateur OFS du taux de vacance par commune (2025, grille 100 m)",
+      "metricLabel": "Taux de vacance",
+      "metricUnit": "%"
+    },
     "ptAccessibility": {
       "label": "Accessibilité TP",
       "description": "Valeur d'accessibilité TP ARE (EW, plus élevé = mieux desservi)",
