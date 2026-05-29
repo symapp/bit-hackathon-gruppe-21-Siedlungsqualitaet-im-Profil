@@ -1,14 +1,18 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, effect, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { LocationService, type RegionOfInterest } from '../../services/location.service';
-import type { NearbyAmenity } from '../../services/overpass.service';
+import { getAmenityIcon, type NearbyAmenity } from '../../services/overpass.service';
 import { ZarrMapService } from '../../services/zarr-map.service';
 import { GeocodingService } from '../../services/geocoding.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
 import { Map, NavigationControl, Marker, Popup, type MapMouseEvent } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
-import { createAmenityMarkerElement } from '../../utils/amenity-map-pin.util';
+import {
+  amenityMarkerDisplayForZoom,
+  createAmenityMarkerElement,
+  setAmenityMarkerDisplay,
+} from '../../utils/amenity-map-pin.util';
 
 import { clampToSwitzerland, SWITZERLAND_MAX_BOUNDS } from '../../config/map-bounds.config';
 import { mapUiPaddingEquals, readMapUiPadding } from '../../utils/map-ui-insets.util';
@@ -30,8 +34,12 @@ export class MapComponent implements OnInit, OnDestroy {
   private amenityHoverPopup: Popup | null = null;
   private amenityHoverPopupAmenityId: string | null = null;
   private amenityPopupHideTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly amenityPopupOffset: [number, number] = [0, -10];
+  private readonly amenityPopupOffsetDot: [number, number] = [0, -15];
+  private readonly amenityPopupOffsetPin: [number, number] = [0, -40];
   private readonly amenityPopupHideDelayMs = 180;
+  private readonly onMapZoomChange = (): void => {
+    this.applyAmenityMarkerZoomMode();
+  };
   private deckOverlay!: MapboxOverlay;
   private locationService = inject(LocationService);
   private zarrMapService = inject(ZarrMapService);
@@ -93,6 +101,8 @@ export class MapComponent implements OnInit, OnDestroy {
       this.deckOverlay.finalize();
     }
     if (this.map) {
+      this.map.off('zoom', this.onMapZoomChange);
+      this.map.off('zoomend', this.onMapZoomChange);
       this.map.remove();
     }
   }
@@ -152,6 +162,9 @@ export class MapComponent implements OnInit, OnDestroy {
     this.map.on('movestart', () => {
       this.hideAmenityPopupImmediate();
     });
+
+    this.map.on('zoom', this.onMapZoomChange);
+    this.map.on('zoomend', this.onMapZoomChange);
 
     this.map.on('moveend', () => {
       const center = this.map.getCenter();
@@ -246,15 +259,32 @@ export class MapComponent implements OnInit, OnDestroy {
     }
 
     for (const amenity of amenities) {
-      const element = createAmenityMarkerElement(amenity.name);
+      const element = createAmenityMarkerElement(getAmenityIcon(amenity.type), amenity.name);
       element.tabIndex = 0;
       this.bindAmenityMarkerHover(element, amenity);
 
-      const marker = new Marker({ element, anchor: 'center' })
+      const marker = new Marker({ element, anchor: 'bottom' })
         .setLngLat([amenity.lng, amenity.lat])
         .addTo(this.map);
 
       this.amenityMarkerEntries.push({ marker, element, amenity });
+    }
+
+    this.applyAmenityMarkerZoomMode();
+  }
+
+  private applyAmenityMarkerZoomMode(): void {
+    if (!this.map || this.amenityMarkerEntries.length === 0) {
+      return;
+    }
+
+    const display = amenityMarkerDisplayForZoom(this.map.getZoom());
+    if (display === 'dot') {
+      this.hideAmenityPopupImmediate();
+    }
+
+    for (const entry of this.amenityMarkerEntries) {
+      setAmenityMarkerDisplay(entry.element, display);
     }
   }
 
@@ -275,12 +305,15 @@ export class MapComponent implements OnInit, OnDestroy {
         return;
       }
 
+      const display = element.dataset['display'] ?? 'dot';
+      const popupOffset = display === 'pin' ? this.amenityPopupOffsetPin : this.amenityPopupOffsetDot;
+
       this.hideAmenityPopupImmediate();
       this.amenityHoverPopup = new Popup({
         closeButton: false,
         closeOnClick: false,
         anchor: 'bottom',
-        offset: this.amenityPopupOffset,
+        offset: popupOffset,
         className: 'amenity-map-popup',
       })
         .setLngLat([amenity.lng, amenity.lat])

@@ -1,4 +1,4 @@
-import { Injectable, computed, inject } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { FEATURED_PLACES, type FeaturedPlace } from '../config/featured-places.config';
 import { ZARR_LAYER_DEFINITIONS } from '../config/zarr-layers.config';
 import type { LayerPreference } from '../models/layer-preference.model';
@@ -10,6 +10,10 @@ import {
   type TinderPlaceSample,
   type TinderRating,
 } from '../utils/tinder-inference.util';
+import {
+  pickBestFeaturedPlace,
+  type TinderPlaceSuggestion,
+} from '../utils/tinder-suggestion.util';
 
 @Injectable({
   providedIn: 'root',
@@ -17,8 +21,10 @@ import {
 export class TinderPreferencesService {
   private readonly locationService = inject(LocationService);
   private readonly zarrMap = inject(ZarrMapService);
+  private readonly pendingSuggestion = signal<TinderPlaceSuggestion | null>(null);
 
   readonly featuredPlaces = FEATURED_PLACES;
+  readonly suggestionAfterFinish = this.pendingSuggestion.asReadonly();
   readonly layerMetaById = computed<Record<string, SettlementLayerMeta | null>>(() =>
     Object.fromEntries(this.locationService.zarrLayers().map((layer) => [layer.id, layer.meta] as const)),
   );
@@ -81,6 +87,30 @@ export class TinderPreferencesService {
     for (const [layerId, preference] of Object.entries(preferences)) {
       this.locationService.setZarrLayerPreference(layerId, preference);
     }
+  }
+
+  suggestBestPlace(
+    ratingsByPlaceId: Readonly<Record<string, TinderRating>>,
+    sampledByPlaceId: Readonly<Record<string, Record<string, number | null>>>,
+    preferences: Readonly<Record<string, LayerPreference>>,
+  ): TinderPlaceSuggestion | null {
+    return pickBestFeaturedPlace(
+      this.featuredPlaces,
+      preferences,
+      sampledByPlaceId,
+      this.layerMetaById(),
+      ratingsByPlaceId,
+    );
+  }
+
+  setPendingSuggestion(suggestion: TinderPlaceSuggestion): void {
+    this.pendingSuggestion.set(suggestion);
+  }
+
+  consumePendingSuggestion(): TinderPlaceSuggestion | null {
+    const current = this.pendingSuggestion();
+    this.pendingSuggestion.set(null);
+    return current;
   }
 
   private async sampleLayerRadiusAverage(

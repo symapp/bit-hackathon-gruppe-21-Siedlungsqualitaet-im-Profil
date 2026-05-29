@@ -6,6 +6,25 @@
   box-sizing: border-box;
 }
 
+.map-toast {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 35;
+  max-width: min(420px, calc(100% - 24px));
+  margin: 0;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #fff;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  text-align: center;
+  border-radius: 2px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+  pointer-events: none;
+}
+
 .tinder-prompt-backdrop {
   position: absolute;
   inset: 0;
@@ -114,6 +133,10 @@
 }
 
 @media (max-width: 768px) {
+  .map-toast {
+    top: calc(56px + env(safe-area-inset-top, 0px));
+  }
+
   .tinder-prompt-actions {
     flex-direction: column-reverse;
     align-items: stretch;

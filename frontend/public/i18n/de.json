@@ -83,7 +83,10 @@
       "next": "Nächster Ort",
       "finish": "Präferenzen übernehmen"
     },
-    "autoAdvance": "Auswahl springt automatisch zum nächsten Ort."
+    "autoAdvance": "Auswahl springt automatisch zum nächsten Ort.",
+    "suggestion": {
+      "toast": "Empfehlung: {{name}} ({{canton}}) — Karte springt dorthin."
+    }
   },
   "presets": {
     "label": "Lebensstil-Voreinstellung",

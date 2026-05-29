@@ -83,7 +83,10 @@
       "next": "Next place",
       "finish": "Apply preferences"
     },
-    "autoAdvance": "Selection automatically jumps to the next place."
+    "autoAdvance": "Selection automatically jumps to the next place.",
+    "suggestion": {
+      "toast": "Suggestion: {{name}} ({{canton}}) — map moved there."
+    }
   },
   "presets": {
     "label": "Lifestyle preset",

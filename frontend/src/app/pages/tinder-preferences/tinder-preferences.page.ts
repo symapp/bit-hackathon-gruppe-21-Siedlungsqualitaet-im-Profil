@@ -219,11 +219,14 @@ export class TinderPreferencesPage {
     }
     this.applyInProgress.set(true);
     try {
-      const inferred = this.tinderPreferences.inferPreferences(
-        this.ratingsByPlaceId(),
-        this.samplesByPlaceId(),
-      );
+      const ratings = this.ratingsByPlaceId();
+      const samples = this.samplesByPlaceId();
+      const inferred = this.tinderPreferences.inferPreferences(ratings, samples);
       this.tinderPreferences.applyPreferences(inferred);
+      const suggestion = this.tinderPreferences.suggestBestPlace(ratings, samples, inferred);
+      if (suggestion) {
+        this.tinderPreferences.setPendingSuggestion(suggestion);
+      }
       this.onboarding.markCompleted();
       await this.router.navigateByUrl('/');
       setTimeout(() => this.mapPanels.closeRightPanel(), 0);

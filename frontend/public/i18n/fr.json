@@ -83,7 +83,10 @@
       "next": "Lieu suivant",
       "finish": "Appliquer les préférences"
     },
-    "autoAdvance": "La sélection passe automatiquement au lieu suivant."
+    "autoAdvance": "La sélection passe automatiquement au lieu suivant.",
+    "suggestion": {
+      "toast": "Suggestion : {{name}} ({{canton}}) — la carte s'y déplace."
+    }
   },
   "presets": {
     "label": "Profil de vie",

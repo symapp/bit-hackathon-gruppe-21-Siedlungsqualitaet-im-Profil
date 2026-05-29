@@ -36,6 +36,10 @@ test.describe('Tinder mode onboarding', () => {
     // Verify navigation back to main page
     await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
 
+    // Verify brief toast after suggested place
+    await expect(page.getByTestId('map-toast')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('map-toast')).toContainText('Empfehlung:');
+
     // Verify right sidebar is collapsed
     await expect(page.locator('.sidebar.collapsed')).toBeVisible({ timeout: 10000 });
   });

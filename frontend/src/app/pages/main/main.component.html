@@ -28,6 +28,10 @@
   <app-sidebar></app-sidebar>
   <app-search-bar></app-search-bar>
 
+  @if (toastMessage(); as message) {
+    <p class="map-toast" data-testid="map-toast" role="status">{{ message }}</p>
+  }
+
   @if (onboardingPreferences.shouldShowPrompt()) {
     <section class="tinder-prompt-backdrop" role="dialog" aria-modal="true">
       <div class="tinder-prompt-card">
