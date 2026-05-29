@@ -105,7 +105,9 @@
   },
   "breakdown": {
     "title": "Pourquoi ce score ?",
-    "hint": "Contribution de chaque facteur actif au score global de la région active."
+    "hint": "Le score global est une moyenne pondérée de tous les facteurs actifs.",
+    "strengths": "Atouts",
+    "weaknesses": "Faiblesses"
   },
   "layers": {
     "tranquillity": {

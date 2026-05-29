@@ -13,6 +13,7 @@ export interface FactorBreakdownRow {
   labelKey: string;
   score: number;
   importance: number;
+  contributionPoints: number;
   t: number;
   rawLabel: string;
 }
@@ -60,12 +61,32 @@ export class FactorScoreBreakdownComponent {
         labelKey: def.labelKey,
         score,
         importance: layer.preference.importance,
+        contributionPoints: 0,
         t,
         rawLabel: `${def.formatValue(raw)} ${unit}`.trim(),
       });
     }
 
-    return result.sort((a, b) => b.importance - a.importance || b.score - a.score);
+    result.sort((a, b) => b.importance - a.importance || b.score - a.score);
+
+    const totalImportance = result.reduce((sum, r) => sum + r.importance, 0);
+    for (const row of result) {
+      row.contributionPoints = totalImportance > 0
+        ? (row.score * row.importance) / totalImportance
+        : 0;
+    }
+
+    return result;
+  });
+
+  protected readonly strengths = computed(() => {
+    return this.rows().filter(r => r.score >= 50)
+      .sort((a, b) => b.contributionPoints - a.contributionPoints);
+  });
+
+  protected readonly weaknesses = computed(() => {
+    return this.rows().filter(r => r.score < 50)
+      .sort((a, b) => b.contributionPoints - a.contributionPoints);
   });
 
   protected readonly overviewScore = computed(() => {
@@ -77,9 +98,5 @@ export class FactorScoreBreakdownComponent {
   protected toggleExpanded(event: Event): void {
     event.stopPropagation();
     this.expanded.update((v) => !v);
-  }
-
-  protected barWidth(score: number): string {
-    return `${Math.min(100, Math.max(0, score))}%`;
   }
 }

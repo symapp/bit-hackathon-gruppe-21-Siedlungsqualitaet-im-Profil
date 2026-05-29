@@ -17,20 +17,46 @@
 
     @if (expanded()) {
       <p class="breakdown-hint">{{ 'breakdown.hint' | translate }}</p>
-      <ul class="breakdown-list">
-        @for (row of rows(); track row.layerId) {
-          <li class="breakdown-row">
-            <div class="breakdown-row-head">
-              <span class="breakdown-label">{{ row.labelKey | translate }}</span>
-              <span class="breakdown-score">{{ row.score.toFixed(0) }}</span>
-            </div>
-            <div class="breakdown-bar-track">
-              <div class="breakdown-bar-fill" [style.width]="barWidth(row.score)"></div>
-            </div>
-            <span class="breakdown-raw">{{ row.rawLabel }}</span>
-          </li>
-        }
-      </ul>
+
+      @if (strengths().length > 0) {
+        <div class="breakdown-group">
+          <h4 class="group-heading group-heading--strength">▲ {{ 'breakdown.strengths' | translate }}</h4>
+          <ul class="breakdown-list">
+            @for (row of strengths(); track row.layerId) {
+              <li class="breakdown-row">
+                <div class="breakdown-row-head">
+                  <span class="breakdown-label">{{ row.labelKey | translate }}</span>
+                  <span class="breakdown-score">{{ row.score.toFixed(0) }}</span>
+                </div>
+                <div class="breakdown-row-sub">
+                  <span class="breakdown-contribution">{{ row.contributionPoints.toFixed(0) }} pts</span>
+                  <span class="breakdown-raw">{{ row.rawLabel }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (weaknesses().length > 0) {
+        <div class="breakdown-group">
+          <h4 class="group-heading group-heading--weakness">▼ {{ 'breakdown.weaknesses' | translate }}</h4>
+          <ul class="breakdown-list">
+            @for (row of weaknesses(); track row.layerId) {
+              <li class="breakdown-row">
+                <div class="breakdown-row-head">
+                  <span class="breakdown-label">{{ row.labelKey | translate }}</span>
+                  <span class="breakdown-score">{{ row.score.toFixed(0) }}</span>
+                </div>
+                <div class="breakdown-row-sub">
+                  <span class="breakdown-contribution">{{ row.contributionPoints.toFixed(0) }} pts</span>
+                  <span class="breakdown-raw">{{ row.rawLabel }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
     }
   </div>
 }

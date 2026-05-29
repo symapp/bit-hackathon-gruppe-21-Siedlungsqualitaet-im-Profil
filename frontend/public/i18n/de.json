@@ -105,7 +105,9 @@
   },
   "breakdown": {
     "title": "Warum dieser Score?",
-    "hint": "Beitrag jedes aktiven Faktors zum Gesamtscore der aktiven Region."
+    "hint": "Der Gesamtscore ist ein gewichteter Mittelwert aller aktiven Faktoren.",
+    "strengths": "Stärken",
+    "weaknesses": "Schwächen"
   },
   "layers": {
     "tranquillity": {

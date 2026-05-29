@@ -105,7 +105,9 @@
   },
   "breakdown": {
     "title": "Why this score?",
-    "hint": "Each active factor's contribution to the active region's overall score."
+    "hint": "The overall score is a weighted average of all active factors.",
+    "strengths": "Strengths",
+    "weaknesses": "Weaknesses"
   },
   "layers": {
     "tranquillity": {

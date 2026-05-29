@@ -104,7 +104,9 @@
   },
   "breakdown": {
     "title": "Perché questo punteggio?",
-    "hint": "Contributo di ogni fattore attivo al punteggio complessivo della regione attiva."
+    "hint": "Il punteggio complessivo è una media ponderata di tutti i fattori attivi.",
+    "strengths": "Punti di forza",
+    "weaknesses": "Punti deboli"
   },
   "layers": {
     "tranquillity": {
