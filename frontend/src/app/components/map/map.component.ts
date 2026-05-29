@@ -5,9 +5,14 @@ import { getAmenityIcon, type NearbyAmenity } from '../../services/overpass.serv
 import { ZarrMapService } from '../../services/zarr-map.service';
 import { GeocodingService } from '../../services/geocoding.service';
 import { exposeMapForE2e } from '../../testing/e2e-map.harness';
-import { Map, NavigationControl, Marker, type MapMouseEvent } from 'maplibre-gl';
+import { Map, NavigationControl, Marker, Popup, type MapMouseEvent } from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { ScatterplotLayer, PolygonLayer, IconLayer } from '@deck.gl/layers';
+import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
+import {
+  amenityMarkerDisplayForZoom,
+  createAmenityMarkerElement,
+  setAmenityMarkerDisplay,
+} from '../../utils/amenity-map-pin.util';
 
 import { clampToSwitzerland, SWITZERLAND_MAX_BOUNDS } from '../../config/map-bounds.config';
 import { mapUiPaddingEquals, readMapUiPadding } from '../../utils/map-ui-insets.util';
@@ -24,6 +29,16 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private map!: Map;
   private marker!: Marker;
+  private amenityMarkerEntries: Array<{ marker: Marker; element: HTMLDivElement; amenity: NearbyAmenity }> =
+    [];
+  private amenityHoverPopup: Popup | null = null;
+  private amenityHoverPopupAmenityId: string | null = null;
+  private amenityPopupHideTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly amenityPopupOffset: [number, number] = [0, -58];
+  private readonly amenityPopupHideDelayMs = 180;
+  private readonly onMapZoomChange = (): void => {
+    this.applyAmenityMarkerZoomMode();
+  };
   private deckOverlay!: MapboxOverlay;
   private locationService = inject(LocationService);
   private zarrMapService = inject(ZarrMapService);
@@ -41,10 +56,12 @@ export class MapComponent implements OnInit, OnDestroy {
     effect(() => {
       const regions = this.locationService.regions();
       const activeRegion = this.locationService.activeRegion();
-      const amenities = this.locationService.allAmenities();
+      const amenitiesEnabled = this.locationService.amenitiesEnabled();
+      const amenities = amenitiesEnabled ? this.locationService.allAmenities() : [];
 
       if (this.map && this.marker && this.deckOverlay) {
-        this.updateDeckLayers(regions, activeRegion?.id ?? '', amenities);
+        this.updateDeckLayers(regions, activeRegion?.id ?? '');
+        this.syncAmenityMarkers(amenities);
 
         if (!activeRegion) {
           this.marker.getElement().style.display = 'none';
@@ -75,6 +92,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.reverseAbort?.abort();
+    this.clearAmenityMarkers();
     this.uiPaddingCleanup?.();
     this.uiPaddingCleanup = null;
     this.zarrMapService.detachFromMap();
@@ -82,6 +100,8 @@ export class MapComponent implements OnInit, OnDestroy {
       this.deckOverlay.finalize();
     }
     if (this.map) {
+      this.map.off('zoom', this.onMapZoomChange);
+      this.map.off('zoomend', this.onMapZoomChange);
       this.map.remove();
     }
   }
@@ -132,36 +152,6 @@ export class MapComponent implements OnInit, OnDestroy {
     this.deckOverlay = new MapboxOverlay({
       interleaved: true,
       layers: [],
-      getTooltip: (info) => {
-        if (!info.object || !info.layer || info.layer.id !== 'amenity-icons') {
-          return null;
-        }
-        const amenity = info.object as NearbyAmenity;
-        const address =
-          amenity.address || this.translate.instant('regions.noAddress');
-        const distance = this.translate.instant('regions.distanceAway', {
-          distance: Math.round(amenity.distanceMeters),
-        });
-        return {
-          html: `
-            <div style="padding: 8px; font-family: sans-serif; font-size: 12px; line-height: 1.4;">
-              <div style="font-weight: 700; color: #111; margin-bottom: 2px;">${amenity.name}</div>
-              <div style="color: #666; margin-bottom: 4px;">${address}</div>
-              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 4px; margin-top: 4px;">
-                <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 2px; text-transform: capitalize;">${amenity.type}</span>
-                <span style="font-weight: 600; color: #d8232a;">${distance}</span>
-              </div>
-            </div>
-          `,
-          style: {
-            backgroundColor: '#fff',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            borderRadius: '4px',
-            color: '#000',
-            border: '1px solid #ddd'
-          }
-        };
-      }
     });
 
     this.map.addControl(this.deckOverlay as any);
@@ -173,16 +163,18 @@ export class MapComponent implements OnInit, OnDestroy {
       this.locationService.setViewCenter(center.lat, center.lng);
     });
 
+    this.map.on('zoom', this.onMapZoomChange);
+    this.map.on('zoomend', this.onMapZoomChange);
+
     this.map.on('load', () => {
       this.applyUiPadding();
       this.setupUiPaddingSync();
       const regions = this.locationService.regions();
       const currentActiveRegion = this.locationService.activeRegion();
-      this.updateDeckLayers(
-        regions,
-        currentActiveRegion?.id ?? '',
-        this.locationService.amenities(),
-      );
+      const amenitiesEnabled = this.locationService.amenitiesEnabled();
+      const amenities = amenitiesEnabled ? this.locationService.allAmenities() : [];
+      this.updateDeckLayers(regions, currentActiveRegion?.id ?? '');
+      this.syncAmenityMarkers(amenities);
       const center = this.map.getCenter();
       this.locationService.setViewCenter(center.lat, center.lng);
     });
@@ -254,11 +246,149 @@ export class MapComponent implements OnInit, OnDestroy {
     };
   }
 
-  private updateDeckLayers(
-    regions: RegionOfInterest[],
-    activeRegionId: string,
-    amenities: NearbyAmenity[],
-  ): void {
+  private syncAmenityMarkers(amenities: NearbyAmenity[]): void {
+    this.clearAmenityMarkers();
+
+    if (!this.map) {
+      return;
+    }
+
+    for (const amenity of amenities) {
+      const element = createAmenityMarkerElement(getAmenityIcon(amenity.type), amenity.name);
+      this.bindAmenityMarkerHover(element, amenity);
+
+      const marker = new Marker({ element, anchor: 'bottom' })
+        .setLngLat([amenity.lng, amenity.lat])
+        .addTo(this.map);
+
+      this.amenityMarkerEntries.push({ marker, element, amenity });
+    }
+
+    this.applyAmenityMarkerZoomMode();
+  }
+
+  private clearAmenityMarkers(): void {
+    this.hideAmenityPopupImmediate();
+
+    for (const entry of this.amenityMarkerEntries) {
+      entry.marker.remove();
+    }
+    this.amenityMarkerEntries = [];
+  }
+
+  private applyAmenityMarkerZoomMode(): void {
+    if (!this.map || this.amenityMarkerEntries.length === 0) {
+      return;
+    }
+
+    const display = amenityMarkerDisplayForZoom(this.map.getZoom());
+    if (display !== 'pin') {
+      this.hideAmenityPopupImmediate();
+    }
+
+    for (const entry of this.amenityMarkerEntries) {
+      setAmenityMarkerDisplay(entry.element, display);
+      entry.marker.getElement().style.pointerEvents = display === 'hidden' ? 'none' : '';
+      entry.element.tabIndex = display === 'pin' ? 0 : -1;
+    }
+  }
+
+  private bindAmenityMarkerHover(element: HTMLDivElement, amenity: NearbyAmenity): void {
+    const showPopup = (): void => {
+      if (element.dataset['display'] !== 'pin') {
+        return;
+      }
+      this.cancelAmenityPopupHide();
+
+      if (this.amenityHoverPopup && this.amenityHoverPopupAmenityId === amenity.id) {
+        return;
+      }
+
+      this.hideAmenityPopupImmediate();
+      this.amenityHoverPopup = new Popup({
+        closeButton: false,
+        closeOnClick: false,
+        anchor: 'bottom',
+        offset: this.amenityPopupOffset,
+        className: 'amenity-map-popup',
+      })
+        .setLngLat([amenity.lng, amenity.lat])
+        .setHTML(this.amenityPopupHtml(amenity))
+        .addTo(this.map);
+      this.amenityHoverPopupAmenityId = amenity.id;
+      this.attachAmenityPopupHoverHandlers();
+    };
+
+    element.addEventListener('mouseenter', showPopup);
+    element.addEventListener('mouseleave', () => this.scheduleAmenityPopupHide());
+    element.addEventListener('focus', showPopup);
+    element.addEventListener('blur', () => this.scheduleAmenityPopupHide());
+  }
+
+  private attachAmenityPopupHoverHandlers(): void {
+    const popupElement = this.amenityHoverPopup?.getElement();
+    if (!popupElement) {
+      return;
+    }
+
+    popupElement.addEventListener('mouseenter', () => this.cancelAmenityPopupHide());
+    popupElement.addEventListener('mouseleave', () => this.scheduleAmenityPopupHide());
+  }
+
+  private cancelAmenityPopupHide(): void {
+    if (this.amenityPopupHideTimer) {
+      clearTimeout(this.amenityPopupHideTimer);
+      this.amenityPopupHideTimer = null;
+    }
+  }
+
+  private scheduleAmenityPopupHide(): void {
+    this.cancelAmenityPopupHide();
+    this.amenityPopupHideTimer = setTimeout(() => {
+      this.amenityPopupHideTimer = null;
+      this.hideAmenityPopupImmediate();
+    }, this.amenityPopupHideDelayMs);
+  }
+
+  private hideAmenityPopupImmediate(): void {
+    this.cancelAmenityPopupHide();
+    this.amenityHoverPopup?.remove();
+    this.amenityHoverPopup = null;
+    this.amenityHoverPopupAmenityId = null;
+  }
+
+  private amenityPopupHtml(amenity: NearbyAmenity): string {
+    const address = amenity.address || this.translate.instant('regions.noAddress');
+    const distance = this.translate.instant('regions.distanceAway', {
+      distance: Math.round(amenity.distanceMeters),
+    });
+    const name = this.escapeHtml(amenity.name);
+    const addressHtml = this.escapeHtml(address);
+    const typeHtml = this.escapeHtml(amenity.type);
+    const distanceHtml = this.escapeHtml(distance);
+
+    return `
+      <div class="amenity-map-popup-body">
+        <div class="amenity-map-popup-name">${name}</div>
+        <div class="amenity-map-popup-address">${addressHtml}</div>
+        <div class="amenity-map-popup-meta">
+          <span class="amenity-map-popup-type">${typeHtml}</span>
+          <span class="amenity-map-popup-distance">${distanceHtml}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  private updateDeckLayers(regions: RegionOfInterest[], activeRegionId: string): void {
     const circleData = regions.map((region) => {
       const baseColor = this.hexToRgb(region.color);
       const isActive = region.id === activeRegionId;
@@ -310,21 +440,6 @@ export class MapComponent implements OnInit, OnDestroy {
         radiusUnits: 'pixels',
         filled: true,
         pickable: false,
-      }),
-      new IconLayer<NearbyAmenity>({
-        id: 'amenity-icons',
-        data: amenities,
-        getPosition: (amenity) => [amenity.lng, amenity.lat],
-        getIcon: (amenity) => ({
-          url: getAmenityIcon(amenity.type),
-          width: 128,
-          height: 128,
-          mask: true,
-        }),
-        getSize: 50,
-        getColor: [216, 35, 42, 255],
-        sizeUnits: 'pixels',
-        pickable: true,
       }),
     ];
 

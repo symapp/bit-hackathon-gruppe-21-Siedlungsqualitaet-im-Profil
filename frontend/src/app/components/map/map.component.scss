@@ -6,6 +6,144 @@
   left: 0;
 }
 
+:host ::ng-deep .amenity-map-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.28));
+  transition: transform 0.12s ease;
+
+  &[data-display='hidden'] {
+    display: none;
+  }
+
+  &[data-display='dot'] .amenity-map-pin {
+    display: none;
+  }
+
+  &[data-display='pin'] .amenity-map-marker-dot {
+    display: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-2px) scale(1.06);
+    outline: none;
+  }
+
+  &[data-display='hidden']:hover,
+  &[data-display='hidden']:focus-visible {
+    transform: none;
+  }
+}
+
+:host ::ng-deep .amenity-map-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+:host ::ng-deep .amenity-map-pin-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: #fff;
+  border: 2.5px solid var(--ch-red, #d8232a);
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .amenity-map-pin-icon {
+  display: block;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  transform: rotate(45deg);
+  background-color: var(--ch-red, #d8232a);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+:host ::ng-deep .amenity-map-pin-tip {
+  width: 0;
+  height: 0;
+  margin-top: -1px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid var(--ch-red, #d8232a);
+}
+
+:host ::ng-deep .amenity-map-marker-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ch-red, #d8232a);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.35);
+}
+
+:host ::ng-deep .amenity-map-popup {
+  pointer-events: auto;
+}
+
+:host ::ng-deep .amenity-map-popup .maplibregl-popup-content {
+  padding: 10px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #ddd;
+  pointer-events: auto;
+}
+
+:host ::ng-deep .amenity-map-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: #ddd;
+}
+
+:host ::ng-deep .amenity-map-popup-body {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #111;
+}
+
+:host ::ng-deep .amenity-map-popup-name {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+:host ::ng-deep .amenity-map-popup-address {
+  color: #666;
+  margin-bottom: 6px;
+}
+
+:host ::ng-deep .amenity-map-popup-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #eee;
+  padding-top: 6px;
+}
+
+:host ::ng-deep .amenity-map-popup-type {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 2px;
+  text-transform: capitalize;
+}
+
+:host ::ng-deep .amenity-map-popup-distance {
+  font-weight: 600;
+  color: var(--ch-red, #d8232a);
+}
+
 @media (max-width: 768px) {
   :host ::ng-deep .maplibregl-ctrl-top-left {
     top: calc(64px + env(safe-area-inset-top, 0px));
